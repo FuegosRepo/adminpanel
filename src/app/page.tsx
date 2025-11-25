@@ -11,13 +11,14 @@ import FinancialReports from '@/components/FinancialReports/FinancialReports'
 import EventsCalendar from '@/components/EventsCalendar/EventsCalendar'
 import EventReminders from '@/components/EventReminders/EventReminders'
 import PriceManager from '@/components/PriceManager/PriceManager'
+import BudgetsManager from '@/components/BudgetsManager/BudgetsManager'
 import { CateringOrder, FilterOptions, EmailTemplate, CalendarEvent, PaymentInfo } from '@/types'
 import { emailTemplates } from '@/data/mockData'
 import { supabase } from '@/lib/supabaseClient'
-import { List, DollarSign, BarChart3, Calendar, Bell, Euro } from 'lucide-react'
+import { List, DollarSign, BarChart3, Calendar, Bell, Euro, FileText } from 'lucide-react'
 import styles from './page.module.css'
 
-type TabType = 'orders' | 'payments' | 'reports' | 'calendar' | 'reminders' | 'prices'
+type TabType = 'orders' | 'payments' | 'reports' | 'calendar' | 'reminders' | 'prices' | 'budgets'
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<TabType>('orders')
@@ -273,7 +274,8 @@ export default function AdminPanel() {
     { id: 'reports' as TabType, label: 'Reportes', icon: BarChart3 },
     { id: 'calendar' as TabType, label: 'Calendario', icon: Calendar },
     { id: 'reminders' as TabType, label: 'Recordatorios', icon: Bell },
-    { id: 'prices' as TabType, label: 'Precios', icon: Euro }
+    { id: 'prices' as TabType, label: 'Precios', icon: Euro },
+    { id: 'budgets' as TabType, label: 'Presupuestos', icon: FileText }
   ]
 
   const renderTabContent = () => {
@@ -353,6 +355,8 @@ export default function AdminPanel() {
         return <EventReminders orders={orders} />
       case 'prices':
         return <PriceManager />
+      case 'budgets':
+        return <BudgetsManager />
       default:
         return null
     }
