@@ -2298,7 +2298,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
                 <div className={styles.noOrders}>
                   <p>No hay pedidos aprobados disponibles.</p>
                   <p className={styles.noOrdersSubtext}>
-                    Los pedidos deben estar en estado "Aprobado" y tener fecha de evento.
+                    Los pedidos deben estar en estado &quot;Aprobado&quot; y tener fecha de evento.
                   </p>
                 </div>
               ) : (
