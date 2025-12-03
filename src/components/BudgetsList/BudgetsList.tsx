@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { FileText, Eye, Clock, CheckCircle, Send, XCircle } from 'lucide-react'
+import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2 } from 'lucide-react'
 import './BudgetsList.css'
 
 interface Budget {
@@ -87,6 +87,30 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
     return budget.status === filter
   })
 
+  const handleDeleteBudget = async (e: React.MouseEvent, budgetId: string) => {
+    e.stopPropagation() // Evitar que se abra el editor
+    
+    if (!window.confirm('⚠️ ¿Estás seguro de eliminar este presupuesto PERMANENTEMENTE?')) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('budgets')
+        .delete()
+        .eq('id', budgetId)
+
+      if (error) throw error
+
+      // Actualizar lista local
+      setBudgets(prev => prev.filter(b => b.id !== budgetId))
+      
+    } catch (error) {
+      console.error('Error eliminando:', error)
+      alert('❌ Error al eliminar el presupuesto')
+    }
+  }
+
   if (loading) {
     return (
       <div className="budgets-list-loading">
@@ -110,6 +134,41 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
           <span className="stat">
             Enviados: <strong>{budgets.filter(b => b.status === 'sent').length}</strong>
           </span>
+          <button
+            className="create-manual-btn"
+            onClick={async () => {
+              try {
+                const { data, error } = await supabase
+                  .from('budgets')
+                  .insert({
+                    status: 'draft',
+                    budget_data: {
+                      clientInfo: {
+                        name: '', email: '', phone: '', eventType: '', eventDate: '', guestCount: 0, address: '', menuType: 'dejeuner'
+                      },
+                      menu: { pricePerPerson: 0, totalPersons: 0, totalHT: 0, tvaPct: 10, tva: 0, totalTTC: 0 },
+                      service: null,
+                      material: { items: [], insurancePct: 6, insuranceAmount: 0, tvaPct: 20, totalHT: 0, tva: 0, totalTTC: 0 },
+                      deliveryReprise: { deliveryCost: 0, pickupCost: 0, tvaPct: 20, totalHT: 0, tva: 0, totalTTC: 0 },
+                      boissonsSoft: { pricePerPerson: 0, totalPersons: 0, totalHT: 0, tva: 0, tvaPct: 20, totalTTC: 0 },
+                      deplacement: null,
+                      totals: { totalHT: 0, totalTVA: 0, totalTTC: 0, discount: { percentage: 0, amount: 0, reason: '' } },
+                      validUntil: new Date(Date.now() + 14*24*60*60*1000).toISOString(),
+                      generatedBy: 'manual'
+                    }
+                  })
+                  .select()
+                  .single()
+
+                if (error || !data) throw error || new Error('No se pudo crear presupuesto manual')
+                onSelectBudget(data.id)
+              } catch (err) {
+                alert('Error creando presupuesto manual')
+              }
+            }}
+          >
+            ➕ Crear Presupuesto Manual
+          </button>
         </div>
       </div>
 
@@ -159,7 +218,16 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
                     {getStatusIcon(budget.status)}
                     <span>{getStatusLabel(budget.status)}</span>
                   </div>
-                  <span className="budget-version">v{budget.version}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="budget-version">v{budget.version}</span>
+                    <button 
+                      className="btn-delete-card"
+                      onClick={(e) => handleDeleteBudget(e, budget.id)}
+                      title="Eliminar presupuesto"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="budget-card-body">

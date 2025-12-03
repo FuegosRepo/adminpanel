@@ -115,7 +115,7 @@ export default function AdminPanel() {
       // Filtro de búsqueda
       if (filters.searchTerm) {
         const searchTerm = filters.searchTerm.toLowerCase()
-        const matchesSearch = 
+        const matchesSearch =
           order.contact.name.toLowerCase().includes(searchTerm) ||
           order.contact.email.toLowerCase().includes(searchTerm)
         if (!matchesSearch) return false
@@ -148,11 +148,11 @@ export default function AdminPanel() {
   const handleStatusChange = async (orderId: string, newStatus: CateringOrder['status']) => {
     try {
       console.log('🔄 Cambiando estado del pedido:', { orderId, newStatus })
-      
+
       // Actualizar en la base de datos
       const { data, error } = await supabase
         .from('catering_orders')
-        .update({ 
+        .update({
           status: newStatus,
           updated_at: new Date().toISOString()
         })
@@ -205,6 +205,17 @@ export default function AdminPanel() {
     )
   }
 
+  // Actualizar cualquier campo del pedido
+  const handleUpdateOrder = (orderId: string, updates: Partial<CateringOrder>) => {
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order.id === orderId
+          ? { ...order, ...updates, updatedAt: new Date().toISOString() }
+          : order
+      )
+    )
+  }
+
   // Manejar selección de pedidos
   const handleOrderSelection = (orderId: string, isSelected: boolean) => {
     setSelectedOrders(prev =>
@@ -252,7 +263,7 @@ export default function AdminPanel() {
 
       console.log('✅ Email enviado correctamente:', data)
       alert('Email enviado correctamente')
-      
+
       // Cerrar modal después del envío exitoso
       handleCloseEmailModal()
     } catch (error) {
@@ -290,7 +301,7 @@ export default function AdminPanel() {
     }
 
     const selectedOrdersData = orders.filter(order => selectedOrders.includes(order.id))
-    
+
     if (!confirm(`¿Enviar ${template.name} a ${selectedOrdersData.length} cliente(s)?`)) {
       return
     }
@@ -332,6 +343,18 @@ export default function AdminPanel() {
     setSelectedOrders([])
   }
 
+  // Eliminar evento del calendario
+  const handleDeleteEvent = async (eventId: string) => {
+    if (eventId.startsWith('manual-')) {
+      setManualEvents(prev => prev.filter(e => e.id !== eventId))
+    } else if (eventId.startsWith('event-')) {
+      const orderId = eventId.replace('event-', '')
+      if (confirm('Este evento está vinculado a un pedido. ¿Deseas cancelar el pedido?')) {
+        await handleStatusChange(orderId, 'rejected')
+      }
+    }
+  }
+
   const tabs = [
     { id: 'orders' as TabType, label: 'Pedidos', icon: List },
     { id: 'payments' as TabType, label: 'Pagos', icon: DollarSign },
@@ -364,18 +387,18 @@ export default function AdminPanel() {
                   />
                   Seleccionar todos ({filteredOrders.length})
                 </label>
-                
+
                 <span className={styles.bulkActionsText}>
                   {selectedOrders.length} pedido(s) seleccionado(s)
                 </span>
-                
+
                 <button
                   className={styles.bulkButton}
                   onClick={() => handleBulkEmail('payment_reminder')}
                 >
                   📧 Recordatorio de Pago
                 </button>
-                
+
                 <button
                   className={styles.bulkButton}
                   onClick={() => handleBulkEmail('quote_update')}
@@ -404,6 +427,7 @@ export default function AdminPanel() {
                     onSendEmail={handleOpenEmailModal}
                     onViewDetails={handleOpenDetails}
                     onSelectionChange={handleOrderSelection}
+                    onUpdateOrder={handleUpdateOrder}
                   />
                 ))}
               </div>
@@ -415,7 +439,12 @@ export default function AdminPanel() {
       case 'reports':
         return <FinancialReports orders={orders} />
       case 'calendar':
-        return <EventsCalendar orders={orders} manualEvents={manualEvents} onAddEvent={handleAddEvent} />
+        return <EventsCalendar
+          orders={orders}
+          manualEvents={manualEvents}
+          onAddEvent={handleAddEvent}
+          onDeleteEvent={handleDeleteEvent}
+        />
       case 'reminders':
         return <EventReminders orders={orders} />
       case 'prices':
@@ -433,7 +462,7 @@ export default function AdminPanel() {
     <div className={styles.container}>
       <div className={styles.main}>
         <Header orders={orders} />
-        
+
         {/* Navegación por pestañas */}
         <div className={styles.tabNavigation}>
           {tabs.map(tab => {
@@ -450,7 +479,7 @@ export default function AdminPanel() {
             )
           })}
         </div>
-        
+
         <div className={styles.content}>
           {renderTabContent()}
         </div>

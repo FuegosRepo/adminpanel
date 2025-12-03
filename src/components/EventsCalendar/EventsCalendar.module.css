@@ -242,6 +242,11 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.selectedEvent {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
 .eventItem.scheduled {
   border-left: 4px solid #3b82f6;
 }
@@ -701,4 +706,23 @@
 
 .closeButton:hover {
   background: #4b5563;
+}
+.deleteEventBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deleteEventBtn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
 }

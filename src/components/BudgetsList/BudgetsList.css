@@ -22,6 +22,22 @@
   gap: 20px;
 }
 
+.create-manual-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #e2943a;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.create-manual-btn:hover {
+  background-color: #d18634;
+  transform: translateY(-2px);
+}
+
 .stat {
   padding: 8px 16px;
   background-color: #f9fafb;
@@ -140,6 +156,24 @@
   font-size: 12px;
   font-weight: 600;
   color: #6b7280;
+}
+
+.btn-delete-card {
+  background: none;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  color: #ef4444;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete-card:hover {
+  background-color: #ef4444;
+  color: white;
 }
 
 .budget-card-body {

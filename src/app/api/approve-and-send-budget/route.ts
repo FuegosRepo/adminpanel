@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import fs from 'fs'
+import path from 'path'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -113,6 +115,29 @@ export async function POST(request: NextRequest) {
       const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev'
       const fromName = process.env.EMAIL_FROM_NAME || "Fuegos d'Azur"
 
+      // Cargar logo para adjuntar como inline image
+      let logoAttachment = null
+      let logoCid = null
+      try {
+        // Intentar cargar el logo desde src/lib/minilogo.webp
+        const logoPath = path.join(process.cwd(), 'src', 'lib', 'minilogo.webp')
+        if (fs.existsSync(logoPath)) {
+          const logoBuffer = fs.readFileSync(logoPath)
+          logoCid = 'minilogo'
+          logoAttachment = {
+            filename: 'minilogo.webp',
+            content: logoBuffer.toString('base64'),
+            content_id: logoCid,
+            disposition: 'inline'
+          }
+          console.log('✅ Logo cargado para embedding')
+        } else {
+          console.warn('⚠️ No se encontró el logo en:', logoPath)
+        }
+      } catch (logoError) {
+        console.warn('⚠️ Error cargando logo:', logoError)
+      }
+
       const emailContent = `
         <!DOCTYPE html>
         <html>
@@ -127,9 +152,8 @@ export async function POST(request: NextRequest) {
               <p style="font-size: 16px; margin-bottom: 20px;">Nous avons le plaisir de vous envoyer votre devis personnalisé pour votre événement.</p>
               
               ${eventDate ? `<p style="font-size: 16px; margin-bottom: 20px;"><strong>Date de l'événement:</strong> ${eventDate}</p>` : ''}
-              <p style="font-size: 16px; margin-bottom: 30px;"><strong>Montant total TTC:</strong> <span style="font-size: 22px; color: #e2943a; font-weight: bold;">${totalTTC.toFixed(2)} €</span></p>
               
-              <div style="background-color: #fef3c7; border-left: 4px solid #e2943a; padding: 20px; margin: 30px 0; border-radius: 4px;">
+              <div style="background-color: #fef3c7; border-left: 4px solid #e2943a; padding: 20px; margin: 30px 0; border-radius: 8px;">
                 <p style="font-size: 16px; font-weight: 600; color: #78350f; margin-bottom: 15px;">Notre offre inclut :</p>
                 <p style="font-size: 16px; color: #78350f; margin-bottom: 10px; font-style: italic;">Une expérience gastronomique au brasero, 100 % sur mesure</p>
                 <p style="font-size: 14px; color: #78350f; margin: 0;">La préparation, Le service, et les options complémentaires demandées</p>
@@ -143,24 +167,34 @@ export async function POST(request: NextRequest) {
                 </ul>
               </div>
               
-              <p style="font-size: 16px; margin: 30px 0;">Nous restons à votre disposition pour toute modification ou précision complémentaire.</p>
-              
               <p style="font-size: 16px; margin: 30px 0;">Notre objectif est de créer une expérience aussi fluide que mémorable, parfaitement adaptée à vos attentes.</p>
               
-              <p style="font-size: 16px; margin: 30px 0;">Au plaisir de vous accompagner dans l'organisation de votre événement 🔥</p>
+              <p style="font-size: 16px; margin: 30px 0;">Au plaisir de vous accompagner dans l'organisation de votre événement</p>
+
+              <p style="font-size: 16px; margin: 30px 0;">Nous restons à votre disposition pour toute modification ou précision complémentaire.</p>
               
-              <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e5e7eb;">
-                <p style="font-size: 16px; margin-bottom: 10px;">Bien chaleureusement,</p>
-                <p style="font-size: 18px; font-weight: 600; color: #e2943a; margin-bottom: 5px;">Jeronimo Negrotto</p>
-                <p style="font-size: 18px; font-weight: 600; color: #e2943a; margin-bottom: 15px;">Fuegos d'Azur</p>
-                <p style="font-size: 14px; color: #6b7280; font-style: italic; letter-spacing: 1px;">Authenticité — Élégance — Feu</p>
+              <div style="margin-top: 40px; padding: 30px; background-color: #1f2937; color: white; border-radius: 8px;">
+                <div style="margin-bottom: 20px;">
+                    <p style="font-size: 16px; margin-bottom: 10px; color: white;">Bien chaleureusement,</p>
+                    <p style="font-size: 18px; font-weight: 600; color: #e2943a; margin-bottom: 5px;">Jeronimo Negrotto</p>
+                    <p style="font-size: 18px; font-weight: 600; color: #e2943a; margin-bottom: 15px;">Fuegos d'Azur</p>
+                    <p style="font-size: 14px; color: #9ca3af; font-style: italic; letter-spacing: 1px; margin-bottom: 0;">Authenticité — Élégance — Feu</p>
+                </div>
+                
+                <hr style="border: none; border-top: 1px solid #374151; margin: 20px 0;">
+                
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td valign="middle" width="80" style="padding-right: 15px;">
+                            ${logoCid ? `<img src="cid:${logoCid}" alt="Fuegos d'Azur" width="70" style="display: block;" />` : ''}
+                        </td>
+                        <td valign="middle" style="font-size: 14px; color: #e5e7eb;">
+                            Tel: 07 50 85 35 99 • 06 70 65 97 84<br>
+                            Email: fuegosdazur@proton.me
+                        </td>
+                    </tr>
+                </table>
               </div>
-              
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-              <p style="font-size: 12px; color: #6b7280; text-align: center;">
-                Tel: 07 50 85 35 99 • 06 70 65 97 84<br>
-                Email: fuegosdazur@proton.me
-              </p>
             </div>
           </div>
         </body>
@@ -171,23 +205,28 @@ export async function POST(request: NextRequest) {
         from: `${fromName} <${fromEmail}>`,
         to: ['fuegosdazur@proton.me'], // Enviar solo al email de prueba por ahora
         subject: `Votre Devis Fuegos d'Azur - ${totalTTC.toFixed(2)}€ (Cliente: ${clientEmail})`,
-        html: emailContent
+        html: emailContent,
+        attachments: []
       }
 
       // Agregar PDF como adjunto si está disponible
       if (pdfBuffer) {
         const filename = budget.pdf_url.split('/').pop()?.split('?')[0] || 'devis.pdf'
         // Resend espera el adjunto en base64 o como Buffer
-        emailOptions.attachments = [
-          {
-            filename: filename,
-            content: pdfBuffer.toString('base64'),
-            type: 'application/pdf'
-          }
-        ]
+        emailOptions.attachments.push({
+          filename: filename,
+          content: pdfBuffer.toString('base64'),
+          type: 'application/pdf'
+        })
         console.log(`📎 Adjuntando PDF: ${filename} (${pdfBuffer.length} bytes)`)
       } else {
         console.warn('⚠️ No se pudo descargar el PDF para adjuntarlo')
+      }
+
+      // Agregar logo como adjunto inline
+      if (logoAttachment) {
+        emailOptions.attachments.push(logoAttachment)
+        console.log('📎 Adjuntando logo inline')
       }
 
       console.log(`📧 Enviando email a ${clientEmail}...`)
@@ -263,4 +302,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

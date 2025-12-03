@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Product, CateringOrder, EventCalculation, EventCalculationIngredient, EventCalculationNote, EventCalculationVersion, EventCalculationStats } from '@/types'
 import { supabase } from '@/lib/supabaseClient'
-import { 
-  Plus, X, Download, Calculator, Users, Trash2, ChevronDown, ChevronUp, 
-  CheckSquare, Square, Save, History, Calendar, BarChart3, FileText, 
-  StickyNote, Eye, Copy, Filter, Search, TrendingUp, Clock, AlertCircle, List, RefreshCw, CheckCircle2, Wrench
+import {
+  Plus, X, Download, Calculator, Users, Trash2, ChevronDown, ChevronUp,
+  CheckSquare, Square, Save, History, Calendar, BarChart3, FileText,
+  StickyNote, Eye, Copy, Filter, Search, TrendingUp, Clock, AlertCircle, List, RefreshCw, CheckCircle2, Wrench, Share2, ChevronRight
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
@@ -76,17 +76,18 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
   })
   const [eventVersions, setEventVersions] = useState<{ [key: string]: EventCalculationVersion[] }>({})
   const [eventNotes, setEventNotes] = useState<{ [key: string]: EventCalculationNote[] }>({})
+  const [showSummary, setShowSummary] = useState(false)
 
   // Filtrar pedidos aprobados con fecha de evento
-  const availableOrders = orders.filter(order => 
-    order.status === 'approved' && 
+  const availableOrders = orders.filter(order =>
+    order.status === 'approved' &&
     order.contact.eventDate &&
     order.contact.guestCount > 0
   )
 
   // Productos disponibles (sin combos) - solo para el selector de agregar ingredientes
   const availableProducts = products.filter(p => !p.is_combo && p.active)
-  
+
   // TODOS los productos (incluyendo combos) para búsqueda desde pedidos
   const allProducts = products.filter(p => p.active)
 
@@ -171,17 +172,17 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
   const convertToDisplayUnit = (product: Product, quantity: number): { value: number, unit: string } => {
     // Primero determinar la unidad de visualización
     const displayUnit = getDisplayUnit(product, quantity)
-    
+
     // Si la unidad de visualización es "gr", convertir de kg a gr
     if (displayUnit === 'gr') {
       return { value: quantity * 1000, unit: 'gr' }
     }
-    
+
     // Si la unidad de visualización es "kg", usar el valor tal cual
     if (displayUnit === 'kg') {
       return { value: quantity, unit: 'kg' }
     }
-    
+
     // Para otras unidades (unidad, porcion), usar el valor tal cual
     return { value: quantity, unit: displayUnit }
   }
@@ -198,12 +199,12 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       // Si es < 1 kg, mostrar en gr
       return { value: quantity * 1000, unit: 'gr' }
     }
-    
+
     // Para productos con unit_type 'unidad', siempre mostrar en unidad
     if (product.unit_type === 'unidad') {
       return { value: quantity, unit: 'unidad' }
     }
-    
+
     // Para productos con unit_type 'porcion'
     if (product.unit_type === 'porcion') {
       // Si tiene portion_per_person con "gr" y la cantidad es < 1 kg, mostrar en gr
@@ -220,7 +221,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       // De lo contrario, mostrar en porcion
       return { value: quantity, unit: 'porcion' }
     }
-    
+
     // Por defecto, usar el unit_type del producto
     return { value: quantity, unit: product.unit_type }
   }
@@ -228,13 +229,13 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
   // Función para obtener el valor a mostrar en el input según la unidad de visualización
   const getInputValue = (product: Product, quantityInKg: number): number => {
     const displayUnit = getDisplayUnit(product, quantityInKg)
-    
+
     // Si la unidad de visualización es "gr", convertir de kg a gr
     // Esto aplica tanto para productos con unit_type 'kg' como 'porcion' que tienen "gr" en portion_per_person
     if (displayUnit === 'gr') {
       return quantityInKg * 1000
     }
-    
+
     // Para otros casos (kg, unidad, porcion sin gr), usar el valor tal cual
     return quantityInKg
   }
@@ -245,7 +246,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
     if (displayUnit === 'gr') {
       return inputValue / 1000
     }
-    
+
     // Para otros casos (kg, unidad, porcion), usar el valor tal cual
     return inputValue
   }
@@ -258,7 +259,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
   const loadEvents = async () => {
     try {
       setLoading(true)
-      
+
       // Cargar eventos calculados
       const { data: calculations, error } = await supabase
         .from('event_calculations')
@@ -299,13 +300,13 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
         // Mapear datos
         console.log(`📊 Total de eventos encontrados: ${calculations.length}`)
         console.log(`📊 Total de ingredientes encontrados: ${ingredients?.length || 0}`)
-        
+
         const mappedEvents: Event[] = calculations.map(calc => {
           const allEventIngredients = (ingredients || [])
             .filter(ing => ing.event_calculation_id === calc.id)
-          
+
           console.log(`🔍 Evento "${calc.name}" (ID: ${calc.id}) tiene ${allEventIngredients.length} ingredientes en BD`)
-          
+
           const eventIngredients: EventIngredient[] = allEventIngredients
             .map(ing => {
               const product = ing.product as Product
@@ -322,14 +323,14 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
               } as EventIngredient
             })
             .filter((ing): ing is EventIngredient => ing !== null) // Filtrar nulls
-          
-          console.log(`📦 Cargando evento "${calc.name}" con ${eventIngredients.length} ingredientes válidos:`, 
+
+          console.log(`📦 Cargando evento "${calc.name}" con ${eventIngredients.length} ingredientes válidos:`,
             eventIngredients.map(i => i ? `${i.product.name} (${i.quantityPerPerson})` : 'NULL').join(', '))
-          
+
           if (eventIngredients.length === 0) {
             console.warn(`⚠️ Evento "${calc.name}" no tiene ingredientes válidos cargados`)
           }
-          
+
           if (allEventIngredients.length > eventIngredients.length) {
             console.warn(`⚠️ Evento "${calc.name}" tiene ${allEventIngredients.length - eventIngredients.length} ingredientes sin producto válido`)
           }
@@ -384,7 +385,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
 
     const normalizedInput = itemName.toLowerCase().trim()
     console.log(`🔎 Buscando producto: "${itemName}" (normalizado: "${normalizedInput}")`)
-    
+
     // Mapeo completo de nombres del formulario a nombres en la BD
     const nameMapping: { [key: string]: string[] } = {
       'empanadas': ['empanadas', 'empanada'],
@@ -405,10 +406,10 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
 
     // Estrategia 1: Buscar en el mapeo directo
     const mappedNames = nameMapping[normalizedInput] || [normalizedInput]
-    
+
     // Estrategia 2: Buscar coincidencia exacta o parcial
     for (const mappedName of mappedNames) {
-      const exactMatch = allProducts.find(p => 
+      const exactMatch = allProducts.find(p =>
         p.name.toLowerCase() === mappedName.toLowerCase()
       )
       if (exactMatch) {
@@ -459,12 +460,12 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
     const similarityMatch = allProducts.find(p => {
       const productName = p.name.toLowerCase()
       const productWords = productName.split(/[-_\s]+/).filter(w => w.length > 2)
-      
+
       // Verificar si hay palabras comunes (más estricto)
-      const commonWords = inputWords.filter(iw => 
+      const commonWords = inputWords.filter(iw =>
         productWords.some(pw => pw.includes(iw) || iw.includes(pw) || pw === iw)
       )
-      
+
       // Si al menos una palabra coincide, es un match
       return commonWords.length > 0
     })
@@ -472,7 +473,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       console.log(`✅ Encontrado por similitud: "${itemName}" → "${similarityMatch.name}" (activo: ${similarityMatch.active})`)
       return similarityMatch
     }
-    
+
     // Estrategia 7: Búsqueda muy flexible - solo por palabras clave principales
     // Para "miniburger" buscar "burger", para "entrecote-argentine" buscar "entrecot" y "arg"
     if (normalizedInput.includes('burger') || normalizedInput.includes('miniburger')) {
@@ -485,7 +486,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
         return burgerMatch
       }
     }
-    
+
     if (normalizedInput.includes('entrecot') || normalizedInput.includes('entrecote')) {
       const entrecotMatch = allProducts.find(p => {
         const productName = p.name.toLowerCase()
@@ -506,9 +507,9 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
     }
 
     // Si no se encuentra, loguear para debugging
-    console.warn(`⚠️ Producto no encontrado: "${itemName}". Productos disponibles (activos):`, 
+    console.warn(`⚠️ Producto no encontrado: "${itemName}". Productos disponibles (activos):`,
       allProducts.map(p => `${p.name}${p.is_combo ? ' (combo)' : ''}`).join(', '))
-    
+
     return undefined
   }
 
@@ -516,7 +517,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
   const saveEvent = async (event: Event, changeType: 'created' | 'updated' | 'duplicated' | 'restored' = 'updated') => {
     try {
       setSaving(event.id)
-      
+
       const costs = calculateEventCost(event)
       const totalIngredients = event.ingredients.length
 
@@ -597,9 +598,9 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
 
         // Insertar ingredientes nuevos
         if (event.ingredients.length > 0) {
-          console.log(`💾 Guardando ${event.ingredients.length} ingredientes para evento ${event.name}:`, 
+          console.log(`💾 Guardando ${event.ingredients.length} ingredientes para evento ${event.name}:`,
             event.ingredients.map(i => `${i.product.name} (${i.quantityPerPerson})`).join(', '))
-          
+
           const ingredientsToInsert = event.ingredients.map((ing, index) => {
             if (!ing.product || !ing.product.id) {
               console.error(`❌ Ingrediente sin producto válido en índice ${index}:`, ing)
@@ -634,7 +635,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
             console.error('❌ Ingredientes que se intentaron guardar:', ingredientsToInsert)
             throw ingError
           }
-          
+
           console.log(`✅ ${insertedData?.length || ingredientsToInsert.length} ingredientes guardados exitosamente`)
         } else {
           console.warn('⚠️ El evento no tiene ingredientes para guardar')
@@ -644,8 +645,8 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
         await calculateAndSaveStats(eventDbId, event)
 
         // Actualizar estado local
-        setEvents(prev => prev.map(e => 
-          e.id === event.id 
+        setEvents(prev => prev.map(e =>
+          e.id === event.id
             ? { ...e, dbId: eventDbId, isSaved: true, versionNumber: e.versionNumber + 1 }
             : e
         ))
@@ -662,7 +663,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
   const calculateAndSaveStats = async (eventDbId: string, event: Event) => {
     try {
       const costs = calculateEventCost(event)
-      
+
       // Agrupar por categoría
       const costByCategory: { [key: string]: number } = {}
       const ingredientsByCategory: { [key: string]: number } = {}
@@ -670,13 +671,13 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       event.ingredients.forEach(ing => {
         const category = ing.product.category
         const cost = ing.product.price_per_portion * ing.quantityPerPerson * event.guestCount
-        
+
         costByCategory[category] = (costByCategory[category] || 0) + cost
         ingredientsByCategory[category] = (ingredientsByCategory[category] || 0) + 1
       })
 
       // Encontrar ingrediente más caro y más usado
-      const mostExpensive = costs.ingredientCosts.reduce((max, item) => 
+      const mostExpensive = costs.ingredientCosts.reduce((max, item) =>
         item.cost > max.cost ? item : max, costs.ingredientCosts[0] || { product: {} as Product, quantity: 0, cost: 0 }
       )
 
@@ -722,20 +723,20 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
   const createEventFromOrder = (order: CateringOrder): Event => {
     const ingredients: EventIngredient[] = []
     const notFoundItems: string[] = []
-    
+
     console.log('🔍 Creando evento desde pedido:', {
       orderId: order.id,
       entrees: order.entrees,
       viandes: order.viandes,
       dessert: order.dessert
     })
-    
+
     // Procesar entrantes
     order.entrees.forEach((entree, index) => {
       const product = findProductByName(entree)
       if (product) {
         // Usar portion_per_person del producto si está disponible
-        const quantityPerPerson = product.portion_per_person 
+        const quantityPerPerson = product.portion_per_person
           ? parsePortionPerPerson(product.portion_per_person)
           : 1
         ingredients.push({
@@ -756,7 +757,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       const product = findProductByName(viande)
       if (product) {
         // Usar portion_per_person del producto si está disponible
-        const quantityPerPerson = product.portion_per_person 
+        const quantityPerPerson = product.portion_per_person
           ? parsePortionPerPerson(product.portion_per_person)
           : 1
         ingredients.push({
@@ -777,7 +778,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       const product = findProductByName(order.dessert)
       if (product) {
         // Usar portion_per_person del producto si está disponible
-        const quantityPerPerson = product.portion_per_person 
+        const quantityPerPerson = product.portion_per_person
           ? parsePortionPerPerson(product.portion_per_person)
           : 1
         ingredients.push({
@@ -802,7 +803,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
     const eventName = `${order.contact.eventType} - ${order.contact.name} (${new Date(order.contact.eventDate).toLocaleDateString()})`
 
     console.log(`✅ Evento creado con ${ingredients.length} ingredientes:`, ingredients.map(i => i.product.name).join(', '))
-    
+
     if (ingredients.length === 0) {
       console.error('⚠️ ADVERTENCIA: El evento no tiene ingredientes!', {
         entrees: order.entrees,
@@ -849,10 +850,10 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
 
     try {
       setSaving(eventId)
-      
+
       // Crear un nuevo evento desde el pedido (esto incluirá todos los ingredientes)
       const repairedEvent = createEventFromOrder(originalOrder)
-      
+
       // Mantener el ID y datos del evento existente
       const updatedEvent: Event = {
         ...event,
@@ -866,7 +867,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
 
       // Guardar en BD
       await saveEvent(updatedEvent, 'updated')
-      
+
       setSuccessMessage(`✅ Evento reparado. Se agregaron ${repairedEvent.ingredients.length - event.ingredients.length} ingredientes faltantes.`)
       setTimeout(() => setSuccessMessage(null), 5000)
     } catch (err) {
@@ -880,7 +881,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
 
   // Cargar eventos desde pedidos seleccionados
   const handleLoadOrdersAsEvents = async () => {
-    const ordersToLoad = availableOrders.filter(order => 
+    const ordersToLoad = availableOrders.filter(order =>
       selectedOrderIds.includes(order.id)
     )
 
@@ -903,7 +904,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
 
     // Filtrar pedidos que ya tienen eventos activos
     const ordersToCreate = ordersToLoad.filter(order => !activeOrderIds.has(order.id))
-    
+
     if (ordersToCreate.length === 0) {
       alert('Los pedidos seleccionados ya tienen eventos activos. Elimina el evento existente primero si quieres recrearlo.')
       return
@@ -924,9 +925,9 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       })
       return createEventFromOrder(order)
     })
-    
+
     console.log(`✅ ${newEvents.length} eventos nuevos creados de ${ordersToCreate.length} pedidos procesados`)
-    
+
     setEvents([...events, ...newEvents])
     setSelectedOrderIds([])
     setShowSelectOrderModal(false)
@@ -999,19 +1000,19 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
   }
 
   const toggleEventExpanded = (eventId: string) => {
-    setEvents(events.map(e => 
+    setEvents(events.map(e =>
       e.id === eventId ? { ...e, expanded: !e.expanded } : e
     ))
   }
 
   const toggleEventCosts = (eventId: string) => {
-    setEvents(events.map(e => 
+    setEvents(events.map(e =>
       e.id === eventId ? { ...e, showCosts: !e.showCosts } : e
     ))
   }
 
   const toggleEventNotes = (eventId: string) => {
-    setEvents(events.map(e => 
+    setEvents(events.map(e =>
       e.id === eventId ? { ...e, showNotes: !e.showNotes } : e
     ))
   }
@@ -1065,7 +1066,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
         try {
           // Recalcular costos
           const costs = calculateEventCost(event)
-          
+
           // Actualizar en la base de datos si el evento está guardado
           if (event.dbId) {
             // Actualizar evento principal con nuevos costos
@@ -1124,7 +1125,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       }
 
       // Actualizar eventos en memoria con nuevos costos
-      setEvents(prevEvents => 
+      setEvents(prevEvents =>
         prevEvents.map(event => {
           const costs = calculateEventCost(event)
           return {
@@ -1167,7 +1168,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
     }
 
     // Usar portion_per_person del producto si está disponible, sino usar 1 por defecto
-    const quantityPerPerson = product.portion_per_person 
+    const quantityPerPerson = product.portion_per_person
       ? parsePortionPerPerson(product.portion_per_person)
       : 1
 
@@ -1217,7 +1218,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
     }
 
     setEvents(events.map(e => e.id === eventId ? updatedEvent : e))
-    
+
     // Guardar después de un pequeño delay para no hacer demasiadas llamadas
     setTimeout(() => saveEvent(updatedEvent), 1000)
   }
@@ -1260,7 +1261,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
     events.forEach(event => {
       event.ingredients.forEach(ing => {
         const totalForEvent = ing.quantityPerPerson * event.guestCount
-        
+
         if (totals[ing.product.id]) {
           totals[ing.product.id].total += totalForEvent
         } else {
@@ -1394,13 +1395,13 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
     await saveEvent(duplicated, 'duplicated')
   }
 
-  // Generar PDF mejorado
-  const generatePDF = () => {
+  // Generar documento PDF (reutilizable)
+  const generatePDFDoc = () => {
     const doc = new jsPDF()
-    
+
     doc.setFontSize(20)
     doc.text('Lista de Compras - Eventos', 14, 22)
-    
+
     let yPos = 35
 
     // Para cada evento
@@ -1423,7 +1424,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       }
 
       const eventData = event.ingredients.map(ing => {
-        const portionInfo = ing.product.portion_per_person 
+        const portionInfo = ing.product.portion_per_person
           ? ` (Estándar: ${ing.product.portion_per_person})`
           : ''
         const perPersonDisplay = convertToDisplayUnit(ing.product, ing.quantityPerPerson)
@@ -1532,7 +1533,39 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
       styles: { fontSize: 11, fontStyle: 'bold' }
     })
 
+    return doc
+  }
+
+  // Generar PDF y descargar
+  const generatePDF = () => {
+    const doc = generatePDFDoc()
     doc.save(`lista-compras-${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
+  // Compartir PDF
+  const sharePDF = async () => {
+    try {
+      const doc = generatePDFDoc()
+      const blob = doc.output('blob')
+      const filename = `lista-compras-${new Date().toISOString().split('T')[0]}.pdf`
+      const file = new File([blob], filename, { type: 'application/pdf' })
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Lista de Compras',
+          text: 'Adjunto la lista de compras generada.',
+        })
+      } else {
+        // Fallback: Abrir en nueva pestaña
+        const blobUrl = URL.createObjectURL(blob)
+        window.open(blobUrl, '_blank')
+        alert('Tu navegador no soporta compartir archivos directamente. Se ha abierto el PDF en una nueva pestaña.')
+      }
+    } catch (err) {
+      console.error('Error sharing PDF:', err)
+      alert('Error al compartir el PDF: ' + (err instanceof Error ? err.message : String(err)))
+    }
   }
 
   // Calcular estadísticas globales
@@ -1578,50 +1611,86 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
         </div>
 
         <div className={styles.headerActions}>
-          <button
-            className={styles.selectOrderBtn}
-            onClick={() => setShowSelectOrderModal(true)}
-          >
-            <CheckSquare size={18} />
-            Seleccionar Pedidos
-          </button>
+          <div className={styles.buttonGroup}>
+            <button
+              className={styles.primaryBtn}
+              onClick={() => setShowSelectOrderModal(true)}
+              title="Seleccionar Pedidos"
+            >
+              <CheckSquare size={18} />
+              <span className={styles.btnText}>Seleccionar</span>
+            </button>
 
-          <button
-            className={styles.addEventBtn}
-            onClick={() => setShowAddEventModal(true)}
-          >
-            <Plus size={18} />
-            Evento Manual
-          </button>
+            <button
+              className={styles.secondaryBtn}
+              onClick={() => setShowAddEventModal(true)}
+              title="Crear Evento Manual"
+            >
+              <Plus size={18} />
+              <span className={styles.btnText}>Manual</span>
+            </button>
+          </div>
 
           {events.length > 0 && (
             <>
+              <div className={styles.separator} />
+
               <button
-                className={styles.regenerateCostsBtn}
+                className={styles.iconActionBtn}
                 onClick={regenerateAllCosts}
                 disabled={regeneratingCosts}
                 title="Regenerar costos de todos los eventos"
               >
                 <RefreshCw size={18} className={regeneratingCosts ? styles.spinning : ''} />
-                {regeneratingCosts ? 'Regenerando...' : 'Regenerar Costos'}
               </button>
-              <button
-                className={styles.generatePdfBtn}
-                onClick={generatePDF}
-              >
-                <Download size={18} />
-                Generar PDF
-              </button>
-              <button
-                className={styles.viewModeBtn}
-                onClick={() => setViewMode(viewMode === 'list' ? 'timeline' : viewMode === 'timeline' ? 'comparison' : viewMode === 'comparison' ? 'stats' : 'list')}
-              >
-                {viewMode === 'list' && <Calendar size={18} />}
-                {viewMode === 'timeline' && <BarChart3 size={18} />}
-                {viewMode === 'comparison' && <TrendingUp size={18} />}
-                {viewMode === 'stats' && <List size={18} />}
-                {viewMode === 'list' ? 'Timeline' : viewMode === 'timeline' ? 'Comparar' : viewMode === 'comparison' ? 'Estadísticas' : 'Lista'}
-              </button>
+
+              <div className={styles.exportGroup}>
+                <button
+                  className={styles.exportBtn}
+                  onClick={generatePDF}
+                  title="Descargar PDF"
+                >
+                  <Download size={18} />
+                </button>
+                <button
+                  className={styles.shareBtn}
+                  onClick={sharePDF}
+                  title="Compartir PDF"
+                >
+                  <Share2 size={18} />
+                </button>
+              </div>
+              
+              <div className={styles.viewToggle}>
+                <button
+                  className={`${styles.toggleBtn} ${viewMode === 'list' ? styles.active : ''}`}
+                  onClick={() => setViewMode('list')}
+                  title="Vista Lista"
+                >
+                  <List size={18} />
+                </button>
+                <button
+                  className={`${styles.toggleBtn} ${viewMode === 'timeline' ? styles.active : ''}`}
+                  onClick={() => setViewMode('timeline')}
+                  title="Vista Timeline"
+                >
+                  <BarChart3 size={18} />
+                </button>
+                <button
+                  className={`${styles.toggleBtn} ${viewMode === 'comparison' ? styles.active : ''}`}
+                  onClick={() => setViewMode('comparison')}
+                  title="Vista Comparar"
+                >
+                  <TrendingUp size={18} />
+                </button>
+                <button
+                  className={`${styles.toggleBtn} ${viewMode === 'stats' ? styles.active : ''}`}
+                  onClick={() => setViewMode('stats')}
+                  title="Vista Estadísticas"
+                >
+                  <Calculator size={18} />
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -1689,11 +1758,12 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
             {events.length === 0 ? 'No hay eventos cargados' : 'No se encontraron eventos'}
           </h3>
           <p className={styles.emptyText}>
-            {events.length === 0 
-              ? 'Selecciona pedidos existentes o crea un evento manual para calcular ingredientes'
+            {events.length === 0
+              ? <>Selecciona pedidos <strong>APROBADOS</strong> existentes o crea un evento manual para calcular ingredientes</>
               : 'Intenta ajustar los filtros de búsqueda'
             }
           </p>
+
           {events.length === 0 && (
             <div className={styles.emptyActions}>
               <button
@@ -1957,7 +2027,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
                               {event.ingredients.map(ing => {
                                 const portionFromProduct = ing.product.portion_per_person
                                 const isUsingDefault = !portionFromProduct || parsePortionPerPerson(portionFromProduct) !== ing.quantityPerPerson
-                                
+
                                 return (
                                   <tr key={ing.id}>
                                     <td className={styles.ingredientName}>
@@ -1987,7 +2057,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
                                       {(() => {
                                         const displayUnit = getDisplayUnit(ing.product, ing.quantityPerPerson)
                                         const inputValue = getInputValue(ing.product, ing.quantityPerPerson)
-                                        
+
                                         return (
                                           <>
                                             <input
@@ -2056,7 +2126,7 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
                             .filter(p => !event.ingredients.some(ing => ing.product.id === p.id))
                             .map(product => (
                               <option key={product.id} value={product.id}>
-                                {product.name} 
+                                {product.name}
                                 {product.portion_per_person && ` - ${product.portion_per_person} por persona`}
                                 {product.clarifications && ` (${product.clarifications.substring(0, 30)}...)`}
                               </option>
@@ -2071,12 +2141,20 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
               {/* Resumen General Agrupado por Categoría */}
               {filteredEvents.length > 0 && (
                 <div className={styles.summaryCard}>
-                  <h3 className={styles.summaryTitle}>
-                    <Calculator size={24} />
-                    Resumen General - Total de Compras
-                  </h3>
-                  
-                  {(() => {
+                  <div 
+                    onClick={() => setShowSummary(!showSummary)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showSummary ? '20px' : '0' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Calculator size={24} />
+                      <h3 className={styles.summaryTitle} style={{ margin: 0 }}>
+                        Resumen General - Total de Compras
+                      </h3>
+                    </div>
+                    {showSummary ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                  </div>
+
+                  {showSummary && (() => {
                     const byCategory = calculateTotalsByCategory()
                     const categoryNames: { [key: string]: string } = {
                       'entradas': 'Entradas',
@@ -2323,8 +2401,8 @@ export default function EventCalculator({ products, orders }: EventCalculatorPro
                   </div>
                   <div className={styles.ordersList}>
                     {availableOrders.map(order => (
-                      <div 
-                        key={order.id} 
+                      <div
+                        key={order.id}
                         className={`${styles.orderItem} ${selectedOrderIds.includes(order.id) ? styles.selected : ''}`}
                         onClick={() => toggleOrderSelection(order.id)}
                       >

@@ -28,7 +28,21 @@ export default function PriceManager() {
   const [selectedCombo, setSelectedCombo] = useState<Product | null>(null)
   const [comboIngredients, setComboIngredients] = useState<ComboIngredient[]>([])
   const [availableIngredients, setAvailableIngredients] = useState<Product[]>([])
+
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['entradas']))
+  const [filterMode, setFilterMode] = useState<'all' | 'combos'>('all')
+
+  const HIDE_ENTRADAS_NAMES = new Set([
+    'carne burguer',
+    'chori',
+    'chorizo',
+    'jamon',
+    'mozza',
+    'pan burguer',
+    'pan de chori',
+    'queso burguer',
+    'tomates'
+  ])
   const [newProduct, setNewProduct] = useState({
     name: '',
     category: 'entradas' as Product['category'],
@@ -50,7 +64,7 @@ export default function PriceManager() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -144,7 +158,7 @@ export default function PriceManager() {
 
   const handleSaveAll = async () => {
     const productsToSave = products.filter(p => editedProducts.has(p.id))
-    
+
     if (productsToSave.length === 0) {
       setError('No hay cambios para guardar')
       setTimeout(() => setError(null), 3000)
@@ -177,7 +191,7 @@ export default function PriceManager() {
       )
 
       const results = await Promise.all(updatePromises)
-      
+
       // Verificar si hubo errores
       const errors = results.filter(r => r.error)
       if (errors.length > 0) {
@@ -196,9 +210,6 @@ export default function PriceManager() {
     }
   }
 
-  const getProductsByCategory = (categoryId: string) => {
-    return products.filter(p => p.category === categoryId)
-  }
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev => {
@@ -210,6 +221,18 @@ export default function PriceManager() {
       }
       return newSet
     })
+  }
+
+  const getFilteredProductsByCategory = (categoryId: string) => {
+    let filtered = products.filter(p => p.category === categoryId)
+    if (categoryId === 'entradas') {
+      filtered = filtered.filter(p => !HIDE_ENTRADAS_NAMES.has(p.name.trim().toLowerCase()))
+    }
+    if (filterMode === 'combos') {
+      filtered = filtered.filter(p => p.is_combo)
+    }
+    filtered = filtered.sort((a, b) => Number(b.is_combo) - Number(a.is_combo))
+    return filtered
   }
 
   const loadComboIngredients = async (comboId: string) => {
@@ -257,12 +280,12 @@ export default function PriceManager() {
     try {
       setSelectedCombo(combo)
       setSaving('loading-ingredients')
-      
+
       await loadComboIngredients(combo.id)
 
       // Cargar productos disponibles para agregar (que no sean combos)
       setAvailableIngredients(products.filter(p => !p.is_combo && p.id !== combo.id))
-      
+
       setShowIngredientsModal(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar ingredientes')
@@ -295,14 +318,14 @@ export default function PriceManager() {
 
       // Obtener detalles del ingrediente
       const ingredient = products.find(p => p.id === ingredientId)
-      
+
       setComboIngredients(prev => [...prev, { ...data, ingredient }])
       setSuccessMessage('Ingrediente agregado correctamente')
       setTimeout(() => setSuccessMessage(null), 3000)
 
       // Recalcular precio del combo
       await recalculateComboPrice(selectedCombo.id)
-      
+
       // Recargar los datos del combo actualizado
       await loadComboIngredients(selectedCombo.id)
     } catch (err) {
@@ -363,6 +386,42 @@ export default function PriceManager() {
     }
   }
 
+  const handleUpdateIngredientPrice = async (ingredientId: string, newPrice: number) => {
+    if (!selectedCombo || newPrice < 0) return
+
+    try {
+      // Actualizar precio del producto ingrediente
+      const { error } = await supabase
+        .from('products')
+        .update({
+          price_per_portion: newPrice,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', ingredientId)
+
+      if (error) throw error
+
+      // Actualizar estado local de productos
+      setProducts(prev =>
+        prev.map(p => p.id === ingredientId ? { ...p, price_per_portion: newPrice } : p)
+      )
+
+      // Actualizar comboIngredients para reflejar el nuevo precio
+      setComboIngredients(prev =>
+        prev.map(i => i.ingredient_id === ingredientId
+          ? { ...i, ingredient: i.ingredient ? { ...i.ingredient, price_per_portion: newPrice } : undefined }
+          : i
+        )
+      )
+
+      // Recalcular precio del combo
+      await recalculateComboPrice(selectedCombo.id)
+    } catch (err) {
+      console.error('Error updating ingredient price:', err)
+      setError('Error al actualizar precio del ingrediente')
+    }
+  }
+
   const recalculateComboPrice = async (comboId: string) => {
     try {
       // Obtener ingredientes actuales
@@ -385,7 +444,7 @@ export default function PriceManager() {
       // Actualizar precio del combo
       await supabase
         .from('products')
-        .update({ 
+        .update({
           price_per_portion: Math.round(totalPrice * 100) / 100,
           updated_at: new Date().toISOString()
         })
@@ -454,7 +513,7 @@ export default function PriceManager() {
 
       // Agregar el producto a la lista
       setProducts(prev => [...prev, data])
-      
+
       // Resetear formulario
       setNewProduct({
         name: '',
@@ -468,10 +527,10 @@ export default function PriceManager() {
         clarifications: '',
         active: true
       })
-      
+
       // Cerrar modal
       setShowAddModal(false)
-      
+
       setSuccessMessage(`Producto "${data.name}" creado correctamente`)
       setTimeout(() => setSuccessMessage(null), 3000)
     } catch (err) {
@@ -505,6 +564,26 @@ export default function PriceManager() {
         </div>
 
         <div className={styles.headerActions}>
+          <div className={styles.segmentedToggle} role="tablist" aria-label="Filtro de productos">
+            <button
+              role="tab"
+              aria-selected={filterMode === 'all'}
+              className={`${styles.segmentBtn} ${filterMode === 'all' ? styles.segmentActive : ''}`}
+              onClick={() => setFilterMode('all')}
+              disabled={saving !== null}
+            >
+              Ver todo
+            </button>
+            <button
+              role="tab"
+              aria-selected={filterMode === 'combos'}
+              className={`${styles.segmentBtn} ${filterMode === 'combos' ? styles.segmentActive : ''}`}
+              onClick={() => setFilterMode('combos')}
+              disabled={saving !== null}
+            >
+              Solo combos
+            </button>
+          </div>
           <button
             className={styles.addProductButton}
             onClick={() => setShowAddModal(true)}
@@ -551,57 +630,18 @@ export default function PriceManager() {
       )}
 
       {/* Vista de tabla con porciones y aclaraciones */}
-      <div className={styles.tableViewSection}>
-        <h3 className={styles.tableViewTitle}>📊 Resumen: Porciones por Persona y Aclaraciones</h3>
-        <div className={styles.summaryTable}>
-          <table className={styles.productsSummaryTable}>
-            <thead>
-              <tr>
-                <th>Categoría</th>
-                <th>Ingrediente</th>
-                <th>Porción x Persona</th>
-                <th>Aclaraciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {CATEGORIES.map(category => {
-                const categoryProducts = getProductsByCategory(category.name)
-                return categoryProducts.map((product, index) => (
-                  <tr key={product.id}>
-                    {index === 0 && (
-                      <td rowSpan={categoryProducts.length} className={styles.categoryCell}>
-                        <strong>{category.displayName}</strong>
-                      </td>
-                    )}
-                    <td className={styles.productNameCell}>{product.name}</td>
-                    <td className={styles.portionCell}>
-                      {product.portion_per_person || (
-                        <span className={styles.missingData}>No definido</span>
-                      )}
-                    </td>
-                    <td className={styles.clarificationsCell}>
-                      {product.clarifications || (
-                        <span className={styles.missingData}>-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+
 
       <div className={styles.categoriesContainer}>
         {CATEGORIES.map(category => {
-          const categoryProducts = getProductsByCategory(category.name)
+          const categoryProducts = getFilteredProductsByCategory(category.name)
           const isExpanded = expandedCategories.has(category.id)
-          
+
           if (categoryProducts.length === 0) return null
 
           return (
             <div key={category.id} className={styles.categorySection}>
-              <div 
+              <div
                 className={styles.categoryHeader}
                 onClick={() => toggleCategory(category.id)}
               >
@@ -613,160 +653,160 @@ export default function PriceManager() {
                   ▼
                 </span>
               </div>
-              
+
               {isExpanded && (
                 <div className={styles.productsGrid}>
-                {categoryProducts.map(product => {
-                  const isEdited = editedProducts.has(product.id)
-                  const isSaving = saving === product.id
+                  {categoryProducts.map(product => {
+                    const isEdited = editedProducts.has(product.id)
+                    const isSaving = saving === product.id
 
-                  return (
-                    <div
-                      key={product.id}
-                      className={`${styles.productCard} ${!product.active ? styles.inactive : ''} ${isEdited ? styles.edited : ''}`}
-                    >
-                      <div className={styles.productHeader}>
-                        <div>
-                          <h4 className={styles.productName}>{product.name}</h4>
-                          {product.is_combo && (
-                            <span className={styles.comboBadge}>COMBO</span>
-                          )}
+                    return (
+                      <div
+                        key={product.id}
+                        className={`${styles.productCard} ${!product.active ? styles.inactive : ''} ${isEdited ? styles.edited : ''}`}
+                      >
+                        <div className={styles.productHeader}>
+                          <div>
+                            <h4 className={styles.productName}>{product.name}</h4>
+                            {product.is_combo && (
+                              <span className={styles.comboBadge}>COMBO</span>
+                            )}
+                          </div>
+
+                          <label className={styles.toggleSwitch}>
+                            <input
+                              type="checkbox"
+                              checked={product.active}
+                              onChange={() => handleToggleActive(product.id)}
+                              disabled={isSaving}
+                            />
+                            <span className={styles.slider}></span>
+                          </label>
                         </div>
-                        
-                        <label className={styles.toggleSwitch}>
-                          <input
-                            type="checkbox"
-                            checked={product.active}
-                            onChange={() => handleToggleActive(product.id)}
-                            disabled={isSaving}
-                          />
-                          <span className={styles.slider}></span>
-                        </label>
-                      </div>
 
-                      {product.notes && (
-                        <div className={styles.productNotes}>
-                          {product.notes}
-                        </div>
-                      )}
+                        {product.notes && (
+                          <div className={styles.productNotes}>
+                            {product.notes}
+                          </div>
+                        )}
 
-                      <div className={styles.productBody}>
-                        <div className={styles.pricesContainer}>
-                          {product.price_per_kg !== null && (
+                        <div className={styles.productBody}>
+                          <div className={styles.pricesContainer}>
+                            {product.price_per_kg !== null && (
+                              <div className={styles.priceInputGroup}>
+                                <label className={styles.priceLabel}>€/KG</label>
+                                <div className={styles.inputWrapper}>
+                                  <span className={styles.currencySymbol}>€</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={product.price_per_kg}
+                                    onChange={(e) => handlePriceChange(product.id, 'price_per_kg', e.target.value)}
+                                    className={styles.priceInput}
+                                    disabled={isSaving || product.is_combo}
+                                  />
+                                </div>
+                              </div>
+                            )}
+
                             <div className={styles.priceInputGroup}>
-                              <label className={styles.priceLabel}>€/KG</label>
+                              <label className={styles.priceLabel}>€/Porción</label>
                               <div className={styles.inputWrapper}>
                                 <span className={styles.currencySymbol}>€</span>
                                 <input
                                   type="number"
                                   min="0"
                                   step="0.01"
-                                  value={product.price_per_kg}
-                                  onChange={(e) => handlePriceChange(product.id, 'price_per_kg', e.target.value)}
+                                  value={product.price_per_portion}
+                                  onChange={(e) => handlePriceChange(product.id, 'price_per_portion', e.target.value)}
                                   className={styles.priceInput}
                                   disabled={isSaving || product.is_combo}
+                                  title={product.is_combo ? 'El precio se calcula automáticamente desde los ingredientes' : ''}
                                 />
                               </div>
                             </div>
-                          )}
 
-                          <div className={styles.priceInputGroup}>
-                            <label className={styles.priceLabel}>€/Porción</label>
-                            <div className={styles.inputWrapper}>
-                              <span className={styles.currencySymbol}>€</span>
+                            <div className={styles.priceInputGroup}>
+                              <label className={styles.priceLabel}>Porción x Persona</label>
                               <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={product.price_per_portion}
-                                onChange={(e) => handlePriceChange(product.id, 'price_per_portion', e.target.value)}
-                                className={styles.priceInput}
-                                disabled={isSaving || product.is_combo}
-                                title={product.is_combo ? 'El precio se calcula automáticamente desde los ingredientes' : ''}
+                                type="text"
+                                value={product.portion_per_person || ''}
+                                onChange={(e) => {
+                                  setProducts(prevProducts =>
+                                    prevProducts.map(p =>
+                                      p.id === product.id
+                                        ? { ...p, portion_per_person: e.target.value }
+                                        : p
+                                    )
+                                  )
+                                  setEditedProducts(prev => new Set(prev).add(product.id))
+                                }}
+                                className={styles.portionInput}
+                                disabled={isSaving}
+                                placeholder="Ej: 1/4, 1/2, 30 gr, 1 feta"
                               />
                             </div>
                           </div>
 
-                          <div className={styles.priceInputGroup}>
-                            <label className={styles.priceLabel}>Porción x Persona</label>
-                            <input
-                              type="text"
-                              value={product.portion_per_person || ''}
+                          <div className={styles.clarificationsSection}>
+                            <label className={styles.priceLabel}>Aclaraciones</label>
+                            <textarea
+                              value={product.clarifications || ''}
                               onChange={(e) => {
                                 setProducts(prevProducts =>
                                   prevProducts.map(p =>
                                     p.id === product.id
-                                      ? { ...p, portion_per_person: e.target.value }
+                                      ? { ...p, clarifications: e.target.value }
                                       : p
                                   )
                                 )
                                 setEditedProducts(prev => new Set(prev).add(product.id))
                               }}
-                              className={styles.portionInput}
+                              className={styles.clarificationsInput}
                               disabled={isSaving}
-                              placeholder="Ej: 1/4, 1/2, 30 gr, 1 feta"
+                              placeholder="Ej: Con 1 chorizo hago 4 choripanes..."
+                              rows={2}
                             />
                           </div>
+
+                          {product.is_combo ? (
+                            <button
+                              className={styles.ingredientsButton}
+                              onClick={() => handleOpenIngredientsModal(product)}
+                              disabled={saving === 'loading-ingredients'}
+                            >
+                              {saving === 'loading-ingredients' ? (
+                                <Loader2 className={styles.buttonSpinner} size={16} />
+                              ) : (
+                                <Package size={16} />
+                              )}
+                              Ver Ingredientes
+                            </button>
+                          ) : (
+                            <button
+                              className={styles.saveButton}
+                              onClick={() => handleSaveProduct(product)}
+                              disabled={!isEdited || isSaving}
+                            >
+                              {isSaving ? (
+                                <Loader2 className={styles.buttonSpinner} size={16} />
+                              ) : (
+                                <Save size={16} />
+                              )}
+                              Guardar
+                            </button>
+                          )}
                         </div>
 
-                        <div className={styles.clarificationsSection}>
-                          <label className={styles.priceLabel}>Aclaraciones</label>
-                          <textarea
-                            value={product.clarifications || ''}
-                            onChange={(e) => {
-                              setProducts(prevProducts =>
-                                prevProducts.map(p =>
-                                  p.id === product.id
-                                    ? { ...p, clarifications: e.target.value }
-                                    : p
-                                )
-                              )
-                              setEditedProducts(prev => new Set(prev).add(product.id))
-                            }}
-                            className={styles.clarificationsInput}
-                            disabled={isSaving}
-                            placeholder="Ej: Con 1 chorizo hago 4 choripanes..."
-                            rows={2}
-                          />
-                        </div>
-
-                        {product.is_combo ? (
-                          <button
-                            className={styles.ingredientsButton}
-                            onClick={() => handleOpenIngredientsModal(product)}
-                            disabled={saving === 'loading-ingredients'}
-                          >
-                            {saving === 'loading-ingredients' ? (
-                              <Loader2 className={styles.buttonSpinner} size={16} />
-                            ) : (
-                              <Package size={16} />
-                            )}
-                            Ver Ingredientes
-                          </button>
-                        ) : (
-                          <button
-                            className={styles.saveButton}
-                            onClick={() => handleSaveProduct(product)}
-                            disabled={!isEdited || isSaving}
-                          >
-                            {isSaving ? (
-                              <Loader2 className={styles.buttonSpinner} size={16} />
-                            ) : (
-                              <Save size={16} />
-                            )}
-                            Guardar
-                          </button>
+                        {!product.active && (
+                          <div className={styles.inactiveBadge}>
+                            Desactivado
+                          </div>
                         )}
                       </div>
-
-                      {!product.active && (
-                        <div className={styles.inactiveBadge}>
-                          Desactivado
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -779,7 +819,7 @@ export default function PriceManager() {
           <AlertCircle size={48} className={styles.emptyIcon} />
           <h3 className={styles.emptyTitle}>No hay productos</h3>
           <p className={styles.emptyText}>
-            No se encontraron productos en la base de datos. 
+            No se encontraron productos en la base de datos.
             Ejecuta el script SQL para inicializar los productos o agrega uno nuevo.
           </p>
         </div>
@@ -998,7 +1038,7 @@ export default function PriceManager() {
 
               <div className={styles.ingredientsList}>
                 <h4 className={styles.ingredientsListTitle}>Ingredientes actuales:</h4>
-                
+
                 {comboIngredients.length === 0 ? (
                   <div className={styles.emptyIngredients}>
                     <AlertCircle size={32} />
@@ -1026,15 +1066,25 @@ export default function PriceManager() {
                           </div>
                           <div className={styles.ingredientPriceRow}>
                             <label className={styles.ingredientPriceLabel}>Precio unit:</label>
-                            <span className={styles.ingredientPriceValue}>
-                              €{ing.ingredient?.price_per_portion.toFixed(2)}
-                            </span>
+                            <div className={styles.inputWrapper}>
+                              <span className={styles.currencySymbol} style={{ fontSize: '0.8rem', left: '0.5rem' }}>€</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={ing.ingredient?.price_per_portion}
+                                onChange={(e) => ing.ingredient && handleUpdateIngredientPrice(ing.ingredient.id, parseFloat(e.target.value) || 0)}
+                                className={styles.smallInput}
+                                style={{ paddingLeft: '1.5rem', width: '80px' }}
+                                disabled={saving !== null}
+                              />
+                            </div>
                           </div>
                           <div className={styles.ingredientTotal}>
                             Total: €{((ing.ingredient?.price_per_portion || 0) * ing.quantity).toFixed(2)}
                           </div>
                         </div>
-                        
+
                         <div className={styles.ingredientActions}>
                           <button
                             className={styles.removeIngredientButton}

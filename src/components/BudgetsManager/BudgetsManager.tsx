@@ -18,7 +18,10 @@ export default function BudgetsManager() {
           <ArrowLeft size={20} />
           Volver a la lista
         </button>
-        <BudgetEditor budgetId={selectedBudgetId} />
+        <BudgetEditor 
+          budgetId={selectedBudgetId} 
+          onBudgetDeleted={() => setSelectedBudgetId(null)}
+        />
       </div>
     )
   }

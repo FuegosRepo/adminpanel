@@ -14,11 +14,12 @@ interface EventsCalendarProps {
   orders: CateringOrder[]
   manualEvents?: CalendarEvent[]
   onAddEvent?: (event: CalendarEvent) => void
+  onDeleteEvent?: (eventId: string) => void
 }
 
 type ViewMode = 'calendar' | 'upcoming'
 
-export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }: EventsCalendarProps) {
+export default function EventsCalendar({ orders, manualEvents = [], onAddEvent, onDeleteEvent }: EventsCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<ViewMode>('calendar')
   const [addEventModal, setAddEventModal] = useState(false)
@@ -35,7 +36,7 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
         if (order.status === 'approved') eventStatus = 'Confirmed'
         else if (order.status === 'rejected') eventStatus = 'Cancelled'
         else if (order.status === 'sent') eventStatus = 'Pending'
-        
+
         // Mapear el tipo de evento del formulario al tipo del calendario
         let eventType: CalendarEvent['type'] = 'Otros'
         if (order.contact.eventType === 'mariage') eventType = 'Casamiento'
@@ -43,7 +44,7 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
         else if (order.contact.eventType === 'bapteme') eventType = 'Bautismo'
         else if (order.contact.eventType === 'corporatif') eventType = 'Empresarial'
         else if (order.contact.eventType === 'autre') eventType = 'Otros'
-        
+
         return {
           id: `event-${order.id}`,
           orderId: order.id,
@@ -73,7 +74,7 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
   const upcomingEvents = useMemo(() => {
     const now = new Date()
     const thirtyDaysFromNow = addDays(now, 30)
-    
+
     return calendarEvents
       .filter(event => {
         const eventDate = new Date(event.date)
@@ -83,7 +84,7 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
       .map(event => {
         const eventDate = new Date(event.date)
         const daysUntil = differenceInDays(eventDate, now)
-        
+
         return {
           ...event,
           daysUntil,
@@ -165,11 +166,11 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
       ...eventData,
       id: `manual-${Date.now()}`
     }
-    
+
     if (onAddEvent) {
       onAddEvent(newEvent)
     }
-    
+
     setAddEventModal(false)
   }
 
@@ -198,6 +199,19 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
       <div className={styles.header}>
         <h2 className={styles.title}>Calendario de Eventos</h2>
         <div className={styles.headerActions}>
+          {onDeleteEvent && selectedEvent && (
+            <button
+              className={styles.deleteEventBtn}
+              onClick={() => {
+                if (confirm('¿Eliminar el evento seleccionado?')) {
+                  onDeleteEvent(selectedEvent.id)
+                  setSelectedEvent(null)
+                }
+              }}
+            >
+              Eliminar Evento Seleccionado
+            </button>
+          )}
           <button
             className={styles.addEventBtn}
             onClick={() => setAddEventModal(true)}
@@ -237,7 +251,7 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
               className={styles.calendar}
               prev2Label={null}
               next2Label={null}
-              formatShortWeekday={(locale, date) => 
+              formatShortWeekday={(locale, date) =>
                 format(date, 'EEE', { locale: es }).toUpperCase()
               }
             />
@@ -261,7 +275,11 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
                 </div>
               ) : (
                 selectedDateEvents.map(event => (
-                  <div key={event.id} className={`${styles.eventItem} ${styles[getStatusColor(event.status)]} ${styles[getEventTypeColor(event.type)]}`}>
+                  <div
+                    key={event.id}
+                    className={`${styles.eventItem} ${styles[getStatusColor(event.status)]} ${styles[getEventTypeColor(event.type)]} ${selectedEvent?.id === event.id ? styles.selectedEvent : ''}`}
+                    onClick={() => setSelectedEvent(event)}
+                  >
                     <div className={styles.eventHeader}>
                       <div className={styles.eventTitle}>
                         <span className={styles.eventIcon}>{getEventIcon(event.type)}</span>
@@ -271,7 +289,7 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
                         {event.time || formatEventTime(event.date)}
                       </div>
                     </div>
-                    
+
                     <div className={styles.eventDetails}>
                       <div className={styles.eventClient}>
                         <User size={14} style={{ display: 'inline', marginRight: '4px' }} />
@@ -291,9 +309,9 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
                         Ver Detalles
                       </button>
                       <div className={`${styles.status} ${styles[getStatusColor(event.status)]}`}>
-                        {event.status === 'Confirmed' ? 'Confirmado' : 
-                         event.status === 'Pending' ? 'Pendiente' :
-                         event.status === 'Completed' ? 'Completado' : 'Cancelado'}
+                        {event.status === 'Confirmed' ? 'Confirmado' :
+                          event.status === 'Pending' ? 'Pendiente' :
+                            event.status === 'Completed' ? 'Completado' : 'Cancelado'}
                       </div>
                     </div>
                   </div>
@@ -306,7 +324,7 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
         /* Vista de eventos próximos */
         <div className={styles.upcomingEvents}>
           <h3 className={styles.panelTitle}>Eventos Próximos (30 días)</h3>
-          
+
           {upcomingEvents.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>🗓️</div>
@@ -318,8 +336,8 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
           ) : (
             <div className={styles.upcomingList}>
               {upcomingEvents.map(event => (
-                <div 
-                  key={event.id} 
+                <div
+                  key={event.id}
                   className={`${styles.upcomingItem} ${styles[getUrgencyClass(event.urgency)]} ${styles[getEventTypeColor(event.type)]}`}
                 >
                   {(event.urgency === 'urgent' || event.urgency === 'soon') && (
@@ -327,8 +345,11 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
                       {event.urgency === 'urgent' ? 'Urgente' : 'Pronto'}
                     </div>
                   )}
-                  
-                  <div className={styles.upcomingHeader}>
+
+                  <div
+                    className={styles.upcomingHeader}
+                    onClick={() => setSelectedEvent(event)}
+                  >
                     <div className={styles.upcomingTitle}>
                       <span className={styles.eventIcon}>{getEventIcon(event.type)}</span>
                       {event.title}
@@ -337,19 +358,19 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
                       {getUrgencyText(event.daysUntil)}
                     </div>
                   </div>
-                  
+
                   <div className={styles.upcomingClient}>
                     <User size={14} style={{ display: 'inline', marginRight: '4px' }} />
                     {event.clientName}
                   </div>
-                  
+
                   {event.location && (
                     <div className={styles.upcomingLocation}>
                       <MapPin size={12} style={{ display: 'inline', marginRight: '4px' }} />
                       {event.location}
                     </div>
                   )}
-                  
+
                   <div className={styles.eventActions}>
                     <button className={styles.actionBtn} onClick={() => handleViewDetails(event)}>
                       <Eye size={12} />
@@ -357,8 +378,8 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
                     </button>
                     <div className={`${styles.status} ${styles[getStatusColor(event.status)]}`}>
                       {event.status === 'Confirmed' ? 'Confirmado' :
-                       event.status === 'Pending' ? 'Pendiente' :
-                       event.status === 'Completed' ? 'Completado' : 'Cancelado'}
+                        event.status === 'Pending' ? 'Pendiente' :
+                          event.status === 'Completed' ? 'Completado' : 'Cancelado'}
                     </div>
                   </div>
                 </div>
@@ -423,9 +444,9 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
               <div className={styles.detailRow}>
                 <span className={styles.detailLabel}>Estado:</span>
                 <span className={`${styles.statusBadge} ${styles[getStatusColor(selectedEvent.status)]}`}>
-                  {selectedEvent.status === 'Confirmed' ? 'Confirmado' : 
-                   selectedEvent.status === 'Pending' ? 'Pendiente' :
-                   selectedEvent.status === 'Completed' ? 'Completado' : 'Cancelado'}
+                  {selectedEvent.status === 'Confirmed' ? 'Confirmado' :
+                    selectedEvent.status === 'Pending' ? 'Pendiente' :
+                      selectedEvent.status === 'Completed' ? 'Completado' : 'Cancelado'}
                 </span>
               </div>
 
@@ -457,6 +478,20 @@ export default function EventsCalendar({ orders, manualEvents = [], onAddEvent }
             </div>
 
             <div className={styles.modalActions}>
+              {onDeleteEvent && (
+                <button
+                  className={`${styles.closeButton} ${styles.deleteButton}`}
+                  style={{ backgroundColor: '#fee2e2', color: '#991b1b', marginRight: 'auto' }}
+                  onClick={() => {
+                    if (confirm('¿Estás seguro de eliminar este evento?')) {
+                      onDeleteEvent(selectedEvent.id)
+                      setShowDetailsModal(false)
+                    }
+                  }}
+                >
+                  Eliminar
+                </button>
+              )}
               <button
                 className={styles.closeButton}
                 onClick={() => setShowDetailsModal(false)}

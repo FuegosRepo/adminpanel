@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { CateringOrder, EmailTemplate } from '@/types'
-import { format } from 'date-fns'
+import { format, differenceInDays } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Mail, Eye, Edit, ChevronDown, ChevronUp } from 'lucide-react'
+import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock } from 'lucide-react'
+import { supabase } from '@/lib/supabaseClient'
+import { emailTemplates } from '@/data/mockData'
 import styles from './OrderCard.module.css'
 
 interface OrderCardProps {
@@ -14,6 +16,7 @@ interface OrderCardProps {
   onSendEmail: (order: CateringOrder, template?: EmailTemplate) => void
   onViewDetails: (order: CateringOrder) => void
   onSelectionChange: (orderId: string, isSelected: boolean) => void
+  onUpdateOrder?: (orderId: string, updates: Partial<CateringOrder>) => void
 }
 
 export default function OrderCard({
@@ -22,14 +25,75 @@ export default function OrderCard({
   onStatusChange,
   onSendEmail,
   onViewDetails,
-  onSelectionChange
+  onSelectionChange,
+  onUpdateOrder
 }: OrderCardProps) {
   const [mounted, setMounted] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
-  
+  const [relanceModalOpen, setRelanceModalOpen] = useState(false)
+  const [lastRelanceDate, setLastRelanceDate] = useState<string | null>(null)
+  const [extrasView, setExtrasView] = useState<'compact' | 'detailed'>('compact')
+
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (isExpanded) {
+      const fetchLastRelance = async () => {
+        const { data, error } = await supabase
+          .from('email_logs')
+          .select('sent_at')
+          .eq('order_id', order.id)
+          .eq('subject', 'Relance - Votre devis Fuegos d\'Azur') // Asunto del template ID 5
+          .order('sent_at', { ascending: false })
+          .limit(1)
+
+        if (data && data.length > 0) {
+          setLastRelanceDate(data[0].sent_at)
+        }
+      }
+      fetchLastRelance()
+    }
+  }, [isExpanded, order.id])
+
+  
+
+  const handleRelanceClick = () => {
+    setRelanceModalOpen(true)
+  }
+
+  const confirmRelance = async () => {
+    try {
+      const template = emailTemplates.find(t => t.id === '5') // Relance devis
+      if (!template) return
+
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.id,
+          templateId: template.id
+        })
+      })
+
+      if (response.ok) {
+        setLastRelanceDate(new Date().toISOString())
+        setRelanceModalOpen(false)
+        alert('Email de relance enviado correctamente')
+      } else {
+        alert('Error al enviar el email')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Error al enviar el email')
+    }
+  }
+
+  const getDaysSinceRelance = () => {
+    if (!lastRelanceDate) return null
+    return differenceInDays(new Date(), new Date(lastRelanceDate))
+  }
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: es })
@@ -128,7 +192,7 @@ export default function OrderCard({
                 </ul>
               </div>
             )}
-            
+
             {order.viandes.length > 0 && (
               <div className={styles.menuSection}>
                 <h4>Carnes</h4>
@@ -139,7 +203,7 @@ export default function OrderCard({
                 </ul>
               </div>
             )}
-            
+
             {order.dessert && (
               <div className={styles.menuSection}>
                 <h4>Postre</h4>
@@ -150,19 +214,54 @@ export default function OrderCard({
             )}
 
             {/* Extras */}
-            {(order.extras.wines || order.extras.equipment.length > 0 || order.extras.decoration || order.extras.specialRequest) && (
-              <div className={styles.menuSection}>
-                <h4>Extras</h4>
-                <ul>
-                  {order.extras.wines && <li>🍷 Vinos incluidos</li>}
-                  {order.extras.decoration && <li>🎨 Decoración incluida</li>}
+            <div className={styles.menuSection}>
+              <h4>Extras</h4>
+              <select
+                className={styles.extrasSelect}
+                value={extrasView}
+                onChange={(e) => setExtrasView(e.target.value as 'compact' | 'detailed')}
+              >
+                <option value="compact">Vista compacta</option>
+                <option value="detailed">Vista detallada</option>
+              </select>
+
+              {extrasView === 'detailed' ? (
+                <div className={styles.extrasChips}>
+                  {order.extras.wines && (
+                    <span className={`${styles.chip} ${styles.wines}`}>🍷 Vinos incluidos</span>
+                  )}
+                  {order.extras.decoration && (
+                    <span className={`${styles.chip} ${styles.decoration}`}>🎨 Decoración incluida</span>
+                  )}
                   {order.extras.equipment.length > 0 && order.extras.equipment.map((equip, index) => (
-                    <li key={index}>🔧 {equip}</li>
+                    <span key={index} className={`${styles.chip} ${styles.equipment}`}>🔧 {equip}</span>
                   ))}
-                  {order.extras.specialRequest && <li>📝 {order.extras.specialRequest}</li>}
-                </ul>
-              </div>
-            )}
+                  {order.extras.specialRequest && (
+                    <span className={`${styles.chip} ${styles.request}`}>📝 {order.extras.specialRequest}</span>
+                  )}
+                </div>
+              ) : (
+                <div className={styles.extrasChips}>
+                  {order.extras.wines && (
+                    <span className={`${styles.chip} ${styles.wines}`}>🍷 Vinos</span>
+                  )}
+                  {order.extras.decoration && (
+                    <span className={`${styles.chip} ${styles.decoration}`}>🎨 Decoración</span>
+                  )}
+                  {order.extras.equipment.length > 0 && (
+                    <span className={`${styles.chip} ${styles.equipment}`}>
+                      🔧 <span className={styles.chipCount}>{order.extras.equipment.length}</span> ítems
+                    </span>
+                  )}
+                  {order.extras.specialRequest && (
+                    <span className={`${styles.chip} ${styles.request}`}>📝 {order.extras.specialRequest}</span>
+                  )}
+                  {!(order.extras.wines || order.extras.decoration || order.extras.equipment.length > 0 || order.extras.specialRequest) && (
+                    <span className={styles.chip}>Sin extras</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {order.notes && (
@@ -210,14 +309,21 @@ export default function OrderCard({
             {/* Sección de Acciones */}
             <div className={styles.actionButtons}>
               <button
-                onClick={() => onSendEmail(order)}
+                onClick={handleRelanceClick}
                 className={`${styles.actionButton} ${styles.emailButton}`}
                 title="Enviar email de relance"
               >
                 <Mail size={16} />
                 Relanzar Devis
               </button>
-              
+
+              {lastRelanceDate && (
+                <div className={styles.relanceInfo}>
+                  <Clock size={14} />
+                  <span>Último envío: hace {getDaysSinceRelance()} días</span>
+                </div>
+              )}
+
               <button
                 onClick={() => onViewDetails(order)}
                 className={`${styles.actionButton} ${styles.viewButton}`}
@@ -226,6 +332,19 @@ export default function OrderCard({
                 <Eye size={16} />
                 Ver Detalles
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {relanceModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h3>Confirmar Relanzamiento</h3>
+            <p>¿Estás de acuerdo en enviar el email de relance a:</p>
+            <p><strong>{order.contact.name}</strong> ({order.contact.email})?</p>
+            <div className={styles.modalButtons}>
+              <button onClick={() => setRelanceModalOpen(false)} className={styles.cancelButton}>Cancelar</button>
+              <button onClick={confirmRelance} className={styles.confirmButton}>Sí, enviar</button>
             </div>
           </div>
         </div>

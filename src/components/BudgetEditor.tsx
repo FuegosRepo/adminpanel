@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import './BudgetEditor.css'
@@ -66,15 +68,33 @@ interface BudgetData {
       pricePerUnit: number
       total: number
     }>
+    insurancePct?: number
+    insuranceAmount?: number
     totalHT: number
     tva: number
     tvaPct: number
     totalTTC: number
     notes?: string
   }
+  deliveryReprise?: {
+    deliveryCost: number
+    pickupCost: number
+    totalHT: number
+    tva: number
+    tvaPct: number
+    totalTTC: number
+  }
   deplacement?: {
     distance: number
     pricePerKm: number
+    totalHT: number
+    tva: number
+    tvaPct: number
+    totalTTC: number
+  }
+  boissonsSoft?: {
+    pricePerPerson: number
+    totalPersons: number
     totalHT: number
     tva: number
     tvaPct: number
@@ -115,15 +135,19 @@ interface Budget {
 
 interface BudgetEditorProps {
   budgetId: string
+  onBudgetDeleted?: () => void
 }
 
-export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
+export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
   const [budget, setBudget] = useState<Budget | null>(null)
   const [editedData, setEditedData] = useState<BudgetData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [materialExpanded, setMaterialExpanded] = useState(false)
+  const [newMatName, setNewMatName] = useState('')
+  const [newMatQty, setNewMatQty] = useState<number>(1)
+  const [newMatPrice, setNewMatPrice] = useState<number>(0)
 
   // Cargar presupuesto
   useEffect(() => {
@@ -179,9 +203,14 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
               item.total = item.quantity * item.pricePerUnit
               materialHT += item.total
             })
-            budgetData.material.totalHT = materialHT
-            budgetData.material.tva = materialHT * (budgetData.material.tvaPct / 100)
-            budgetData.material.totalTTC = materialHT + budgetData.material.tva
+            const insPct = (budgetData.material.insurancePct ?? 6) / 100
+            const insurance = materialHT * insPct
+            budgetData.material.insurancePct = insPct * 100
+            budgetData.material.insuranceAmount = insurance
+            const materialHTWithInsurance = materialHT + insurance
+            budgetData.material.totalHT = materialHTWithInsurance
+            budgetData.material.tva = materialHTWithInsurance * (budgetData.material.tvaPct / 100)
+            budgetData.material.totalTTC = budgetData.material.totalHT + budgetData.material.tva
           } else {
             // Si no quedan items, eliminar la sección de material
             delete budgetData.material
@@ -242,7 +271,7 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
       updated.service.totalTTC = serviceHT + updated.service.tva
     }
 
-    // Recalcular material (excluyendo "Serveurs")
+    // Recalcular material (excluyendo "Serveurs") y aplicar Seguro
     if (updated.material && updated.material.items) {
       let materialHT = 0
       updated.material.items
@@ -257,9 +286,32 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
           item.total = item.quantity * item.pricePerUnit
           materialHT += item.total
         })
-      updated.material.totalHT = materialHT
-      updated.material.tva = materialHT * (updated.material.tvaPct / 100)
-      updated.material.totalTTC = materialHT + updated.material.tva
+      const insPct = (updated.material.insurancePct ?? 6) / 100
+      const insurance = materialHT * insPct
+      updated.material.insurancePct = insPct * 100
+      updated.material.insuranceAmount = insurance
+      const materialHTWithInsurance = materialHT + insurance
+      updated.material.totalHT = materialHTWithInsurance
+      updated.material.tva = materialHTWithInsurance * (updated.material.tvaPct / 100)
+      updated.material.totalTTC = updated.material.totalHT + updated.material.tva
+    }
+
+    // Recalcular Livraison et Reprise
+    if (updated.deliveryReprise) {
+      const lrHT = (updated.deliveryReprise.deliveryCost || 0) + (updated.deliveryReprise.pickupCost || 0)
+      updated.deliveryReprise.totalHT = lrHT
+      updated.deliveryReprise.tva = lrHT * ((updated.deliveryReprise.tvaPct || 0) / 100)
+      updated.deliveryReprise.totalTTC = updated.deliveryReprise.totalHT + updated.deliveryReprise.tva
+    }
+
+    // Recalcular Boissons Soft
+    if (updated.boissonsSoft) {
+      const bsHT = updated.boissonsSoft.pricePerPerson * updated.boissonsSoft.totalPersons
+      updated.boissonsSoft.totalHT = bsHT
+      // Asegurar TVA fijo del 20%
+      updated.boissonsSoft.tvaPct = 20
+      updated.boissonsSoft.tva = bsHT * 0.20
+      updated.boissonsSoft.totalTTC = bsHT + updated.boissonsSoft.tva
     }
 
     // Recalcular desplazamiento
@@ -277,6 +329,16 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
     if (updated.material) {
       totalHT += updated.material.totalHT
       totalTVA += updated.material.tva
+    }
+
+    if (updated.deliveryReprise) {
+      totalHT += updated.deliveryReprise.totalHT
+      totalTVA += updated.deliveryReprise.tva
+    }
+
+    if (updated.boissonsSoft) {
+      totalHT += updated.boissonsSoft.totalHT
+      totalTVA += updated.boissonsSoft.tva
     }
 
     if (updated.deplacement) {
@@ -390,6 +452,38 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
     }
   }
 
+  // Eliminar presupuesto
+  const deleteBudget = async () => {
+    if (!window.confirm('⚠️ ¿Estás seguro de que quieres eliminar este presupuesto PERMANENTEMENTE?\n\nEsta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      setSaving(true)
+      
+      const { error } = await supabase
+        .from('budgets')
+        .delete()
+        .eq('id', budgetId)
+
+      if (error) throw error
+
+      alert('✅ Presupuesto eliminado correctamente')
+      
+      if (onBudgetDeleted) {
+        onBudgetDeleted()
+      } else {
+        window.location.reload()
+      }
+      
+    } catch (err) {
+      console.error('Error eliminando:', err)
+      alert('❌ Error al eliminar el presupuesto')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   // Generar PDF (usa los datos editados actuales)
   const generatePDF = async () => {
     if (!editedData) return
@@ -456,6 +550,7 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
 
   return (
     <div className="budget-editor">
+  
       <div className="budget-editor-header">
         <h1>Editor de Presupuesto</h1>
         <div className="budget-editor-status">
@@ -463,30 +558,55 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
             {budget?.status}
           </span>
           <span className="version-badge">v{budget?.version}</span>
+          <button 
+            onClick={deleteBudget}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '18px',
+              marginLeft: '10px',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ef4444',
+              borderRadius: '4px'
+            }}
+            title="Eliminar presupuesto"
+          >
+            🗑️
+          </button>
         </div>
       </div>
 
       {/* Información del Cliente */}
-      <section className="budget-section">
+      <section className="budget-section editable">
         <h2>📋 Información del Cliente</h2>
-        <div className="info-grid">
-          <div className="info-item">
-            <strong>Nombre:</strong> {editedData.clientInfo.name}
+        <div className="edit-grid">
+          <div className="edit-field">
+            <label>Nombre</label>
+            <input type="text" value={editedData.clientInfo.name} onChange={(e)=>updateField('clientInfo.name', e.target.value)} />
           </div>
-          <div className="info-item">
-            <strong>Email:</strong> {editedData.clientInfo.email}
+          <div className="edit-field">
+            <label>Email</label>
+            <input type="email" value={editedData.clientInfo.email} onChange={(e)=>updateField('clientInfo.email', e.target.value)} />
           </div>
-          <div className="info-item">
-            <strong>Teléfono:</strong> {editedData.clientInfo.phone}
+          <div className="edit-field">
+            <label>Teléfono</label>
+            <input type="text" value={editedData.clientInfo.phone} onChange={(e)=>updateField('clientInfo.phone', e.target.value)} />
           </div>
-          <div className="info-item">
-            <strong>Evento:</strong> {editedData.clientInfo.eventType}
+          <div className="edit-field">
+            <label>Tipo de evento</label>
+            <input type="text" value={editedData.clientInfo.eventType} onChange={(e)=>updateField('clientInfo.eventType', e.target.value)} />
           </div>
-          <div className="info-item">
-            <strong>Fecha:</strong> {new Date(editedData.clientInfo.eventDate).toLocaleDateString('fr-FR')}
+          <div className="edit-field">
+            <label>Fecha</label>
+            <input type="date" value={editedData.clientInfo.eventDate ? editedData.clientInfo.eventDate.substring(0,10) : ''} onChange={(e)=>updateField('clientInfo.eventDate', e.target.value)} />
           </div>
-          <div className="info-item">
-            <strong>Invitados:</strong> {editedData.clientInfo.guestCount}
+          <div className="edit-field">
+            <label>Invitados</label>
+            <input type="number" value={editedData.clientInfo.guestCount} min={0} onChange={(e)=>updateField('clientInfo.guestCount', parseInt(e.target.value)||0)} />
           </div>
         </div>
       </section>
@@ -659,8 +779,7 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
       </section>
 
       {/* MATERIAL - EDITABLE */}
-      {editedData.material && editedData.material.items && editedData.material.items.length > 0 && (
-        <section className="budget-section editable">
+      <section className="budget-section editable">
           <div className="section-header-with-delete">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
               <button
@@ -700,6 +819,22 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
           </div>
           {materialExpanded && (
             <>
+          {!editedData.material ? (
+            <div style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
+              <p>No hay materiales configurados</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  const newData = { ...editedData! }
+                  newData.material = { items: [], tvaPct: 20, totalHT: 0, tva: 0, totalTTC: 0, insurancePct: 6, insuranceAmount: 0 }
+                  setEditedData(recalculateTotals(newData))
+                }}
+              >
+                ➕ Agregar Material
+              </button>
+            </div>
+          ) : (
+            <>
           <div className="material-items-list">
             {editedData.material.items
               .filter(item => {
@@ -716,17 +851,13 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
               <div key={realIndex} className="material-item-row">
                 <div className="edit-field">
                   <label>Item</label>
-                  <div style={{ 
-                    padding: '8px', 
-                    backgroundColor: '#f9fafb', 
-                    borderRadius: '6px', 
-                    border: '1px solid #e5e7eb',
-                    fontSize: '14px',
-                    color: '#374151',
-                    fontWeight: 500
-                  }}>
-                    {item.name}
-                  </div>
+                  <input type="text" value={item.name} onChange={(e)=>{
+                    const newData = { ...editedData! }
+                    if (newData.material && newData.material.items) {
+                      newData.material.items[realIndex].name = e.target.value
+                      setEditedData(recalculateTotals(newData))
+                    }
+                  }} />
                 </div>
                 <div className="edit-field">
                   <label>Cantidad</label>
@@ -789,6 +920,31 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
                 )
               })}
           </div>
+          <div className="material-item-row">
+            <div className="edit-field">
+              <label>Autre-Matériel (Nombre/Descripción)</label>
+              <input type="text" value={newMatName} onChange={(e)=>setNewMatName(e.target.value)} placeholder="Ej. Centro de mesa personalizado" />
+            </div>
+            <div className="edit-field">
+              <label>Cantidad</label>
+              <input type="number" min="0" step="0.01" value={newMatQty} onChange={(e)=>setNewMatQty(parseFloat(e.target.value)||0)} />
+            </div>
+            <div className="edit-field">
+              <label>Precio Unit. (€)</label>
+              <input type="number" min="0" step="0.01" value={newMatPrice} onChange={(e)=>setNewMatPrice(parseFloat(e.target.value)||0)} />
+            </div>
+            <div className="edit-field">
+              <label>&nbsp;</label>
+              <button className="btn btn-primary" onClick={()=>{
+                if (!editedData.material) return
+                if (!newMatName.trim()) { alert('Ingresa un nombre'); return }
+                const newData = { ...editedData! }
+                newData.material.items.push({ name: newMatName.trim(), quantity: newMatQty || 1, pricePerUnit: newMatPrice || 0, total: 0 })
+                setEditedData(recalculateTotals(newData))
+                setNewMatName(''); setNewMatQty(1); setNewMatPrice(0)
+              }}>Agregar otro material</button>
+            </div>
+          </div>
           <div className="edit-grid" style={{ marginTop: '10px' }}>
             <div className="edit-field">
               <label>TVA (%)</label>
@@ -801,8 +957,23 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
                 max="100"
               />
             </div>
+            <div className="edit-field">
+              <label>Seguro (%)</label>
+              <input
+                type="number"
+                value={editedData.material.insurancePct || 6}
+                onChange={(e)=> updateField('material.insurancePct', parseFloat(e.target.value) || 0)}
+                step="0.1"
+                min="0"
+                max="100"
+              />
+            </div>
           </div>
           <div className="totals-box">
+            <div className="total-row">
+              <span>Seguro ( {editedData.material.insurancePct || 6}% ):</span>
+              <strong>{((editedData.material.insuranceAmount || 0)).toFixed(2)} €</strong>
+            </div>
             <div className="total-row">
               <span>Total HT:</span>
               <strong>{editedData.material.totalHT.toFixed(2)} €</strong>
@@ -818,6 +989,162 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
           </div>
             </>
           )}
+          </>
+        )}
+      </section>
+
+      {/* 🚚 Livraison et Reprise - EDITABLE */}
+      {editedData.deliveryReprise && (
+        <section className="budget-section editable">
+          <div className="section-header-with-delete">
+            <h2>🚚 Livraison et Reprise</h2>
+            <button
+              className="btn-delete-section"
+              onClick={() => {
+                if (window.confirm('¿Eliminar sección de Livraison et Reprise?')) {
+                  setEditedData(prev => {
+                    if (!prev) return prev
+                    const newData = { ...prev }
+                    delete newData.deliveryReprise
+                    return recalculateTotals(newData)
+                  })
+                }
+              }}
+              title="Eliminar sección"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="edit-grid">
+            <div className="edit-field">
+              <label>Coste de entrega (€)</label>
+              <input type="number" value={editedData.deliveryReprise.deliveryCost} onChange={(e)=>updateField('deliveryReprise.deliveryCost', parseFloat(e.target.value) || 0)} min="0" step="0.01" />
+            </div>
+            <div className="edit-field">
+              <label>Coste de recogida (€)</label>
+              <input type="number" value={editedData.deliveryReprise.pickupCost} onChange={(e)=>updateField('deliveryReprise.pickupCost', parseFloat(e.target.value) || 0)} min="0" step="0.01" />
+            </div>
+            <div className="edit-field">
+              <label>TVA (%)</label>
+              <input type="number" value={editedData.deliveryReprise.tvaPct} onChange={(e)=>updateField('deliveryReprise.tvaPct', parseFloat(e.target.value) || 0)} min="0" max="100" step="0.1" />
+            </div>
+          </div>
+          <div className="totals-box">
+            <div className="total-row">
+              <span>Total HT:</span>
+              <strong>{editedData.deliveryReprise.totalHT.toFixed(2)} €</strong>
+            </div>
+            <div className="total-row">
+              <span>TVA ({editedData.deliveryReprise.tvaPct}%):</span>
+              <strong>{editedData.deliveryReprise.tva.toFixed(2)} €</strong>
+            </div>
+            <div className="total-row highlight">
+              <span>Total TTC:</span>
+              <strong>{editedData.deliveryReprise.totalTTC.toFixed(2)} €</strong>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!editedData.deliveryReprise && (
+        <section className="budget-section editable">
+          <div style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
+            <p>No hay sección de Livraison et Reprise</p>
+            <button className="btn btn-primary" onClick={()=>{
+              const newData = { ...editedData! }
+              newData.deliveryReprise = { deliveryCost: 0, pickupCost: 0, totalHT: 0, tva: 0, tvaPct: 20, totalTTC: 0 }
+              setEditedData(recalculateTotals(newData))
+            }}>➕ Agregar Livraison et Reprise</button>
+          </div>
+        </section>
+      )}
+
+      {/* BOISSONS SOFT - EDITABLE */}
+      {editedData.boissonsSoft && (
+        <section className="budget-section editable">
+          <div className="section-header-with-delete">
+            <h2>🥤 Boissons Soft</h2>
+            <button
+              className="btn-delete-section"
+              onClick={() => {
+                if (window.confirm('¿Eliminar sección de Boissons Soft?')) {
+                  setEditedData(prev => {
+                    if (!prev) return prev
+                    const newData = { ...prev }
+                    delete newData.boissonsSoft
+                    return recalculateTotals(newData)
+                  })
+                }
+              }}
+              title="Eliminar sección"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="edit-grid">
+            <div className="edit-field">
+              <label>Precio por Persona (€)</label>
+              <input
+                type="number"
+                value={editedData.boissonsSoft.pricePerPerson}
+                onChange={(e) => updateField('boissonsSoft.pricePerPerson', parseFloat(e.target.value) || 0)}
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <div className="edit-field">
+              <label>Total Personas</label>
+              <input
+                type="number"
+                value={editedData.boissonsSoft.totalPersons}
+                onChange={(e) => updateField('boissonsSoft.totalPersons', parseInt(e.target.value) || 0)}
+                min="0"
+              />
+            </div>
+          </div>
+          <div className="info-display" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: '#6b7280', fontWeight: 600 }}>TVA:</span>
+              <strong style={{ color: '#e2943a', fontSize: '16px' }}>20%</strong>
+            </div>
+            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e7eb', fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
+              ⚙️ Valor fijo (no editable)
+            </div>
+          </div>
+          <div className="totals-box">
+            <div className="total-row">
+              <span>Total HT:</span>
+              <strong>{editedData.boissonsSoft.totalHT.toFixed(2)} €</strong>
+            </div>
+            <div className="total-row">
+              <span>TVA (20%):</span>
+              <strong>{editedData.boissonsSoft.tva.toFixed(2)} €</strong>
+            </div>
+            <div className="total-row highlight">
+              <span>Total TTC:</span>
+              <strong>{editedData.boissonsSoft.totalTTC.toFixed(2)} €</strong>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!editedData.boissonsSoft && (
+        <section className="budget-section editable">
+          <div style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
+            <p>No hay sección de Boissons Soft</p>
+            <button className="btn btn-primary" onClick={()=>{
+              const newData = { ...editedData! }
+              newData.boissonsSoft = {
+                pricePerPerson: 0,
+                totalPersons: 0,
+                totalHT: 0,
+                tva: 0,
+                tvaPct: 20,
+                totalTTC: 0
+              }
+              setEditedData(recalculateTotals(newData))
+            }}>➕ Agregar Boissons Soft</button>
+          </div>
         </section>
       )}
 
@@ -915,6 +1242,14 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
       {/* ACCIONES */}
       <div className="budget-actions">
         <button 
+          className="btn btn-danger"
+          onClick={deleteBudget}
+          disabled={saving}
+          style={{ backgroundColor: '#ef4444', color: 'white' }}
+        >
+          🗑️ Eliminar
+        </button>
+        <button 
           className="btn btn-secondary"
           onClick={() => window.open(`/api/preview-budget-html?budgetId=${budgetId}`, '_blank')}
           disabled={saving}
@@ -943,7 +1278,7 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ budgetId }) => {
           ✅ Aprobar y Enviar
         </button>
       </div>
-    </div>
+      </div>
   )
 }
 
