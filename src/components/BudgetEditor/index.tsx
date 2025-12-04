@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { BudgetEditorProps } from './types'
 import { useBudgetData } from './hooks/useBudgetData'
 import { useBudgetCalculations } from './hooks/useBudgetCalculations'
@@ -131,7 +131,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     const removeSection = (sectionName: string) => {
         if (window.confirm(`¿Eliminar sección de ${sectionName}?`)) {
             const newData = { ...editedData }
-            // @ts-ignore
+            // @ts-expect-error: Dynamic key access on BudgetData
             delete newData[sectionName]
             setEditedData(newData) // Esto recalculará totales en el hook
         }
