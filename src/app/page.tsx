@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState } from 'react'
 import Header from '@/components/Header/Header'
 import FilterBar from '@/components/FilterBar/FilterBar'
 import OrderCard from '@/components/OrderCard/OrderCard'
@@ -13,25 +13,25 @@ import EventReminders from '@/components/EventReminders/EventReminders'
 import PriceManager from '@/components/PriceManager'
 import BudgetsManager from '@/components/BudgetsManager/BudgetsManager'
 import EventCalculator from '@/components/EventCalculator/EventCalculator'
-import { CateringOrder, FilterOptions, EmailTemplate, CalendarEvent, PaymentInfo, Product } from '@/types'
+import { CateringOrder, EmailTemplate, CalendarEvent } from '@/types'
 import { emailTemplates } from '@/data/mockData'
-import { supabase } from '@/lib/supabaseClient'
 import { List, DollarSign, BarChart3, Calendar, Bell, Euro, FileText, Calculator } from 'lucide-react'
 import styles from './page.module.css'
+import { useOrders } from '@/hooks/useOrders'
+import { useProducts } from '@/hooks/useProducts'
+import { useOrderFilters } from '@/hooks/useOrderFilters'
 
 type TabType = 'orders' | 'payments' | 'reports' | 'calendar' | 'reminders' | 'prices' | 'budgets' | 'eventcalc'
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<TabType>('orders')
-  const [orders, setOrders] = useState<CateringOrder[]>([])
-  const [products, setProducts] = useState<Product[]>([])
+
+  // Custom hooks for data and logic
+  const { orders, handleStatusChange, handleUpdatePayment, handleUpdateOrder } = useOrders()
+  const { products } = useProducts()
+  const { filters, setFilters, filteredOrders } = useOrderFilters(orders)
+
   const [manualEvents, setManualEvents] = useState<CalendarEvent[]>([])
-  const [filters, setFilters] = useState<FilterOptions>({
-    searchTerm: '',
-    status: 'all',
-    dateFrom: '',
-    dateTo: ''
-  })
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
   const [emailModal, setEmailModal] = useState<{
     isOpen: boolean
@@ -42,179 +42,6 @@ export default function AdminPanel() {
     isOpen: boolean
     order?: CateringOrder
   }>({ isOpen: false })
-
-  // Cargar pedidos desde Supabase
-  useEffect(() => {
-    const loadOrders = async () => {
-      const { data, error } = await supabase
-        .from('catering_orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('Error cargando pedidos:', error)
-        return
-      }
-
-      const mapped: CateringOrder[] = (data || []).map((row: any) => {
-        console.log('📦 Cargando pedido:', { id: row.id, status: row.status, name: row.name })
-        return {
-          id: row.id,
-          contact: {
-            email: row.email,
-            name: row.name,
-            phone: row.phone || '',
-            eventDate: row.event_date || '',
-            eventType: row.event_type || '',
-            eventTime: row.event_time || undefined,
-            address: row.address || '',
-            guestCount: row.guest_count || 0
-          },
-          menu: { type: row.menu_type },
-          entrees: row.entrees || [],
-          viandes: row.viandes || [],
-          dessert: row.dessert || null,
-          extras: row.extras || { wines: false, equipment: [], decoration: false, specialRequest: '' },
-          status: row.status || 'pending',
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          estimatedPrice: row.estimated_price || undefined,
-          notes: row.notes || undefined
-        }
-      })
-
-      setOrders(mapped)
-    }
-
-    loadOrders()
-  }, [])
-
-  // Cargar productos desde Supabase
-  useEffect(() => {
-    const loadProducts = async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('category', { ascending: true })
-        .order('name', { ascending: true })
-
-      if (error) {
-        console.error('Error cargando productos:', error)
-        return
-      }
-
-      setProducts(data || [])
-    }
-
-    loadProducts()
-  }, [])
-
-  // Filtrar pedidos basado en los filtros aplicados
-  const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
-      // Filtro de búsqueda
-      if (filters.searchTerm) {
-        const searchTerm = filters.searchTerm.toLowerCase()
-        const matchesSearch =
-          order.contact.name.toLowerCase().includes(searchTerm) ||
-          order.contact.email.toLowerCase().includes(searchTerm)
-        if (!matchesSearch) return false
-      }
-
-      // Filtro de estado
-      if (filters.status !== 'all' && order.status !== filters.status) {
-        return false
-      }
-
-      // Filtro de fecha de inicio
-      if (filters.dateFrom) {
-        const orderDate = new Date(order.contact.eventDate)
-        const startDate = new Date(filters.dateFrom)
-        if (orderDate < startDate) return false
-      }
-
-      // Filtro de fecha de fin
-      if (filters.dateTo) {
-        const orderDate = new Date(order.contact.eventDate)
-        const endDate = new Date(filters.dateTo)
-        if (orderDate > endDate) return false
-      }
-
-      return true
-    })
-  }, [orders, filters])
-
-  // Manejar cambio de estado de pedido
-  const handleStatusChange = async (orderId: string, newStatus: CateringOrder['status']) => {
-    try {
-      console.log('🔄 Cambiando estado del pedido:', { orderId, newStatus })
-
-      // Actualizar en la base de datos
-      const { data, error } = await supabase
-        .from('catering_orders')
-        .update({
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', orderId)
-        .select()
-
-      if (error) {
-        console.error('❌ Error actualizando estado del pedido:', error)
-        alert(`Error al actualizar el estado del pedido: ${error.message}`)
-        return
-      }
-
-      console.log('✅ Estado actualizado en BD:', data)
-
-      // Verificar que el valor se guardó correctamente
-      const { data: verifyData, error: verifyError } = await supabase
-        .from('catering_orders')
-        .select('id, status, updated_at')
-        .eq('id', orderId)
-        .single()
-
-      if (verifyError) {
-        console.error('❌ Error verificando estado:', verifyError)
-      } else {
-        console.log('✅ Estado verificado en BD:', verifyData)
-      }
-
-      // Actualizar el estado local solo si la actualización en BD fue exitosa
-      setOrders(prevOrders =>
-        prevOrders.map(order =>
-          order.id === orderId
-            ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
-            : order
-        )
-      )
-    } catch (error) {
-      console.error('❌ Error al actualizar estado del pedido:', error)
-      alert(`Error al actualizar el estado del pedido: ${error instanceof Error ? error.message : 'Error desconocido'}`)
-    }
-  }
-
-  // Actualizar información de pago de un pedido
-  const handleUpdatePayment = (orderId: string, updatedPayment: PaymentInfo) => {
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
-        order.id === orderId
-          ? { ...order, payment: updatedPayment, updatedAt: new Date().toISOString() }
-          : order
-      )
-    )
-  }
-
-  // Actualizar cualquier campo del pedido
-  const handleUpdateOrder = (orderId: string, updates: Partial<CateringOrder>) => {
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
-        order.id === orderId
-          ? { ...order, ...updates, updatedAt: new Date().toISOString() }
-          : order
-      )
-    )
-  }
 
   // Manejar selección de pedidos
   const handleOrderSelection = (orderId: string, isSelected: boolean) => {
