@@ -17,6 +17,11 @@ export interface BudgetData {
         tvaPct: number
         totalTTC: number
         notes?: string
+        selectedItems?: {
+            entrees: string[]
+            viandes: string[]
+            desserts: string[]
+        }
     }
     material?: {
         items: Array<{

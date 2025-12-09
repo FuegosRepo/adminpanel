@@ -24,7 +24,7 @@ export function formatItemName(name: string): string {
         .split(/([-_])/)
         .map((part) => {
             if (part === '-' || part === '_') {
-                return part
+                return ' '
             }
             if (part.length > 0) {
                 return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
@@ -32,4 +32,5 @@ export function formatItemName(name: string): string {
             return part
         })
         .join('')
+        .trim()
 }

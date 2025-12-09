@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 import { BudgetData } from '../types'
+import { useProducts } from '@/hooks/useProducts'
+import { formatItemName } from '../utils/formatItemName'
+import { MenuSelectorModal } from './MenuSelectorModal'
 import styles from './MenuSection.module.css'
 
 interface MenuSectionProps {
@@ -9,6 +12,20 @@ interface MenuSectionProps {
 
 export function MenuSection({ data, onUpdate }: MenuSectionProps) {
     const [expanded, setExpanded] = useState(true)
+    const [showModal, setShowModal] = useState(false)
+    const { products } = useProducts()
+
+    const getProductNames = (ids: string[] | undefined) => {
+        if (!ids || ids.length === 0) return []
+        return ids.map(id => {
+            const product = products.find(p => p.id === id)
+            return product ? product.name : formatItemName(id)
+        })
+    }
+
+    const selectedEntrees = getProductNames(data.selectedItems?.entrees)
+    const selectedViandes = getProductNames(data.selectedItems?.viandes)
+    const selectedDesserts = getProductNames(data.selectedItems?.desserts)
 
     return (
         <section className={`${styles.section} ${styles.editable}`}>
@@ -58,6 +75,46 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                             />
                         </div>
                     </div>
+
+                    <div className={styles.menuSelection}>
+                        <div className={styles.menuSelectionHeader}>
+                            <h3>Selección de Platos</h3>
+                            <button
+                                className={styles.modifyBtn}
+                                onClick={() => setShowModal(true)}
+                            >
+                                Modificar Menú
+                            </button>
+                        </div>
+
+                        <div className={styles.selectionGrid}>
+                            <div className={styles.selectionGroup}>
+                                <h4>Entradas</h4>
+                                {selectedEntrees.length > 0 ? (
+                                    <ul className={styles.selectionList}>
+                                        {selectedEntrees.map((name, i) => <li key={i}>{name}</li>)}
+                                    </ul>
+                                ) : <span className={styles.emptyMessage}>Sin selección</span>}
+                            </div>
+                            <div className={styles.selectionGroup}>
+                                <h4>Carnes</h4>
+                                {selectedViandes.length > 0 ? (
+                                    <ul className={styles.selectionList}>
+                                        {selectedViandes.map((name, i) => <li key={i}>{name}</li>)}
+                                    </ul>
+                                ) : <span className={styles.emptyMessage}>Sin selección</span>}
+                            </div>
+                            <div className={styles.selectionGroup}>
+                                <h4>Postres</h4>
+                                {selectedDesserts.length > 0 ? (
+                                    <ul className={styles.selectionList}>
+                                        {selectedDesserts.map((name, i) => <li key={i}>{name}</li>)}
+                                    </ul>
+                                ) : <span className={styles.emptyMessage}>Sin selección</span>}
+                            </div>
+                        </div>
+                    </div>
+
                     <div className={styles.totalsBox}>
                         <div className={styles.totalRow}>
                             <span>Total HT:</span>
@@ -72,6 +129,13 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                             <strong>{data.totalTTC.toFixed(2)} €</strong>
                         </div>
                     </div>
+
+                    <MenuSelectorModal
+                        isOpen={showModal}
+                        onClose={() => setShowModal(false)}
+                        selectedItems={data.selectedItems || { entrees: [], viandes: [], desserts: [] }}
+                        onSave={(selection) => onUpdate('menu.selectedItems', selection)}
+                    />
                 </>
             )}
         </section>
