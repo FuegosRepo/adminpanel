@@ -96,6 +96,81 @@
     font-size: 18px;
 }
 
+/* Menu Selection Styles */
+.menuSelection {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 1.5rem;
+}
+
+.menuSelectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.menuSelectionHeader h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.modifyBtn {
+    background-color: #e2943a;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.modifyBtn:hover {
+    background-color: #d18634;
+}
+
+.selectionGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.selectionGroup h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.selectionList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.selectionList li {
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.selectionList li:last-child {
+    border-bottom: none;
+}
+
+.emptyMessage {
+    color: #999;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .editGrid {

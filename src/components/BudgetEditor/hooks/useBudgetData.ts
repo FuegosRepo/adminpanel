@@ -29,6 +29,27 @@ export function useBudgetData(budgetId: string) {
                 // Procesamiento inicial de datos (similar al original)
                 const budgetData = { ...data.budget_data } as BudgetData
 
+                // Si hay un order_id y no hay items seleccionados en el presupuesto, traerlos de la orden
+                if (data.order_id && (!budgetData.menu.selectedItems ||
+                    (budgetData.menu.selectedItems.entrees.length === 0 &&
+                        budgetData.menu.selectedItems.viandes.length === 0 &&
+                        budgetData.menu.selectedItems.desserts.length === 0))) {
+
+                    const { data: orderData } = await supabase
+                        .from('catering_orders')
+                        .select('entrees, viandes, dessert')
+                        .eq('id', data.order_id)
+                        .single()
+
+                    if (orderData) {
+                        budgetData.menu.selectedItems = {
+                            entrees: orderData.entrees || [],
+                            viandes: orderData.viandes || [],
+                            desserts: orderData.dessert ? [orderData.dessert] : []
+                        }
+                    }
+                }
+
                 // Asegurar valores fijos para servicio si existe
                 if (budgetData.service) {
                     budgetData.service.pricePerHour = 40
@@ -72,6 +93,10 @@ export function useBudgetData(budgetId: string) {
                         delete budgetData.material
                     }
                 }
+
+                // Updating the local budget object with enriched data
+                const enrichedBudget = { ...data, budget_data: budgetData }
+                setBudget(enrichedBudget as any)
 
                 return budgetData
             }

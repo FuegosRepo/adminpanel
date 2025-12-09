@@ -2,21 +2,35 @@ import { Product } from '@/types'
 
 // Mapeo completo de nombres del formulario a nombres en la BD
 const NAME_MAPPING: { [key: string]: string[] } = {
+    // New Unified IDs
     'empanadas': ['empanadas', 'empanada'],
-    'tapas-chorizo': ['choripan', 'chorizo', 'tapa chorizo', 'tapas chorizo'],
-    'miniburger': ['burguer', 'burger', 'miniburger', 'mini burger', 'mini-burger'],
+    'choripan': ['choripan', 'chorizo', 'tapas chorizo', 'tapa chorizo'],
+    'burger': ['burguer', 'burger', 'miniburger', 'mini burger', 'mini-burger'],
     'saumon': ['salmon', 'salmón', 'saumon'],
-    'bife-chorizo': ['bife de chorizo', 'bife chorizo', 'bife'],
-    'entrecote-france': ['entrecot fr', 'entrecote fr', 'entrecot france', 'entrecote france', 'entrecot'],
-    'entrecote-arg': ['entrecot arg', 'entrecote arg', 'entrecot argentino'],
-    'entrecote-argentine': ['entrecot arg', 'entrecote arg', 'entrecot argentino', 'entrecote argentine', 'entrecote argentina'],
-    'magret-canard': ['magret de canard', 'magret', 'canard'],
+    'bife_chorizo': ['bife de chorizo', 'bife chorizo', 'bife'],
+    'entrecote': ['entrecot fr', 'entrecote fr', 'entrecot france', 'entrecote france', 'entrecot'],
+    'entrecote_arg': ['entrecot arg', 'entrecote arg', 'entrecot argentino', 'entrecote argentine', 'entrecote argentina'],
+    'magret': ['magret de canard', 'magret', 'canard'],
     'vacio': ['vacio', 'vacío'],
     'costillar': ['costillar', 'costilla'],
-    'cote-boeuf': ['cote de boeuf', 'cote boeuf', 'cote'],
+    'tomahawk': ['cote de boeuf', 'cote boeuf', 'cote', 'tomahawk'],
     'picanha': ['picanha', 'picaña'],
-    'fruits-flambes': ['fruits flambes', 'fruits flambés', 'frutas flambeadas', 'fruit flambe'],
-    'fruits-grille': ['fruits grille', 'fruits grillés', 'frutas grilladas'],
+    'fruits_grilles': ['fruits grille', 'fruits grillés', 'frutas grilladas', 'fruits flambes', 'fruits flambés'],
+    'secreto': ['secreto', 'secreto de cerdos', 'secreto de porc', 'secreto iberico'],
+    'brochettes': ['brochettes', 'brochette'],
+    'entrana': ['entrana', 'entraña'],
+    'panqueques': ['panqueques', 'panqueque', 'dulce de leche'],
+
+    // Legacy Aliases (Backward Compatibility)
+    'tapas-chorizo': ['choripan', 'chorizo', 'tapas chorizo'],
+    'miniburger': ['burguer', 'burger', 'miniburger'],
+    'bife-chorizo': ['bife de chorizo', 'bife chorizo'],
+    'entrecote-france': ['entrecot fr', 'entrecote fr', 'entrecot france'],
+    'entrecote-argentine': ['entrecot arg', 'entrecote arg', 'entrecot argentino'],
+    'magret-canard': ['magret', 'canard'],
+    'cote-boeuf': ['cote de boeuf', 'tomahawk'],
+    'fruits-flambes': ['fruits flambes', 'fruits flambés'],
+    'panqueques-dulce': ['panqueques', 'dulce de leche']
 }
 
 /**
