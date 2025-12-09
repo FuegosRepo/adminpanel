@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Product, ComboIngredient } from '@/types'
 import { X, Plus, Trash2, Loader2 } from 'lucide-react'
+import { ComboIngredientRow } from './ComboIngredientRow'
 import styles from './ComboIngredientsModal.module.css'
 
 interface ComboIngredientsModalProps {
@@ -12,6 +13,8 @@ interface ComboIngredientsModalProps {
     onAddIngredient: (ingredientId: string) => Promise<boolean>
     onRemoveIngredient: (relationId: string) => Promise<boolean>
     onUpdateQuantity: (relationId: string, quantity: number) => void
+    onUpdatePrice?: (ingredientId: string, newPrice: number, field: 'price_per_kg' | 'price_per_portion') => void
+    onUpdateUnit: (relationId: string, unit: 'kg' | 'gr' | 'u') => void
     loading: boolean
 }
 
@@ -24,6 +27,8 @@ export function ComboIngredientsModal({
     onAddIngredient,
     onRemoveIngredient,
     onUpdateQuantity,
+    onUpdatePrice,
+    onUpdateUnit,
     loading
 }: ComboIngredientsModalProps) {
     const [selectedIngredientId, setSelectedIngredientId] = useState('')
@@ -85,32 +90,15 @@ export function ComboIngredientsModal({
                             <p className={styles.emptyText}>No hay ingredientes agregados</p>
                         ) : (
                             ingredients.map(item => (
-                                <div key={item.id} className={styles.ingredientRow}>
-                                    <div className={styles.ingredientInfo}>
-                                        <span className={styles.ingredientName}>{item.ingredient?.name}</span>
-                                        <span className={styles.ingredientPrice}>
-                                            {item.ingredient?.price_per_portion.toFixed(2)}€ x unidad
-                                        </span>
-                                    </div>
-
-                                    <div className={styles.actions}>
-                                        <input
-                                            type="number"
-                                            min="0.1"
-                                            step="0.1"
-                                            value={item.quantity}
-                                            onChange={e => onUpdateQuantity(item.id, parseFloat(e.target.value) || 0)}
-                                            className={styles.quantityInput}
-                                        />
-                                        <button
-                                            onClick={() => onRemoveIngredient(item.id)}
-                                            className={styles.removeButton}
-                                            disabled={loading}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </div>
+                                <ComboIngredientRow
+                                    key={item.id}
+                                    item={item}
+                                    onUpdateQuantity={onUpdateQuantity}
+                                    onUpdatePrice={onUpdatePrice}
+                                    onUpdateUnit={onUpdateUnit}
+                                    onRemoveIngredient={onRemoveIngredient}
+                                    loading={loading}
+                                />
                             ))
                         )}
                     </div>

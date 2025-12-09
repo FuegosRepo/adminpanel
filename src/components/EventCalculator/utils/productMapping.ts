@@ -3,7 +3,7 @@ import { Product } from '@/types'
 // Mapeo completo de nombres del formulario a nombres en la BD
 const NAME_MAPPING: { [key: string]: string[] } = {
     'empanadas': ['empanadas', 'empanada'],
-    'tapas-chorizo': ['chorizo', 'choripan', 'tapa chorizo', 'tapas chorizo'],
+    'tapas-chorizo': ['choripan', 'chorizo', 'tapa chorizo', 'tapas chorizo'],
     'miniburger': ['burguer', 'burger', 'miniburger', 'mini burger', 'mini-burger'],
     'saumon': ['salmon', 'salmón', 'saumon'],
     'bife-chorizo': ['bife de chorizo', 'bife chorizo', 'bife'],
@@ -16,6 +16,7 @@ const NAME_MAPPING: { [key: string]: string[] } = {
     'cote-boeuf': ['cote de boeuf', 'cote boeuf', 'cote'],
     'picanha': ['picanha', 'picaña'],
     'fruits-flambes': ['fruits flambes', 'fruits flambés', 'frutas flambeadas', 'fruit flambe'],
+    'fruits-grille': ['fruits grille', 'fruits grillés', 'frutas grilladas'],
 }
 
 /**

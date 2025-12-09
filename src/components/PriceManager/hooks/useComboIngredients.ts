@@ -125,6 +125,29 @@ export function useComboIngredients() {
         }
     }
 
+    const updateUnit = async (relationId: string, unit: 'kg' | 'gr' | 'u') => {
+        try {
+            const { error } = await supabase
+                .from('combo_ingredients')
+                .update({ display_unit: unit })
+                .eq('id', relationId)
+
+            if (error) throw error
+
+            setComboIngredients(prev =>
+                prev.map(item =>
+                    item.id === relationId
+                        ? { ...item, display_unit: unit }
+                        : item
+                )
+            )
+            return true
+        } catch (err) {
+            console.error('Error updating unit:', err)
+            return false
+        }
+    }
+
     const recalculateComboPrice = async (comboId: string, products: Product[]) => {
         try {
             const { data: ingredients } = await supabase
@@ -168,6 +191,7 @@ export function useComboIngredients() {
         addIngredient,
         removeIngredient,
         updateQuantity,
+        updateUnit,
         recalculateComboPrice
     }
 }

@@ -56,6 +56,7 @@ export default function PriceManager() {
         addIngredient,
         removeIngredient,
         updateQuantity,
+        updateUnit,
         recalculateComboPrice
     } = useComboIngredients()
 
@@ -102,11 +103,6 @@ export default function PriceManager() {
         const success = await addIngredient(selectedCombo.id, ingredientId, products)
         if (success) {
             await recalculateComboPrice(selectedCombo.id, products)
-            // Recargar productos para reflejar el nuevo precio del combo
-            // Nota: idealmente useProducts debería exponer una forma de actualizar un solo producto localmente
-            // pero por simplicidad podemos confiar en que recalculateComboPrice actualiza la DB
-            // y podríamos disparar un reload o actualizar localmente si fuera crítico.
-            // Por ahora, el usuario verá el precio actualizado en el modal.
         }
         return success
     }
@@ -123,9 +119,13 @@ export default function PriceManager() {
     const handleUpdateIngredientQuantity = async (relationId: string, quantity: number) => {
         if (!selectedCombo) return
         await updateQuantity(relationId, quantity)
-        // Esperar un poco para recalcular para no saturar, o hacerlo en blur/save.
-        // Aquí lo hacemos directo pero podría optimizarse.
         await recalculateComboPrice(selectedCombo.id, products)
+    }
+
+    const handleUpdateIngredientUnit = async (relationId: string, unit: 'kg' | 'gr' | 'u') => {
+        if (!selectedCombo) return
+        await updateUnit(relationId, unit)
+        // No recalculation needed for unit change as it is purely display preference
     }
 
     return (
@@ -231,6 +231,8 @@ export default function PriceManager() {
                 onAddIngredient={handleAddIngredientToCombo}
                 onRemoveIngredient={handleRemoveIngredientFromCombo}
                 onUpdateQuantity={handleUpdateIngredientQuantity}
+                onUpdatePrice={(id, price, field) => handlePriceChange(id, field, price.toString())}
+                onUpdateUnit={handleUpdateIngredientUnit}
                 loading={ingredientsLoading || saving === 'loading-ingredients'}
             />
         </div>

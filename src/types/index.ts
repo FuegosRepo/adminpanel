@@ -145,6 +145,7 @@ export interface ComboIngredient {
   combo_id: string
   ingredient_id: string
   quantity: number
+  display_unit?: 'kg' | 'gr' | 'u' | 'storage'
   created_at: string
   ingredient?: Product
 }

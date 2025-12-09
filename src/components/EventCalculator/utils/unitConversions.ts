@@ -108,7 +108,11 @@ export function convertToDisplayUnit(product: Product, quantity: number): { valu
 export function convertToDisplayUnitForSummary(product: Product, quantity: number): { value: number, unit: string } {
     // Si el producto usa kg como unidad base
     if (product.unit_type === 'kg') {
-        // Siempre mostrar en kg para el resumen total
+        // Si es menos de 1kg, mostrar en gramos
+        if (quantity < 1) {
+            return { value: quantity * 1000, unit: 'gr' }
+        }
+        // De lo contrario, mostrar en kg
         return { value: quantity, unit: 'kg' }
     }
 
@@ -123,6 +127,10 @@ export function convertToDisplayUnitForSummary(product: Product, quantity: numbe
         if (product.portion_per_person) {
             const portionLower = product.portion_per_person.toLowerCase().replace(/,/g, '.')
             if (portionLower.includes('gr') || portionLower.includes('g')) {
+                // Si es menos de 1kg, mostrar en gramos
+                if (quantity < 1) {
+                    return { value: quantity * 1000, unit: 'gr' }
+                }
                 return { value: quantity, unit: 'kg' }
             }
         }

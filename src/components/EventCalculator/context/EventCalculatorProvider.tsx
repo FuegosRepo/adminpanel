@@ -41,7 +41,7 @@ export const EventCalculatorProvider = ({ children, products, orders }: EventCal
     }, [])
 
     // Derived data
-    const availableProducts = useMemo(() => products.filter(p => !p.is_combo && p.active), [products])
+    const availableProducts = useMemo(() => products.filter(p => !p.is_combo && p.active && p.category !== 'material'), [products])
     const allProducts = useMemo(() => products.filter(p => p.active), [products])
 
     // Events hook

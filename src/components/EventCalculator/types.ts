@@ -34,6 +34,7 @@ export interface Event {
 export interface IngredientTotal {
     product: Product
     total: number
+    subItems?: { product: Product; total: number }[]
 }
 
 export interface GlobalStats {

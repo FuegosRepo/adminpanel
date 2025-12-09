@@ -53,17 +53,22 @@ export const createEventFromOrder = (order: CateringOrder, allProducts: Product[
         order.extras.equipment.forEach((item, index) => {
             const product = findProductByName(item, allProducts)
             if (product) {
-                const isMaterial = product.category === 'material'
-                const quantityPerPerson = isMaterial ? 1 : (product.portion_per_person
+                // Verificar si es material
+                if (product.category === 'material') {
+                    console.log(`  ℹ️ Material omitido del evento: ${item} → ${product.name}`)
+                    return // SKIP adding material to ingredients
+                }
+
+                const quantityPerPerson = product.portion_per_person
                     ? parsePortionPerPerson(product.portion_per_person)
-                    : 1)
+                    : 1
 
                 ingredients.push({
                     id: `${Date.now()}-extra-${index}-${item.replace(/\s+/g, '-')}`,
                     product,
                     quantityPerPerson,
                     notes: product.clarifications || undefined,
-                    isFixedQuantity: isMaterial
+                    isFixedQuantity: false
                 })
                 console.log(`  ✅ Extra agregado: ${item} → ${product.name}`)
             } else {
