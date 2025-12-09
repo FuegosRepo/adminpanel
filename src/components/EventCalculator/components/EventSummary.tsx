@@ -60,12 +60,29 @@ export function EventSummary({ totalsByCategory, isExpanded, onToggle }: EventSu
                                     {totalsByCategory[category].map(item => {
                                         const display = convertToDisplayUnitForSummary(item.product, item.total)
                                         return (
-                                            <tr key={item.product.id}>
-                                                <td className={styles.ingredientName}>{item.product.name}</td>
-                                                <td className={styles.grandTotal}>
-                                                    {display.value.toFixed(2)} {display.unit}
-                                                </td>
-                                            </tr>
+                                            <React.Fragment key={item.product.id}>
+                                                <tr>
+                                                    <td className={styles.ingredientName} style={item.subItems ? { fontWeight: 'bold' } : {}}>
+                                                        {item.product.name}
+                                                    </td>
+                                                    <td className={styles.grandTotal}>
+                                                        {parseFloat(display.value.toFixed(2))} {display.unit}
+                                                    </td>
+                                                </tr>
+                                                {item.subItems && item.subItems.map(sub => {
+                                                    const subDisplay = convertToDisplayUnitForSummary(sub.product, sub.total)
+                                                    return (
+                                                        <tr key={`${item.product.id}-${sub.product.id}`}>
+                                                            <td className={styles.ingredientName} style={{ paddingLeft: '24px', opacity: 0.8 }}>
+                                                                - {sub.product.name}
+                                                            </td>
+                                                            <td className={styles.grandTotal} style={{ opacity: 0.8 }}>
+                                                                {parseFloat(subDisplay.value.toFixed(2))} {subDisplay.unit}
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </React.Fragment>
                                         )
                                     })}
                                 </tbody>

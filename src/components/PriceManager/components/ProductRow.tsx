@@ -65,7 +65,7 @@ export function ProductRow({
                                     value={product.price_per_kg}
                                     onChange={(e) => onPriceChange(product.id, 'price_per_kg', e.target.value)}
                                     className={styles.priceInput}
-                                    disabled={isSaving || product.is_combo}
+                                    disabled={isSaving}
                                 />
                             </div>
                         </div>
@@ -82,8 +82,8 @@ export function ProductRow({
                                 value={product.price_per_portion}
                                 onChange={(e) => onPriceChange(product.id, 'price_per_portion', e.target.value)}
                                 className={styles.priceInput}
-                                disabled={isSaving || product.is_combo}
-                                title={product.is_combo ? 'El precio se calcula automáticamente desde los ingredientes' : ''}
+                                disabled={isSaving}
+                                title={product.is_combo ? 'El precio se puede sobrescribir manualmente' : ''}
                             />
                         </div>
                     </div>
