@@ -5,7 +5,7 @@ import { BudgetData } from '@/lib/types/budget'
 
 export async function POST(request: NextRequest) {
   try {
-    const { budgetId } = await request.json()
+    const { budgetId, budgetData: providedData } = await request.json()
 
     if (!budgetId) {
       return NextResponse.json(
@@ -16,22 +16,29 @@ export async function POST(request: NextRequest) {
 
     console.log(`📄 Generando PDF para presupuesto ${budgetId}...`)
 
-    // Obtener datos del presupuesto
-    const { data: budget, error: fetchError } = await supabase
-      .from('budgets')
-      .select('*')
-      .eq('id', budgetId)
-      .single()
+    let budgetData: BudgetData
 
-    if (fetchError || !budget) {
-      console.error('Error obteniendo presupuesto:', fetchError)
-      return NextResponse.json(
-        { error: 'Presupuesto no encontrado' },
-        { status: 404 }
-      )
+    if (providedData) {
+      console.log('Using provided budget data directly')
+      budgetData = providedData
+    } else {
+      // Fallback: Obtener datos del presupuesto de DB
+      const { data: budget, error: fetchError } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('id', budgetId)
+        .single()
+
+      if (fetchError || !budget) {
+        console.error('Error obteniendo presupuesto:', fetchError)
+        return NextResponse.json(
+          { error: 'Presupuesto no encontrado' },
+          { status: 404 }
+        )
+      }
+
+      budgetData = budget.budget_data as BudgetData
     }
-
-    const budgetData = budget.budget_data as BudgetData
 
     // Generar PDF
     const pdfBlob = await generateBudgetPDF(budgetData)

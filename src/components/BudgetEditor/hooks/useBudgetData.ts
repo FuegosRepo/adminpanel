@@ -202,7 +202,10 @@ export function useBudgetData(budgetId: string) {
             const response = await fetch('/api/generate-budget-pdf', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ budgetId })
+                body: JSON.stringify({
+                    budgetId,
+                    budgetData: currentData
+                })
             })
 
             if (!response.ok) {

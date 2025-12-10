@@ -9,17 +9,17 @@ function imageToBase64(imagePath: string): string {
       console.warn(`⚠️ Imagen no encontrada: ${imagePath}`)
       return ''
     }
-    
+
     const imageBuffer = fs.readFileSync(imagePath)
     const ext = path.extname(imagePath).toLowerCase()
     let mimeType = 'image/png'
-    
+
     if (ext === '.webp') {
       mimeType = 'image/webp'
     } else if (ext === '.jpg' || ext === '.jpeg') {
       mimeType = 'image/jpeg'
     }
-    
+
     return `data:${mimeType};base64,${imageBuffer.toString('base64')}`
   } catch (error) {
     console.error(`❌ Error leyendo imagen ${imagePath}:`, error)
@@ -34,13 +34,13 @@ function getImagePath(filename: string): string {
     path.join(process.cwd(), '.next', 'server', 'src', 'lib', filename),
     path.join(process.cwd(), 'lib', filename),
   ]
-  
+
   for (const imagePath of possiblePaths) {
     if (fs.existsSync(imagePath)) {
       return imagePath
     }
   }
-  
+
   return path.join(process.cwd(), 'src', 'lib', filename)
 }
 
@@ -59,10 +59,10 @@ function cleanText(text: string): string {
 // Función helper para mejorar el formato de textos con guiones y otros casos
 function formatText(text: string): string {
   if (!text) return ''
-  
+
   // Limpiar emojis primero
   let formatted = cleanText(text)
-  
+
   // Mejorar casos específicos comunes primero (antes de procesar guiones)
   const replacements: { [key: string]: string } = {
     'verres-eau': 'Verres d\'eau',
@@ -72,7 +72,7 @@ function formatText(text: string): string {
     'assiettes-plates': 'Assiettes plates',
     'assiettes-creuses': 'Assiettes creuses',
   }
-  
+
   // Aplicar reemplazos específicos (case insensitive)
   const lowerText = formatted.toLowerCase()
   for (const [key, value] of Object.entries(replacements)) {
@@ -84,7 +84,7 @@ function formatText(text: string): string {
       }
     }
   }
-  
+
   // Si no hay reemplazo específico, capitalizar palabras separadas por guiones, manteniendo el guion
   formatted = formatted
     .split(/([-_])/) // Dividir manteniendo los separadores
@@ -100,12 +100,12 @@ function formatText(text: string): string {
       return part
     })
     .join('')
-  
+
   // Capitalizar primera letra de la frase completa
   if (formatted.length > 0) {
     formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1)
   }
-  
+
   return formatted
 }
 
@@ -113,11 +113,13 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
   // Cargar imágenes
   const overlayPath = getImagePath('ground-overlay-01.png')
   const miniLogoPath = getImagePath('minilogo.webp')
-  
+
   const overlayBase64 = imageToBase64(overlayPath)
   const miniLogoBase64 = imageToBase64(miniLogoPath)
 
-  const eventDate = new Date(budgetData.clientInfo.eventDate).toLocaleDateString('fr-FR', {
+  // Fix date off-by-one error by handling YYYY-MM-DD manually
+  const [year, month, day] = budgetData.clientInfo.eventDate.split('-').map(Number)
+  const eventDate = new Date(year, month - 1, day).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
@@ -177,7 +179,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     .header {
       background-color: #e2943a;
       color: white;
-      padding: 10mm 20mm;
+      padding: 15mm 20mm 10mm 20mm; /* Increased top padding */
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -195,22 +197,11 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       text-align: center;
     }
 
-    .header-title {
-      font-size: 22pt;
-      font-weight: bold;
-      margin-bottom: 2mm;
-    }
-
-    .header-subtitle {
-      font-size: 10pt;
-      font-weight: normal;
-    }
+    /* ... */
 
     /* CONTENT */
     .content {
-      padding: 15mm 20mm;
-      padding-top: 10mm;
-      padding-bottom: 15mm;
+      padding: 10mm 20mm 30mm 20mm; /* Increased bottom padding */
       position: relative;
     }
 
@@ -224,95 +215,64 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     /* CLIENT INFO */
     .client-info {
       font-size: 10pt;
-      margin-bottom: 8mm;
-      background-color: rgba(255, 255, 255, 0.6);
-      padding: 6mm;
+      margin-bottom: 5mm;
+      padding: 3mm;
       border-radius: 4mm;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    .client-info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3mm;
+      background-color: rgba(255, 255, 255, 0.5);
     }
 
     .client-info-item {
       display: flex;
-      align-items: flex-start;
-      margin-bottom: 3mm;
-    }
-
-    .client-info-icon {
-      font-size: 12pt;
-      margin-right: 3mm;
-      flex-shrink: 0;
-    }
-
-    .client-info-text {
-      flex: 1;
+      align-items: center;
+      margin-bottom: 2mm;
     }
 
     .client-info-label {
       font-weight: 600;
-      color: #e2943a;
-      margin-right: 2mm;
-    }
-
-    .client-info-value {
       color: #333333;
+      margin-right: 2mm;
+      min-width: 30mm;
     }
 
     /* MENU SECTIONS */
     .section {
-      margin-bottom: 8mm;
-      background-color: rgba(255, 255, 255, 0.6);
-      padding: 6mm;
-      border-radius: 4mm;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      page-break-inside: avoid;
-      break-inside: avoid;
+      margin-bottom: 6mm;
+      background-color: transparent;
+      padding: 0;
+      box-shadow: none;
     }
 
     .section-title {
       font-size: 14pt;
       font-weight: bold;
       color: #e2943a;
-      margin-bottom: 6mm;
-      padding-bottom: 3mm;
-      border-bottom: 2px solid #e2943a;
+      margin-bottom: 4mm;
+      padding-bottom: 1mm;
+      border-bottom: 1px solid #e2943a;
     }
 
     .menu-category {
-      margin-bottom: 5mm;
+      margin-bottom: 4mm;
     }
 
     .section-subtitle {
       font-size: 11pt;
       font-weight: bold;
       color: #e2943a;
-      margin-bottom: 3mm;
-      display: flex;
-      align-items: center;
-      gap: 2mm;
+      margin-bottom: 2mm;
     }
 
     .menu-items-list {
+      margin-left: 0;
       display: flex;
       flex-direction: column;
-      gap: 2mm;
-      margin-left: 4mm;
+      gap: 1mm;
     }
 
     .menu-item {
       font-size: 10pt;
-      padding: 2mm 3mm;
-      background-color: rgba(255, 255, 255, 0.8);
-      border-left: 3px solid #e2943a;
-      border-radius: 2mm;
-      margin-bottom: 0;
+      padding: 1mm 0;
+      border-bottom: 1px dotted #ccc;
     }
 
     .menu-list {
@@ -323,13 +283,26 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 
     /* AMOUNTS */
     .amount-section {
+      margin: 5mm 0;
+      /* Espaciador sólido transparente para separar de la página anterior/superior */
+      border-top: 5mm solid transparent;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .totals-section {
+      margin: 5mm 0;
+      border-top: 5mm solid transparent;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Caja visual naranja con bordes perfectos */
+    .orange-box {
       background-color: #e2943a;
       color: white;
       padding: 4mm;
-      margin: 8mm 0;
-      border-radius: 2mm;
-      page-break-inside: avoid;
-      break-inside: avoid;
+      border-radius: 2mm; /* Radio normal */
     }
 
     .amount-title {
@@ -353,59 +326,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       border-top: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-    .totals-section {
-      background-color: #e2943a;
-      color: white;
-      padding: 4mm;
-      margin: 8mm 0;
-      border-radius: 2mm;
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    /* UTILITIES */
-    .clearfix::after {
-      content: "";
-      display: table;
-      clear: both;
-    }
-
-    /* Evitar que elementos se corten entre páginas */
-    .menu-category {
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    .client-info-grid {
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    /* Asegurar que las imágenes no se sobrepongan */
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    @media print {
-      body {
-        margin: 0;
-        padding: 0;
-      }
-      
-      .page {
-        page-break-after: always;
-        page-break-before: always;
-      }
-      
-      /* Asegurar que los colores se impriman correctamente */
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        color-adjust: exact !important;
-      }
-    }
+    /* ... skipped ... */
   </style>
 </head>
 <body>
@@ -421,89 +342,61 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 
     <!-- CONTENT -->
     <div class="content">
-      <h1 class="title">DEVIS</h1>
 
       <!-- CLIENT INFO -->
       <div class="client-info">
         <div class="client-info-grid">
           <div class="client-info-item">
-            <span class="client-info-icon">👤</span>
-            <div class="client-info-text">
-              <span class="client-info-label">Nom :</span>
-              <span class="client-info-value">${cleanText(budgetData.clientInfo.name)}</span>
-            </div>
+            <span class="client-info-label">Nom :</span>
+            <span class="client-info-value">${cleanText(budgetData.clientInfo.name)}</span>
           </div>
           
           <div class="client-info-item">
-            <span class="client-info-icon">📞</span>
-            <div class="client-info-text">
-              <span class="client-info-label">Téléphone :</span>
-              <span class="client-info-value">${cleanText(budgetData.clientInfo.phone)}</span>
-            </div>
+            <span class="client-info-label">Téléphone :</span>
+            <span class="client-info-value">${cleanText(budgetData.clientInfo.phone)}</span>
           </div>
           
           <div class="client-info-item">
-            <span class="client-info-icon">📧</span>
-            <div class="client-info-text">
-              <span class="client-info-label">Email :</span>
-              <span class="client-info-value">${cleanText(budgetData.clientInfo.email)}</span>
-            </div>
+            <span class="client-info-label">Email :</span>
+            <span class="client-info-value">${cleanText(budgetData.clientInfo.email)}</span>
           </div>
           
           <div class="client-info-item">
-            <span class="client-info-icon">🎉</span>
-            <div class="client-info-text">
-              <span class="client-info-label">Événement :</span>
-              <span class="client-info-value">${cleanText(budgetData.clientInfo.eventType)}</span>
-            </div>
+            <span class="client-info-label">Événement :</span>
+            <span class="client-info-value">${cleanText(budgetData.clientInfo.eventType)}</span>
           </div>
           
           ${budgetData.clientInfo.address ? `
           <div class="client-info-item">
-            <span class="client-info-icon">📍</span>
-            <div class="client-info-text">
-              <span class="client-info-label">Lieu :</span>
-              <span class="client-info-value">${cleanText(budgetData.clientInfo.address)}</span>
-            </div>
+            <span class="client-info-label">Lieu :</span>
+            <span class="client-info-value">${cleanText(budgetData.clientInfo.address)}</span>
           </div>
           ` : ''}
           
           <div class="client-info-item">
-            <span class="client-info-icon">📅</span>
-            <div class="client-info-text">
-              <span class="client-info-label">Date :</span>
-              <span class="client-info-value">${eventDate}</span>
-            </div>
+            <span class="client-info-label">Date :</span>
+            <span class="client-info-value">${eventDate}</span>
           </div>
           
           <div class="client-info-item">
-            <span class="client-info-icon">👥</span>
-            <div class="client-info-text">
-              <span class="client-info-label">Nombre de convives :</span>
-              <span class="client-info-value">${budgetData.clientInfo.guestCount} personnes</span>
-            </div>
+            <span class="client-info-label">Convives :</span>
+            <span class="client-info-value">${budgetData.clientInfo.guestCount} personnes</span>
           </div>
           
           <div class="client-info-item">
-            <span class="client-info-icon">🕓</span>
-            <div class="client-info-text">
-              <span class="client-info-label">Moment :</span>
-              <span class="client-info-value">${menuTypeText}</span>
-            </div>
+            <span class="client-info-label">Moment :</span>
+            <span class="client-info-value">${menuTypeText}</span>
           </div>
         </div>
       </div>
 
       <!-- MENU -->
       <div class="section">
-        <h2 class="section-title">🍽️ Menu Sélectionné</h2>
+        <h2 class="section-title">Menu Sélectionné</h2>
 
         ${budgetData.menu.entrees && budgetData.menu.entrees.length > 0 ? `
           <div class="menu-category">
-            <div class="section-subtitle">
-              <span>🥗</span>
-              <span>Entrees :</span>
-            </div>
+            <div class="section-subtitle">Entrees</div>
             <div class="menu-items-list">
               ${budgetData.menu.entrees.map(entree => `
                 <div class="menu-item">${formatText(entree.name)}</div>
@@ -514,10 +407,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 
         ${budgetData.menu.viandes && budgetData.menu.viandes.length > 0 ? `
           <div class="menu-category">
-            <div class="section-subtitle">
-              <span>🥩</span>
-              <span>Viandes :</span>
-            </div>
+            <div class="section-subtitle">Viandes</div>
             <div class="menu-items-list">
               ${budgetData.menu.viandes.map(viande => `
                 <div class="menu-item">${formatText(viande.name)}</div>
@@ -528,10 +418,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 
         ${budgetData.menu.accompagnements && budgetData.menu.accompagnements.length > 0 ? `
           <div class="menu-category">
-            <div class="section-subtitle">
-              <span>🥔</span>
-              <span>Accompagnements et Sauces :</span>
-            </div>
+            <div class="section-subtitle">Accompagnements et Sauces</div>
             <div class="menu-items-list">
               ${budgetData.menu.accompagnements.map(acc => `
                 <div class="menu-item">${formatText(acc)}</div>
@@ -542,10 +429,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 
         ${budgetData.menu.dessert ? `
           <div class="menu-category">
-            <div class="section-subtitle">
-              <span>🍰</span>
-              <span>Dessert :</span>
-            </div>
+            <div class="section-subtitle">Dessert</div>
             <div class="menu-items-list">
               <div class="menu-item">${formatText(budgetData.menu.dessert.name)}</div>
             </div>
@@ -555,53 +439,57 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 
       <!-- MONTANT MENU -->
       <div class="amount-section">
-        <div class="amount-title">Montant - Menu</div>
-        <div class="amount-row">
-          <span>Montant HT :</span>
-          <span>${budgetData.menu.totalHT.toFixed(2)} €</span>
-        </div>
-        <div class="amount-row">
-          <span>TVA (${budgetData.menu.tvaPct}%) :</span>
-          <span>${budgetData.menu.tva.toFixed(2)} €</span>
-        </div>
-        <div class="amount-row amount-total">
-          <span>Montant TTC :</span>
-          <span>${budgetData.menu.totalTTC.toFixed(2)} €</span>
+        <div class="orange-box">
+            <div class="amount-title">Montant - Menu</div>
+            <div class="amount-row">
+            <span>Montant HT :</span>
+            <span>${budgetData.menu.totalHT.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+            <span>TVA (${budgetData.menu.tvaPct}%) :</span>
+            <span>${budgetData.menu.tva.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row amount-total">
+            <span>Montant TTC :</span>
+            <span>${budgetData.menu.totalTTC.toFixed(2)} €</span>
+            </div>
         </div>
       </div>
 
       ${budgetData.material && budgetData.material.items && budgetData.material.items.length > 0 ? `
         <!-- MATERIAL -->
         <div class="section">
-          <h2 class="section-title">📦 Matériel demandé</h2>
+          <h2 class="section-title">Matériel demandé</h2>
           <div class="menu-items-list">
             ${budgetData.material.items
-              .filter(item => {
-                // Excluir items relacionados con "Serveurs" (case insensitive)
-                const itemNameLower = item.name.toLowerCase()
-                return !itemNameLower.includes('serveur') && 
-                       !itemNameLower.includes('servicio') &&
-                       !itemNameLower.includes('mozos')
-              })
-              .map(item => `
+        .filter(item => {
+          // Excluir items relacionados con "Serveurs" (case insensitive)
+          const itemNameLower = item.name.toLowerCase()
+          return !itemNameLower.includes('serveur') &&
+            !itemNameLower.includes('servicio') &&
+            !itemNameLower.includes('mozos')
+        })
+        .map(item => `
               <div class="menu-item">${formatText(item.name)}</div>
             `).join('')}
           </div>
         </div>
 
         <div class="amount-section">
-          <div class="amount-title">Montant - Matériel</div>
-          <div class="amount-row">
-            <span>Montant HT :</span>
-            <span>${budgetData.material.totalHT.toFixed(2)} €</span>
-          </div>
-          <div class="amount-row">
-            <span>TVA (${budgetData.material.tvaPct}%) :</span>
-            <span>${budgetData.material.tva.toFixed(2)} €</span>
-          </div>
-          <div class="amount-row amount-total">
-            <span>Montant TTC :</span>
-            <span>${budgetData.material.totalTTC.toFixed(2)} €</span>
+          <div class="orange-box">
+            <div class="amount-title">Montant - Matériel</div>
+            <div class="amount-row">
+                <span>Montant HT :</span>
+                <span>${budgetData.material.totalHT.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+                <span>TVA (${budgetData.material.tvaPct}%) :</span>
+                <span>${budgetData.material.tva.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row amount-total">
+                <span>Montant TTC :</span>
+                <span>${budgetData.material.totalTTC.toFixed(2)} €</span>
+            </div>
           </div>
         </div>
       ` : ''}
@@ -609,62 +497,107 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       ${budgetData.deplacement && budgetData.deplacement.distance > 0 ? `
         <!-- DEPLACEMENT -->
         <div class="amount-section">
-          <div class="amount-title">Montant – Déplacement</div>
-          <div class="amount-row">
-            <span>Distance :</span>
-            <span>${budgetData.deplacement.distance} km</span>
+          <div class="orange-box">
+            <div class="amount-title">Montant – Déplacement</div>
+            <div class="amount-row">
+                <span>Distance :</span>
+                <span>${budgetData.deplacement.distance} km</span>
+            </div>
+            <div class="amount-row">
+                <span>Montant HT :</span>
+                <span>${budgetData.deplacement.totalHT.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+                <span>TVA (${budgetData.deplacement.tvaPct}%) :</span>
+                <span>${budgetData.deplacement.tva.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row amount-total">
+                <span>Montant TTC :</span>
+                <span>${budgetData.deplacement.totalTTC.toFixed(2)} €</span>
+            </div>
           </div>
-          <div class="amount-row">
-            <span>Montant HT :</span>
-            <span>${budgetData.deplacement.totalHT.toFixed(2)} €</span>
-          </div>
-          <div class="amount-row">
-            <span>TVA (${budgetData.deplacement.tvaPct}%) :</span>
-            <span>${budgetData.deplacement.tva.toFixed(2)} €</span>
-          </div>
-          <div class="amount-row amount-total">
-            <span>Montant TTC :</span>
-            <span>${budgetData.deplacement.totalTTC.toFixed(2)} €</span>
-          </div>
+        </div>
+      ` : ''}
+
+      ${budgetData.deliveryReprise && budgetData.deliveryReprise.totalHT > 0 ? `
+        <!-- DELIVERY & REPRISE -->
+        <div class="amount-section">
+            <div class="orange-box">
+                <div class="amount-title">Montant – Livraison et Reprise</div>
+                ${budgetData.deliveryReprise.deliveryCost > 0 ? `
+                <div class="amount-row">
+                    <span>Livraison :</span>
+                    <span>${budgetData.deliveryReprise.deliveryCost.toFixed(2)} €</span>
+                </div>
+                ` : ''}
+                ${budgetData.deliveryReprise.pickupCost > 0 ? `
+                <div class="amount-row">
+                    <span>Reprise :</span>
+                    <span>${budgetData.deliveryReprise.pickupCost.toFixed(2)} €</span>
+                </div>
+                ` : ''}
+                <div class="amount-row">
+                    <span>Montant HT :</span>
+                    <span>${budgetData.deliveryReprise.totalHT.toFixed(2)} €</span>
+                </div>
+                <div class="amount-row">
+                    <span>TVA (${budgetData.deliveryReprise.tvaPct}%) :</span>
+                    <span>${budgetData.deliveryReprise.tva.toFixed(2)} €</span>
+                </div>
+                <div class="amount-row amount-total">
+                    <span>Montant TTC :</span>
+                    <span>${budgetData.deliveryReprise.totalTTC.toFixed(2)} €</span>
+                </div>
+            </div>
         </div>
       ` : ''}
 
       ${budgetData.service && budgetData.service.mozos > 0 ? `
         <!-- SERVICE -->
         <div class="amount-section">
-          <div class="amount-title">Montant – Service</div>
-          <div class="amount-row">
-            <span>${budgetData.service.mozos} serveur(s) x ${budgetData.service.hours} heures</span>
-          </div>
-          <div class="amount-row">
-            <span>Montant HT :</span>
-            <span>${budgetData.service.totalHT.toFixed(2)} €</span>
-          </div>
-          <div class="amount-row">
-            <span>TVA (${budgetData.service.tvaPct}%) :</span>
-            <span>${budgetData.service.tva.toFixed(2)} €</span>
-          </div>
-          <div class="amount-row amount-total">
-            <span>Montant TTC :</span>
-            <span>${budgetData.service.totalTTC.toFixed(2)} €</span>
+          <div class="orange-box">
+            <div class="amount-title">Montant – Service</div>
+            <div class="amount-row">
+                <span>${budgetData.service.mozos} serveur(s) x ${budgetData.service.hours} heures</span>
+            </div>
+            <div class="amount-row">
+                <span>Montant HT :</span>
+                <span>${budgetData.service.totalHT.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+                <span>TVA (${budgetData.service.tvaPct}%) :</span>
+                <span>${budgetData.service.tva.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row amount-total">
+                <span>Montant TTC :</span>
+                <span>${budgetData.service.totalTTC.toFixed(2)} €</span>
+            </div>
           </div>
         </div>
       ` : ''}
 
       <!-- TOTALES FINALES -->
       <div class="totals-section">
-        <div class="amount-title">Montant Général</div>
-        <div class="amount-row">
-          <span>Montant HT total :</span>
-          <span>${budgetData.totals.totalHT.toFixed(2)} €</span>
-        </div>
-        <div class="amount-row">
-          <span>TVA totale :</span>
-          <span>${budgetData.totals.totalTVA.toFixed(2)} €</span>
-        </div>
-        <div class="amount-row amount-total">
-          <span>Montant TTC total :</span>
-          <span>${budgetData.totals.totalTTC.toFixed(2)} €</span>
+        <div class="orange-box">
+            <div class="amount-title">Montant Général</div>
+            <div class="amount-row">
+            <span>Montant HT total :</span>
+            <span>${budgetData.totals.totalHT.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+            <span>TVA totale :</span>
+            <span>${budgetData.totals.totalTVA.toFixed(2)} €</span>
+            </div>
+            ${budgetData.totals.discount && budgetData.totals.discount.amount > 0 ? `
+            <div class="amount-row" style="color: #ef4444;">
+            <span>Remise (${budgetData.totals.discount.percentage}% - ${budgetData.totals.discount.reason || 'Saison'}):</span>
+            <span>-${budgetData.totals.discount.amount.toFixed(2)} €</span>
+            </div>
+            ` : ''}
+            <div class="amount-row amount-total">
+            <span>Montant TTC total :</span>
+            <span>${budgetData.totals.totalTTC.toFixed(2)} €</span>
+            </div>
         </div>
       </div>
     </div>
@@ -673,4 +606,3 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 </html>
   `.trim()
 }
-

@@ -54,7 +54,7 @@ export function TotalsSection({ data, onUpdate }: TotalsSectionProps) {
                 <div className={`${styles.totalRow} ${styles.highlightGreen}`}>
                     <span>TOTAL A PAGAR (TTC):</span>
                     <span className={styles.finalAmount}>
-                        {(data.totalTTC - (data.discount?.amount || 0)).toFixed(2)} €
+                        {data.totalTTC.toFixed(2)} €
                     </span>
                 </div>
             </div>

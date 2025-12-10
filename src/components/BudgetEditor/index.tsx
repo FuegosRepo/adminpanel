@@ -15,6 +15,7 @@ import { DeplacementSection } from './components/DeplacementSection'
 import { TotalsSection } from './components/TotalsSection'
 import { BudgetActions } from './components/BudgetActions'
 import { MaterialSelectorModal } from './components/MaterialSelectorModal'
+import { isEqual } from 'lodash'
 import styles from './BudgetEditor.module.css'
 
 export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
@@ -34,6 +35,12 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         updateField,
         setEditedData
     } = useBudgetCalculations(budget?.budget_data || null)
+
+    // Detectar cambios no guardados
+    const hasUnsavedChanges = React.useMemo(() => {
+        if (!budget?.budget_data || !editedData) return false
+        return !isEqual(budget.budget_data, editedData)
+    }, [budget?.budget_data, editedData])
 
     // Sincronizar datos cuando se carga el presupuesto
     React.useEffect(() => {
@@ -68,6 +75,11 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     }
 
     const handleApproveAndSend = async () => {
+        if (hasUnsavedChanges) {
+            alert('⚠️ Tienes cambios sin guardar. Por favor guarda el presupuesto antes de aprobar.')
+            return
+        }
+
         if (!budget?.pdf_url) {
             alert('⚠️ Por favor genera el PDF antes de aprobar y enviar')
             return
@@ -113,11 +125,24 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     }
 
     const handleGeneratePDF = async () => {
+        if (hasUnsavedChanges) {
+            alert('⚠️ Tienes cambios sin guardar. Por favor guarda antes de generar el PDF.')
+            return
+        }
+
         const result = await generatePDF(editedData)
         if (result.success && result.pdfUrl) {
             console.log('✅ PDF generado:', result.pdfUrl)
             const pdfUrlWithCache = `${result.pdfUrl}${result.pdfUrl.includes('?') ? '&' : '?'}_=${Date.now()}`
-            window.open(pdfUrlWithCache, '_blank')
+
+            // Usar un enlace temporal para evitar bloqueadores de popups
+            const link = document.createElement('a')
+            link.href = pdfUrlWithCache
+            link.target = '_blank'
+            link.rel = 'noopener noreferrer'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
         } else {
             alert(`Error al generar PDF: ${result.error}`)
         }
@@ -294,6 +319,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                 onGeneratePDF={handleGeneratePDF}
                 saving={saving}
                 hasPdf={!!budget?.pdf_url}
+                hasUnsavedChanges={hasUnsavedChanges}
             />
         </div>
     )

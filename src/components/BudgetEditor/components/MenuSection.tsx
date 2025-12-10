@@ -133,8 +133,51 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                     <MenuSelectorModal
                         isOpen={showModal}
                         onClose={() => setShowModal(false)}
-                        selectedItems={data.selectedItems || { entrees: [], viandes: [], desserts: [] }}
-                        onSave={(selection) => onUpdate('menu.selectedItems', selection)}
+                        selectedItems={{
+                            entrees: data.selectedItems?.entrees || [],
+                            viandes: data.selectedItems?.viandes || [],
+                            desserts: data.selectedItems?.desserts || []
+                        }}
+                        onSave={(selection) => {
+                            // Hidratar selección con nombres reales de productos
+                            const hydrateItems = (ids: string[], category: string) => {
+                                return ids.map(id => {
+                                    const product = products.find(p => p.id === id)
+                                    // Si no encuentra producto, usa el ID formateado
+                                    return {
+                                        name: product ? product.name : formatItemName(id),
+                                        quantity: 0,
+                                        pricePerUnit: 0,
+                                        total: 0
+                                    }
+                                })
+                            }
+
+                            // Buscar el producto de postre si hay selección
+                            let dessertItem = null
+                            if (selection.desserts.length > 0) {
+                                const dessertId = selection.desserts[0]
+                                const product = products.find(p => p.id === dessertId)
+                                dessertItem = {
+                                    name: product ? product.name : formatItemName(dessertId),
+                                    quantity: 0,
+                                    pricePerUnit: 0,
+                                    total: 0
+                                }
+                            }
+
+                            // Actualizar IDs para la UI
+                            onUpdate('menu.selectedItems', selection)
+
+                            // Actualizar objetos completos para PDF
+                            onUpdate('menu.entrees', hydrateItems(selection.entrees, 'entrees'))
+                            onUpdate('menu.viandes', hydrateItems(selection.viandes, 'viandes'))
+                            if (dessertItem) {
+                                onUpdate('menu.dessert', dessertItem)
+                            }
+
+                            setShowModal(false)
+                        }}
                     />
                 </>
             )}

@@ -86,7 +86,10 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
     return (
         <div className={styles.overlay}>
             <div className={styles.modal}>
-                <h2>Seleccionar Menú</h2>
+                <div className={styles.header}>
+                    <h2>Seleccionar Menú</h2>
+                    <button className={styles.closeBtn} onClick={onClose} title="Cerrar">×</button>
+                </div>
                 {loading ? (
                     <p>Cargando productos...</p>
                 ) : (
