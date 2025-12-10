@@ -8,34 +8,48 @@ interface BudgetActionsProps {
     onGeneratePDF: () => void
     saving: boolean
     hasPdf: boolean
+    hasUnsavedChanges: boolean
 }
 
-export function BudgetActions({ onSave, onApproveAndSend, onGeneratePDF, saving, hasPdf }: BudgetActionsProps) {
+export function BudgetActions({ onSave, onApproveAndSend, onGeneratePDF, saving, hasPdf, hasUnsavedChanges }: BudgetActionsProps) {
     return (
         <div className={styles.budgetActions}>
-            <button
-                onClick={onSave}
-                className={`${styles.btn} ${styles.btnSecondary}`}
-                disabled={saving}
-            >
-                <Save size={18} />
-                {saving ? 'Guardando...' : 'Guardar Borrador'}
-            </button>
+            {hasUnsavedChanges ? (
+                <button
+                    onClick={onSave}
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    disabled={saving}
+                >
+                    <Save size={18} />
+                    {saving ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
+            ) : (
+                <>
+                    <button
+                        onClick={onSave}
+                        className={`${styles.btn} ${styles.btnSecondary}`}
+                        disabled={true}
+                    >
+                        <Save size={18} />
+                        Guardado
+                    </button>
 
-            <button
-                onClick={onGeneratePDF}
-                className={`${styles.btn} ${styles.btnPrimary}`}
-                disabled={saving}
-            >
-                <FileText size={18} />
-                {saving ? 'Generando...' : 'Generar PDF'}
-            </button>
+                    <button
+                        onClick={onGeneratePDF}
+                        className={`${styles.btn} ${styles.btnPrimary}`}
+                        disabled={saving}
+                    >
+                        <FileText size={18} />
+                        {saving ? 'Generando PDF...' : 'Generar PDF'}
+                    </button>
+                </>
+            )}
 
             <button
                 onClick={onApproveAndSend}
                 className={`${styles.btn} ${styles.btnSuccess}`}
-                disabled={saving || !hasPdf}
-                title={!hasPdf ? 'Primero debes generar el PDF' : ''}
+                disabled={saving || hasUnsavedChanges || !hasPdf}
+                title={hasUnsavedChanges ? 'Primero guarda los cambios' : (!hasPdf ? 'Primero debes generar el PDF' : '')}
             >
                 <CheckCircle2 size={18} />
                 Aprobar y Enviar

@@ -102,11 +102,18 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         totalTVA += updated.service.tva
     }
 
+    let totalTTC = totalHT + totalTVA
+
+    // Aplicar descuento si existe
+    if (updated.totals.discount && updated.totals.discount.amount > 0) {
+        totalTTC -= updated.totals.discount.amount
+    }
+
     updated.totals = {
         ...updated.totals,
         totalHT,
         totalTVA,
-        totalTTC: totalHT + totalTVA
+        totalTTC
     }
 
     return updated

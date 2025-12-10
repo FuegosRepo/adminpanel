@@ -52,6 +52,24 @@ export interface BudgetServiceSection {
   totalTTC: number
   notes?: string
 }
+export interface BudgetDeliverySection {
+  deliveryCost: number
+  pickupCost: number
+  totalHT: number
+  tva: number
+  tvaPct: number
+  totalTTC: number
+  notes?: string
+}
+
+export interface BudgetBoissonsSection {
+  pricePerPerson: number
+  totalPersons: number
+  totalHT: number
+  tva: number
+  tvaPct: number
+  totalTTC: number
+}
 
 export interface BudgetTotals {
   totalHT: number
@@ -76,20 +94,22 @@ export interface BudgetData {
     address: string
     menuType: 'dejeuner' | 'diner'
   }
-  
+
   // Secciones del presupuesto
   menu: BudgetMenuSection
   material?: BudgetMaterialSection
   deplacement?: BudgetDeplacementSection
   service?: BudgetServiceSection
-  
+  deliveryReprise?: BudgetDeliverySection
+  boissonsSoft?: BudgetBoissonsSection
+
   // Totales generales
   totals: BudgetTotals
-  
+
   // Notas y observaciones
   notes?: string
   internalNotes?: string
-  
+
   // Metadata
   generatedAt: string
   validUntil: string

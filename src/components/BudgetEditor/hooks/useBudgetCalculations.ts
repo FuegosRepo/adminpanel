@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { cloneDeep } from 'lodash'
 import { BudgetData } from '../types'
 import { recalculateTotals } from '../utils/budgetCalculations'
 
@@ -8,7 +9,8 @@ export function useBudgetCalculations(initialData: BudgetData | null) {
     const updateField = useCallback((path: string, value: any) => {
         setEditedData((prev) => {
             if (!prev) return prev
-            const newData = { ...prev }
+            // Usar cloneDeep para asegurar inmutabilidad total y que la detección de cambios funcione
+            const newData = cloneDeep(prev)
             const keys = path.split('.')
             let current: any = newData
 
