@@ -50,17 +50,37 @@ function getImagePath(filename: string): string {
 
 // Nueva función que usa HTML + Puppeteer (más fácil de maquetar)
 export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise<Blob> {
-  const puppeteer = await import('puppeteer')
-
   const html = generateBudgetHTML(budgetData)
+  let browser
 
-  console.log('🚀 Iniciando Puppeteer...')
   try {
-    const browser = await puppeteer.default.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    })
-    console.log('✅ Browser lanzado')
+    console.log('🚀 Iniciando Puppeteer...')
+
+    // Configuración condicional para Producción (Serverless) vs Desarrollo
+    if (process.env.NODE_ENV === 'production') {
+      console.log('☁️ Ejecutando en entorno de PRODUCCIÓN (Chromium)')
+      const chromium = await import('@sparticuz/chromium')
+      const puppeteerCore = await import('puppeteer-core')
+
+      const chromiumLib = chromium.default as any
+
+      browser = await puppeteerCore.default.launch({
+        args: chromiumLib.args,
+        defaultViewport: chromiumLib.defaultViewport,
+        executablePath: await chromiumLib.executablePath(),
+        headless: chromiumLib.headless,
+      })
+    } else {
+      console.log('💻 Ejecutando en entorno LOCAL (Puppeteer Standard)')
+      const puppeteer = await import('puppeteer')
+
+      browser = await puppeteer.default.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      })
+    }
+
+    console.log('✅ Browser lanzado correctamente')
 
     try {
       const page = await browser.newPage()
