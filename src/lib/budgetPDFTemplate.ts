@@ -151,10 +151,6 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     body {
       font-family: 'Helvetica', Arial, sans-serif;
       background-color: #fed7aa;
-      background-image: ${overlayBase64 ? `url('${overlayBase64}')` : 'none'};
-      background-repeat: repeat;
-      background-size: 50mm 50mm;
-      background-attachment: fixed;
       color: #333333;
       line-height: 1.5;
       padding: 0;
@@ -167,9 +163,6 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     .page {
       width: 210mm;
       background-color: #fed7aa;
-      background-image: ${overlayBase64 ? `url('${overlayBase64}')` : 'none'};
-      background-repeat: repeat;
-      background-size: 50mm 50mm;
       margin: 0 auto;
       padding: 0;
       position: relative;
@@ -478,6 +471,16 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
         <div class="amount-section">
           <div class="orange-box">
             <div class="amount-title">Montant - Matériel</div>
+            <div class="amount-row">
+                <span>Total Matériel :</span>
+                <span>${(budgetData.material.totalHT - (budgetData.material.insuranceAmount || 0)).toFixed(2)} €</span>
+            </div>
+            ${budgetData.material.insuranceAmount && budgetData.material.insuranceAmount > 0 ? `
+            <div class="amount-row">
+                <span>Assurance Perte et Casse (${budgetData.material.insurancePct || 6}%):</span>
+                <span>${budgetData.material.insuranceAmount.toFixed(2)} €</span>
+            </div>
+            ` : ''}
             <div class="amount-row">
                 <span>Montant HT :</span>
                 <span>${budgetData.material.totalHT.toFixed(2)} €</span>
