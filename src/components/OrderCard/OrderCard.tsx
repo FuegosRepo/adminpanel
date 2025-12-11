@@ -73,7 +73,8 @@ const OrderCard = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId: order.id,
-          templateId: template.id
+          customSubject: template.subject,
+          customContent: template.content
         })
       })
 

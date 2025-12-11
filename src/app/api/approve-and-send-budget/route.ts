@@ -113,8 +113,11 @@ export async function POST(request: NextRequest) {
       // Cargar logo para adjuntar como inline image
       let logoAttachment = null
       let logoCid = undefined
+      let headerAttachment = null
+      let headerCid = undefined
+
       try {
-        // Intentar cargar el logo desde src/lib/minilogo.webp
+        // 1. Cargar minilogo
         const logoPath = path.join(process.cwd(), 'src', 'lib', 'minilogo.webp')
         if (fs.existsSync(logoPath)) {
           const logoBuffer = fs.readFileSync(logoPath)
@@ -129,8 +132,25 @@ export async function POST(request: NextRequest) {
         } else {
           console.warn('⚠️ No se encontró el logo en:', logoPath)
         }
+
+        // 2. Cargar header image
+        const headerPath = path.join(process.cwd(), 'src', 'lib', 'headeremail.webp')
+        if (fs.existsSync(headerPath)) {
+          const headerBuffer = fs.readFileSync(headerPath)
+          headerCid = 'headeremail'
+          headerAttachment = {
+            filename: 'headeremail.webp',
+            content: headerBuffer.toString('base64'),
+            content_id: headerCid,
+            disposition: 'inline' as const
+          }
+          console.log('✅ Header image cargada para embedding')
+        } else {
+          console.warn('⚠️ No se encontró el header image en:', headerPath)
+        }
+
       } catch (logoError) {
-        console.warn('⚠️ Error cargando logo:', logoError)
+        console.warn('⚠️ Error cargando imágenes:', logoError)
       }
 
       // Preparar contenido HTML usando plantillas
@@ -140,7 +160,7 @@ export async function POST(request: NextRequest) {
         eventDate,
         logoCid
       })
-      const finalHtml = BaseLayout(innerContent)
+      const finalHtml = BaseLayout(innerContent, { headerCid })
 
       // Preparar adjuntos
       const attachments = []
@@ -161,7 +181,12 @@ export async function POST(request: NextRequest) {
         attachments.push(logoAttachment)
       }
 
-      const subject = `Votre Devis Fuegos d'Azur - ${totalTTC.toFixed(2)}€ (Cliente: ${clientEmail})`
+      // Agregar Header
+      if (headerAttachment) {
+        attachments.push(headerAttachment)
+      }
+
+      const subject = `Votre Devis Fuegos d'Azur ${eventDate ? '- ' + eventDate : ''}`
 
       console.log(`📧 Enviando email a ${clientEmail}...`)
 
