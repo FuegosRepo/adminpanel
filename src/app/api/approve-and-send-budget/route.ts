@@ -134,12 +134,12 @@ export async function POST(request: NextRequest) {
         }
 
         // 2. Cargar header image
-        const headerPath = path.join(process.cwd(), 'src', 'lib', 'headeremail.webp')
+        const headerPath = path.join(process.cwd(), 'src', 'lib', 'headeremail.png')
         if (fs.existsSync(headerPath)) {
           const headerBuffer = fs.readFileSync(headerPath)
           headerCid = 'headeremail'
           headerAttachment = {
-            filename: 'headeremail.webp',
+            filename: 'headeremail.png',
             content: headerBuffer.toString('base64'),
             content_id: headerCid,
             disposition: 'inline' as const
