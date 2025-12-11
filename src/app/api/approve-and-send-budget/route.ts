@@ -117,20 +117,32 @@ export async function POST(request: NextRequest) {
       let headerCid = undefined
 
       try {
-        // 1. Cargar minilogo
-        const logoPath = path.join(process.cwd(), 'src', 'lib', 'minilogo.webp')
-        if (fs.existsSync(logoPath)) {
-          const logoBuffer = fs.readFileSync(logoPath)
+        // 1. Cargar minilogo (Preferir PNG, fallback a WEBP)
+        const logoPngPath = path.join(process.cwd(), 'src', 'lib', 'minilogo.png')
+        const logoWebpPath = path.join(process.cwd(), 'src', 'lib', 'minilogo.webp')
+
+        if (fs.existsSync(logoPngPath)) {
+          const logoBuffer = fs.readFileSync(logoPngPath)
           logoCid = 'minilogo'
           logoAttachment = {
-            filename: 'minilogo.webp',
-            content: logoBuffer.toString('base64'),
+            filename: 'minilogo.png',
+            content: logoBuffer,
             content_id: logoCid,
             disposition: 'inline' as const
           }
-          console.log('✅ Logo cargado para embedding')
+          console.log('✅ Logo PNG cargado para embedding')
+        } else if (fs.existsSync(logoWebpPath)) {
+          const logoBuffer = fs.readFileSync(logoWebpPath)
+          logoCid = 'minilogo'
+          logoAttachment = {
+            filename: 'minilogo.webp',
+            content: logoBuffer,
+            content_id: logoCid,
+            disposition: 'inline' as const
+          }
+          console.log('✅ Logo WEBP cargado para embedding')
         } else {
-          console.warn('⚠️ No se encontró el logo en:', logoPath)
+          console.warn('⚠️ No se encontró el logo (ni png ni webp)')
         }
 
         // 2. Cargar header image
@@ -140,7 +152,7 @@ export async function POST(request: NextRequest) {
           headerCid = 'headeremail'
           headerAttachment = {
             filename: 'headeremail.png',
-            content: headerBuffer.toString('base64'),
+            content: headerBuffer,
             content_id: headerCid,
             disposition: 'inline' as const
           }
