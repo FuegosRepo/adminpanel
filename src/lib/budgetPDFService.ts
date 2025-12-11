@@ -99,8 +99,20 @@ export async function generateBudgetPDF(budgetData: BudgetData): Promise<Blob> {
 
 
 export function getBudgetPDFFilename(budgetData: BudgetData): string {
-  const clientName = budgetData.clientInfo.name.replace(/\s+/g, '_')
-  const date = new Date(budgetData.generatedAt).toISOString().split('T')[0]
-  return `Devis_Fuegos_${clientName}_${date}.pdf`
+  const clientName = (budgetData.clientInfo.name || 'Client').replace(/[^a-zA-Z0-9_-]/g, '_')
+
+  let dateStr: string
+  try {
+    const d = new Date(budgetData.generatedAt)
+    if (isNaN(d.getTime())) {
+      dateStr = new Date().toISOString().split('T')[0]
+    } else {
+      dateStr = d.toISOString().split('T')[0]
+    }
+  } catch (e) {
+    dateStr = new Date().toISOString().split('T')[0]
+  }
+
+  return `Devis_Fuegos_${clientName}_${dateStr}.pdf`
 }
 

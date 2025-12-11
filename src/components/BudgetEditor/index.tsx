@@ -248,7 +248,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                 </div>
             )}
 
-            {editedData.deliveryReprise ? (
+            {/* {editedData.deliveryReprise ? (
                 <DeliveryRepriseSection
                     data={editedData.deliveryReprise}
                     onUpdate={updateField}
@@ -266,7 +266,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                         ➕ Agregar Entrega/Recogida
                     </button>
                 </div>
-            )}
+            )} */}
 
             {editedData.boissonsSoft ? (
                 <BoissonsSoftSection

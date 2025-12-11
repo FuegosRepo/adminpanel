@@ -25,6 +25,8 @@ export interface BudgetMaterialSection {
   items: BudgetMenuItem[]
   gestionFee?: number
   deliveryFee?: number
+  insurancePct?: number
+  insuranceAmount?: number
   totalHT: number
   tva: number
   tvaPct: number
