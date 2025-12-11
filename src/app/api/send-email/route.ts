@@ -76,40 +76,18 @@ export async function POST(request: Request) {
     const processedSubject = processEmailTemplate(subject, variables)
     const processedContent = processEmailTemplate(content, variables)
 
-    // Cargar header image
-    let headerAttachment = null
-    let headerCid = undefined
-    try {
-      const headerPath = path.join(process.cwd(), 'src', 'lib', 'headeremail.png')
-      if (fs.existsSync(headerPath)) {
-        const headerBuffer = fs.readFileSync(headerPath)
-        headerCid = 'headeremail'
-        headerAttachment = {
-          filename: 'headeremail.png',
-          content: headerBuffer,
-          content_id: headerCid,
-          disposition: 'inline' as const
-        }
-      }
-    } catch (e) {
-      console.warn('Error cargando header image:', e)
-    }
+    // Usar URL pública para el header
+    const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headeremail.png'
 
     // Aplicar el BaseLayout para que tenga estilos consistentes
-    const finalHtml = BaseLayout(processedContent, { headerCid })
+    const finalHtml = BaseLayout(processedContent, { headerUrl })
 
-    // Preparar attachments
-    const attachments = []
-    if (headerAttachment) {
-      attachments.push(headerAttachment)
-    }
-
-    // Enviar email
+    // Enviar email (sin adjuntos de imagen)
     const result = await sendEmail({
       to: order.email,
       subject: processedSubject,
       html: finalHtml,
-      attachments,
+      attachments: [], // No attachments for images now
       tags: orderId ? [
         { name: 'category', value: 'catering' },
         { name: 'order_id', value: orderId }
