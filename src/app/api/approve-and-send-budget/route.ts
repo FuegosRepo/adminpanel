@@ -110,71 +110,20 @@ export async function POST(request: NextRequest) {
         ? new Date(budgetData.clientInfo.eventDate).toLocaleDateString('fr-FR')
         : ''
 
-      // Cargar logo para adjuntar como inline image
-      let logoAttachment = null
-      let logoCid = undefined
-      let headerAttachment = null
-      let headerCid = undefined
-
-      try {
-        // 1. Cargar minilogo (Preferir PNG, fallback a WEBP)
-        const logoPngPath = path.join(process.cwd(), 'src', 'lib', 'minilogo.png')
-        const logoWebpPath = path.join(process.cwd(), 'src', 'lib', 'minilogo.webp')
-
-        if (fs.existsSync(logoPngPath)) {
-          const logoBuffer = fs.readFileSync(logoPngPath)
-          logoCid = 'minilogo'
-          logoAttachment = {
-            filename: 'minilogo.png',
-            content: logoBuffer,
-            content_id: logoCid,
-            disposition: 'inline' as const
-          }
-          console.log('✅ Logo PNG cargado para embedding')
-        } else if (fs.existsSync(logoWebpPath)) {
-          const logoBuffer = fs.readFileSync(logoWebpPath)
-          logoCid = 'minilogo'
-          logoAttachment = {
-            filename: 'minilogo.webp',
-            content: logoBuffer,
-            content_id: logoCid,
-            disposition: 'inline' as const
-          }
-          console.log('✅ Logo WEBP cargado para embedding')
-        } else {
-          console.warn('⚠️ No se encontró el logo (ni png ni webp)')
-        }
-
-        // 2. Cargar header image
-        const headerPath = path.join(process.cwd(), 'src', 'lib', 'headeremail.png')
-        if (fs.existsSync(headerPath)) {
-          const headerBuffer = fs.readFileSync(headerPath)
-          headerCid = 'headeremail'
-          headerAttachment = {
-            filename: 'headeremail.png',
-            content: headerBuffer,
-            content_id: headerCid,
-            disposition: 'inline' as const
-          }
-          console.log('✅ Header image cargada para embedding')
-        } else {
-          console.warn('⚠️ No se encontró el header image en:', headerPath)
-        }
-
-      } catch (logoError) {
-        console.warn('⚠️ Error cargando imágenes:', logoError)
-      }
+      // URLs públicas de imágenes
+      const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headeremail.png'
+      const logoUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogo.png'
 
       // Preparar contenido HTML usando plantillas
       const innerContent = BudgetApprovedTemplate({
         clientName,
         totalTTC,
         eventDate,
-        logoCid
+        logoUrl
       })
-      const finalHtml = BaseLayout(innerContent, { headerCid })
+      const finalHtml = BaseLayout(innerContent, { headerUrl })
 
-      // Preparar adjuntos
+      // Preparar adjuntos (solo PDF si existe)
       const attachments = []
 
       // Agregar PDF
@@ -186,16 +135,6 @@ export async function POST(request: NextRequest) {
           type: 'application/pdf'
         })
         console.log(`📎 Adjuntando PDF: ${filename} (${pdfBuffer.length} bytes)`)
-      }
-
-      // Agregar Logo
-      if (logoAttachment) {
-        attachments.push(logoAttachment)
-      }
-
-      // Agregar Header
-      if (headerAttachment) {
-        attachments.push(headerAttachment)
       }
 
       const subject = `Votre Devis Fuegos d'Azur ${eventDate ? '- ' + eventDate : ''}`

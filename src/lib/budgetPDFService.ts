@@ -54,39 +54,46 @@ export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise
 
   const html = generateBudgetHTML(budgetData)
 
-  const browser = await puppeteer.default.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  })
-
+  console.log('🚀 Iniciando Puppeteer...')
   try {
-    const page = await browser.newPage()
-    await page.setContent(html, { waitUntil: 'networkidle0' })
-
-    // Configurar el viewport para A4
-    await page.setViewport({
-      width: 794, // A4 width in pixels at 96 DPI
-      height: 1123, // A4 height in pixels at 96 DPI
+    const browser = await puppeteer.default.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     })
+    console.log('✅ Browser lanzado')
 
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      preferCSSPageSize: false, // Usar el formato A4 estándar
-      margin: {
-        top: '0mm',
-        right: '0mm',
-        bottom: '0mm',
-        left: '0mm'
-      },
-      displayHeaderFooter: false
-    })
+    try {
+      const page = await browser.newPage()
+      await page.setContent(html, { waitUntil: 'networkidle0' })
 
-    // Convertir Buffer a Blob correctamente
-    const buffer = Buffer.from(pdfBuffer)
-    return new Blob([buffer], { type: 'application/pdf' })
-  } finally {
-    await browser.close()
+      // Configurar el viewport para A4
+      await page.setViewport({
+        width: 794, // A4 width in pixels at 96 DPI
+        height: 1123, // A4 height in pixels at 96 DPI
+      })
+
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        preferCSSPageSize: false, // Usar el formato A4 estándar
+        margin: {
+          top: '0mm',
+          right: '0mm',
+          bottom: '0mm',
+          left: '0mm'
+        },
+        displayHeaderFooter: false
+      })
+
+      // Convertir Buffer a Blob correctamente
+      const buffer = Buffer.from(pdfBuffer)
+      return new Blob([buffer], { type: 'application/pdf' })
+    } finally {
+      if (browser) await browser.close()
+    }
+  } catch (error) {
+    console.error('❌ Error crítico en Puppeteer:', error)
+    throw error
   }
 }
 

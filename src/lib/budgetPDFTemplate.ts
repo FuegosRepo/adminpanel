@@ -112,7 +112,12 @@ function formatText(text: string): string {
 export function generateBudgetHTML(budgetData: BudgetData): string {
   // Cargar imágenes
   const overlayPath = getImagePath('ground-overlay-01.png')
-  const miniLogoPath = getImagePath('minilogo.webp')
+
+  // Try PNG logo first
+  let miniLogoPath = getImagePath('minilogo.png')
+  if (!fs.existsSync(miniLogoPath)) {
+    miniLogoPath = getImagePath('minilogo.webp')
+  }
 
   const overlayBase64 = imageToBase64(overlayPath)
   const miniLogoBase64 = imageToBase64(miniLogoPath)
