@@ -14,49 +14,42 @@ export function BudgetApprovedTemplate({ clientName, totalTTC, eventDate, logoUr
   // I will produce the inner HTML body content here.
 
   return `
-    <h1 style="color: #e2943a; font-size: 20px; margin-bottom: 4px; margin-top: 0;">Bonjour ${clientName},</h1>
+    <h1 style="color: #d97706; font-size: 20px; margin-bottom: 15px; margin-top: 0; text-align: left;">Bonjour ${clientName},</h1>
 
-    <p style="font-size: 14px; margin-bottom: 4px; margin-top: 0;">Nous avons le plaisir de vous envoyer votre devis personnalisé pour votre événement.</p>
+    <p style="font-size: 15px; margin-bottom: 10px; margin-top: 0; color: #374151;">Nous avons le plaisir de vous envoyer votre devis personnalisé pour votre événement.</p>
     
-    ${eventDate ? `<p style="font-size: 14px; margin-bottom: 4px; margin-top: 0;"><strong>Date de l'événement:</strong> ${eventDate}</p>` : ''}
+    ${eventDate ? `<p style="font-size: 15px; margin-bottom: 10px; margin-top: 0; color: #374151;"><strong>Date de l'événement:</strong> ${eventDate}</p>` : ''}
 
     <div class="highlight-box">
       <p class="highlight-title">Notre offre inclut:</p>
-      <p style="font-size: 14px; color: #78350f; margin-bottom: 2px; margin-top: 0; font-style: italic;">Une expérience gastronomique au brasero, 100 % sur mesure</p>
-      <p style="font-size: 13px; color: #78350f; margin: 0;">La préparation, Le service, et les options complémentaires demandées</p>
+      <p style="font-size: 15px; color: #9a3412; margin-bottom: 5px; margin-top: 0; font-style: italic;">Une expérience gastronomique au brasero, 100 % sur mesure</p>
+      <p style="font-size: 14px; color: #9a3412; margin: 0;">La préparation, Le service, et les options complémentaires demandées</p>
     </div>
 
-    <div style="margin: 5px 0;">
-      <p style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 2px; margin-top: 0;">Pour confirmer votre date, il vous suffit de:</p>
-      <ul style="font-size: 14px; line-height: 1.3; padding-left: 15px; margin: 2px 0;">
-        <li style="margin-bottom: 0;">Nous renvoyer le devis signé</li>
-        <li style="margin-bottom: 0;">Verser un acompte de <strong style="color: #e2943a;">30 %</strong></li>
+    <div style="margin: 15px 0;">
+      <p style="font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 8px; margin-top: 0;">Pour confirmer votre date, il vous suffit de:</p>
+      <ul style="font-size: 15px; line-height: 1.5; padding-left: 20px; margin: 5px 0; color: #374151;">
+        <li style="margin-bottom: 5px;">Nous renvoyer le devis signé</li>
+        <li style="margin-bottom: 5px;">Verser un acompte de <strong style="color: #d97706;">30 %</strong></li>
       </ul>
     </div>
 
-    <p style="font-size: 14px; margin: 4px 0;">Notre objectif est de créer une expérience aussi fluide que mémorable, parfaitement adaptée à vos attentes.</p>
+    <p style="font-size: 15px; margin: 10px 0; color: #374151; line-height: 1.5;">Notre objectif est de créer une expérience aussi fluide que mémorable, parfaitement adaptée à vos attentes.</p>
 
-    <p style="font-size: 14px; margin: 4px 0;">Si vous souhaitez apporter des modifications au menu ou discuter de tout autre détail, n’hésitez pas à me contacter. Je serai ravi de répondre à vos demandes et d’adapter la proposition selon vos besoins.</p>
+    <p style="font-size: 15px; margin: 10px 0; color: #374151; line-height: 1.5;">Si vous souhaitez apporter des modifications au menu ou discuter de tout autre détail, n’hésitez pas à me contacter. Je serai ravi de répondre à vos demandes et d’adapter la proposition selon vos besoins.</p>
 
-    <p style="font-size: 14px; margin: 4px 0;">Je reste à votre disposition pour toute question ou complément d’information.</p>
+    <p style="font-size: 15px; margin: 10px 0; color: #374151; line-height: 1.5;">Je reste à votre disposition pour toute question ou complément d’information.</p>
 
-    <div class="signature-box">
-      <div style="margin-bottom: 5px;">
-        <p style="font-size: 14px; margin-bottom: 2px; margin-top: 0; color: white;">Cordialement.</p>
-        <p class="signature-name">Jeronimo Negrotto</p>
-        <p class="signature-name" style="font-size: 12px; color: #e5e7eb; font-weight: normal; margin: 0;">Fuegos d'Azur</p>
-      </div>
-
-      <hr style="border: none; border-top: 1px solid #374151; margin: 5px 0;">
-
+    <div class="signature-box" style="margin-top: 20px; padding: 15px; background-color: #f8fafc; border-radius: 8px;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td valign="middle" width="60" style="padding-right: 8px;">
-            ${logoUrl ? `<img src="${logoUrl}" alt="Fuegos d'Azur" width="80" style="display: block;" />` : ''}
+          <td valign="middle" width="90" style="padding-right: 15px;">
+            ${logoUrl ? `<img src="${logoUrl}" alt="Fuegos d'Azur" width="70" style="display: block; width: 70px;" />` : ''}
           </td>
-          <td valign="middle" style="font-size: 12px; color: #e5e7eb;">
-            Tel: 07 50 85 35 99 • 06 70 65 97 84<br>
-            Email: contact@fuegosdazur.com
+          <td valign="middle" style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #374151; line-height: 1.4;">
+            <div style="margin-bottom: 5px;">Cordialement.</div>
+            <div style="font-weight: bold; color: #d97706; font-size: 15px;">Jeronimo Negrotto</div>
+            <div style="color: #6b7280; font-size: 13px;">Fuegos d'Azur</div>
           </td>
         </tr>
       </table>

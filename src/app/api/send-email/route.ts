@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     const processedContent = processEmailTemplate(content, variables)
 
     // Usar URL pública para el header
-    const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headeremail.png'
+    const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
 
     // Aplicar el BaseLayout para que tenga estilos consistentes
     const finalHtml = BaseLayout(processedContent, { headerUrl })

@@ -20,69 +20,76 @@ export function BaseLayout(content: string, options?: { headerUrl?: string }): s
         .email-container {
           background-color: white;
           border-radius: 4px;
-          padding: 5px;
-          box-shadow: none;
+          overflow: hidden; /* Ensure header/footer fills corners */
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          max-width: 600px;
+          margin: 0 auto;
         }
         .header {
           text-align: center;
-          margin-bottom: 0;
-          padding-bottom: 2px;
-          border-bottom: 2px solid #d97706;
-          background-color: #fef3c7;
-          padding: 10px;
-          border-radius: 4px 4px 0 0;
+          background-color: #d97706; /* Orange Strong */
+          padding: 20px;
         }
         .logo {
-          font-size: 20px;
+          font-size: 24px;
           font-weight: bold;
-          color: #d97706;
+          color: white;
           margin: 0;
+          text-transform: uppercase;
+          letter-spacing: 1px;
         }
         .content {
-          margin-bottom: 0;
-          white-space: pre-line;
+          padding: 30px 20px;
+          background-color: #ffffff;
+          color: #333333;
+          /* Removed white-space: pre-line to fix huge spacing issue */
         }
         .footer {
           text-align: center;
-          margin-top: 5px;
-          padding-top: 5px;
-          border-top: 1px solid #e5e7eb;
-          font-size: 10px;
-          color: #6b7280;
+          background-color: #d97706;
+          padding: 20px;
+          color: white;
+          font-size: 12px;
         }
         .contact-info {
-          margin-top: 2px;
+          margin-top: 10px;
+          line-height: 1.6;
+        }
+        .contact-info p {
+           margin: 4px 0;
         }
         .contact-info a {
-          color: #d97706;
+          color: #fef3c7; /* Light cream for links */
           text-decoration: none;
+          font-weight: bold;
         }
         /* Elements from budget template */
         .highlight-box {
-          background-color: #fef3c7;
-          border-left: 3px solid #e2943a;
-          padding: 5px;
-          margin: 4px 0;
+          background-color: #fff7ed; /* Very light orange/cream */
+          border-left: 4px solid #d97706;
+          padding: 15px;
+          margin: 15px 0;
           border-radius: 4px;
         }
         .highlight-title {
-          font-size: 14px;
-          font-weight: 600;
-          color: #78350f;
-          margin-bottom: 2px;
+          font-size: 16px;
+          font-weight: bold;
+          color: #9a3412;
+          margin-bottom: 8px;
+          margin-top: 0;
         }
         .signature-box {
-           margin-top: 5px;
-           padding: 5px;
-           background-color: #1f2937;
-           color: white;
-           border-radius: 4px;
+           margin-top: 25px;
+           padding: 20px;
+           background-color: #f8fafc;
+           border: 1px solid #e2e8f0;
+           border-radius: 8px;
         }
         .signature-name {
-           font-size: 14px;
-           font-weight: 600;
-           color: #e2943a;
-           margin-bottom: 0;
+           font-size: 16px;
+           font-weight: bold;
+           color: #ea580c; /* Slightly different orange for text signature */
+           margin-bottom: 2px;
         }
       </style>
     </head>
@@ -90,10 +97,10 @@ export function BaseLayout(content: string, options?: { headerUrl?: string }): s
       <div class="email-container">
         <div class="header">
           ${options?.headerUrl
-      ? `<img src="${options.headerUrl}" alt="Fuegos d'Azur" style="max-width: 80%; height: auto; display: block; margin: 0 auto; border-radius: 4px;" />`
+      ? `<img src="${options.headerUrl}" alt="Fuegos d'Azur" style="max-width: 200px; height: auto; display: block; margin: 0 auto; border-radius: 4px;" />`
       : `
-              <h1 class="logo">🔥 Fuegos d'Azur</h1>
-              <p style="color: #6b7280; margin: 5px 0 0 0;">Service Traiteur - Asado Argentin</p>
+              <h1 class="logo">🔥 FUEGOS D'AZUR</h1>
+              <p style="color: #fef3c7; margin: 5px 0 0 0; font-size: 14px;">Service Traiteur - Asado Argentin</p>
             `
     }
         </div>
@@ -103,13 +110,13 @@ export function BaseLayout(content: string, options?: { headerUrl?: string }): s
         </div>
         
         <div class="footer">
-          <p><strong>Fuegos d'Azur</strong></p>
+          <p style="margin: 0; font-size: 14px; font-weight: bold;">Fuegos d'Azur</p>
           <div class="contact-info">
             <p>📞 07 50 85 35 99 • 06 70 65 97 84</p>
             <p>📧 <a href="mailto:contact@fuegosdazur.com">contact@fuegosdazur.com</a></p>
             <p>📍 Côte d'Azur, France</p>
           </div>
-          <p style="margin-top: 20px; font-size: 11px;">
+          <p style="margin-top: 20px; font-size: 11px; opacity: 0.8;">
             © ${new Date().getFullYear()} Fuegos d'Azur. Tous droits réservés.
           </p>
         </div>

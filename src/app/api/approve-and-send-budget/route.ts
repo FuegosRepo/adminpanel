@@ -111,8 +111,8 @@ export async function POST(request: NextRequest) {
         : ''
 
       // URLs públicas de imágenes
-      const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headeremail.png'
-      const logoUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogo.png'
+      const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
+      const logoUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png'
 
       // Preparar contenido HTML usando plantillas
       const innerContent = BudgetApprovedTemplate({
