@@ -10,45 +10,45 @@ export function BaseLayout(content: string, options?: { headerCid?: string }): s
       <style>
         body {
           font-family: 'Helvetica Neue', Arial, sans-serif;
-          line-height: 1.6;
+          line-height: 1.4;
           color: #333;
           max-width: 600px;
           margin: 0 auto;
-          padding: 20px;
+          padding: 5px;
           background-color: #f5f5f5;
         }
         .email-container {
           background-color: white;
           border-radius: 8px;
-          padding: 30px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          padding: 8px;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
         }
         .header {
           text-align: center;
-          margin-bottom: 30px;
-          padding-bottom: 20px;
-          border-bottom: 3px solid #d97706;
+          margin-bottom: 8px;
+          padding-bottom: 5px;
+          border-bottom: 2px solid #d97706;
         }
         .logo {
-          font-size: 28px;
+          font-size: 24px;
           font-weight: bold;
           color: #d97706;
           margin: 0;
         }
         .content {
-          margin-bottom: 30px;
+          margin-bottom: 8px;
           white-space: pre-line;
         }
         .footer {
           text-align: center;
-          margin-top: 40px;
-          padding-top: 20px;
+          margin-top: 10px;
+          padding-top: 5px;
           border-top: 1px solid #e5e7eb;
-          font-size: 12px;
+          font-size: 11px;
           color: #6b7280;
         }
         .contact-info {
-          margin-top: 10px;
+          margin-top: 5px;
         }
         .contact-info a {
           color: #d97706;
@@ -57,29 +57,29 @@ export function BaseLayout(content: string, options?: { headerCid?: string }): s
         /* Elements from budget template */
         .highlight-box {
           background-color: #fef3c7;
-          border-left: 4px solid #e2943a;
-          padding: 20px;
-          margin: 30px 0;
-          border-radius: 8px;
+          border-left: 3px solid #e2943a;
+          padding: 8px;
+          margin: 8px 0;
+          border-radius: 6px;
         }
         .highlight-title {
-          font-size: 16px;
+          font-size: 15px;
           font-weight: 600;
           color: #78350f;
-          margin-bottom: 15px;
+          margin-bottom: 5px;
         }
         .signature-box {
-           margin-top: 40px;
-           padding: 30px;
+           margin-top: 10px;
+           padding: 8px;
            background-color: #1f2937;
            color: white;
-           border-radius: 8px;
+           border-radius: 6px;
         }
         .signature-name {
-           font-size: 18px;
+           font-size: 16px;
            font-weight: 600;
            color: #e2943a;
-           margin-bottom: 5px;
+           margin-bottom: 2px;
         }
       </style>
     </head>
