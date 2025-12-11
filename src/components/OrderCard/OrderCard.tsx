@@ -74,7 +74,8 @@ const OrderCard = ({
         body: JSON.stringify({
           orderId: order.id,
           customSubject: template.subject,
-          customContent: template.content
+          customContent: template.content,
+          type: template.type // Pass the template type
         })
       })
 

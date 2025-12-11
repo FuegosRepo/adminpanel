@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { sendEmail, processEmailTemplate } from '@/lib/emails/service'
 import { BaseLayout } from '@/lib/emails/templates/BaseLayout'
+import { QuoteFollowUpTemplate } from '@/lib/emails/templates/QuoteFollowUp'
 import { createClient } from '@/utils/supabase/server'
 import fs from 'fs'
 import path from 'path'
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { orderId, templateId, customSubject, customContent } = body
+    const { orderId, templateId, customSubject, customContent, type } = body
 
     // Validar datos requeridos
     if (!orderId) {
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
     // Variables para reemplazar en la plantilla
     const variables = {
       name: order.name,
-      eventDate: order.event_date || 'Por definir',
+      eventDate: order.event_date ? new Date(order.event_date).toLocaleDateString('fr-FR') : 'Date à définir',
       guestCount: order.guest_count || 0,
       eventType: order.event_type || 'Evento'
     }
@@ -76,11 +77,23 @@ export async function POST(request: Request) {
     const processedSubject = processEmailTemplate(subject, variables)
     const processedContent = processEmailTemplate(content, variables)
 
-    // Usar URL pública para el header
+    // URLs públicas de imágenes
     const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
+    const logoUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png'
+
+    // Definir el contenido HTML base
+    let htmlBody = processedContent
+
+    // Si es un email de tipo 'reminder' (Relance), aplicar la plantilla estilizada
+    if (type === 'reminder') {
+      htmlBody = QuoteFollowUpTemplate(processedContent, {
+        clientName: variables.name,
+        logoUrl
+      })
+    }
 
     // Aplicar el BaseLayout para que tenga estilos consistentes
-    const finalHtml = BaseLayout(processedContent, { headerUrl })
+    const finalHtml = BaseLayout(htmlBody, { headerUrl })
 
     // Enviar email (sin adjuntos de imagen)
     const result = await sendEmail({
