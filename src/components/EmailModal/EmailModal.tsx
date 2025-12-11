@@ -7,7 +7,7 @@ interface EmailModalProps {
   order: CateringOrder
   isOpen: boolean
   onClose: () => void
-  onSend: (orderId: string, subject: string, content: string) => void
+  onSend: (orderId: string, subject: string, content: string, type?: string) => void
 }
 
 export default function EmailModal({ order, isOpen, onClose, onSend }: EmailModalProps) {
@@ -40,7 +40,8 @@ export default function EmailModal({ order, isOpen, onClose, onSend }: EmailModa
 
   const handleSend = () => {
     if (subject.trim() && content.trim()) {
-      onSend(order.id, subject, content)
+      const currentTemplate = emailTemplates.find(t => t.id === selectedTemplate)
+      onSend(order.id, subject, content, currentTemplate?.type)
       onClose()
       // Reset form a la plantilla de relance por defecto
       setSelectedTemplate('5')

@@ -190,31 +190,21 @@ L'équipe Fuegos d'Azur`,
     id: '5',
     name: 'Relance devis',
     subject: 'Relance - Votre devis Fuegos d\'Azur',
-    content: `Bonjour {name}.
+    content: `Je me permets de revenir vers vous concernant le devis que nous vous avons envoyé il y a quelques jours pour votre événement.
 
-Je me permets de revenir vers vous concernant le devis que nous vous avons envoyé il y a quelques jours pour votre événement.
+Avez-vous eu l’occasion de le consulter tranquillement ?
 
-Avez-vous eu l'occasion de le consulter tranquillement ?
+N’hésitez pas à revenir vers nous si vous avez :
 
-N'hésitez pas à revenir vers nous si vous avez :
+• Des modifications à apporter (menu, format, nombre d’invités, options)
 
-Des modifications à apporter (menu, format, nombre d'invités, options)
+• Des questions spécifiques sur notre fonctionnement ou nos services
 
-Des questions spécifiques sur notre fonctionnement ou nos services
+• Ou simplement envie d’en discuter plus en détail par téléphone
 
-Ou simplement envie d'en discuter plus en détail par téléphone
+Notre équipe est à votre écoute pour ajuster l’offre au plus près de vos envies et vous accompagner dans la réalisation d’un événement unique et sur mesure.
 
-Notre équipe est à votre écoute pour ajuster l'offre au plus près de vos envies et vous accompagner dans la réalisation d'un événement unique et sur mesure.
-
-Dans l'attente de votre retour,
-
-Cordialement
-
-Jeronimo Negrotto
-
-Fuegos d'Azur
-
-Authenticité – Élégance – Feu`,
+Dans l’attente de votre retour,`,
     type: 'reminder'
   }
 ]
