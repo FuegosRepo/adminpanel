@@ -52,7 +52,7 @@ export function BudgetApprovedTemplate({ clientName, totalTTC, eventDate, logoUr
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td valign="middle" width="60" style="padding-right: 8px;">
-            ${logoUrl ? `<img src="${logoUrl}" alt="Fuegos d'Azur" width="50" style="display: block;" />` : ''}
+            ${logoUrl ? `<img src="${logoUrl}" alt="Fuegos d'Azur" width="80" style="display: block;" />` : ''}
           </td>
           <td valign="middle" style="font-size: 12px; color: #e5e7eb;">
             Tel: 07 50 85 35 99 • 06 70 65 97 84<br>

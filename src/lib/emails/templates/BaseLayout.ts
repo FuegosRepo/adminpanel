@@ -28,6 +28,9 @@ export function BaseLayout(content: string, options?: { headerUrl?: string }): s
           margin-bottom: 0;
           padding-bottom: 2px;
           border-bottom: 2px solid #d97706;
+          background-color: #fef3c7;
+          padding: 10px;
+          border-radius: 4px 4px 0 0;
         }
         .logo {
           font-size: 20px;
@@ -87,7 +90,7 @@ export function BaseLayout(content: string, options?: { headerUrl?: string }): s
       <div class="email-container">
         <div class="header">
           ${options?.headerUrl
-      ? `<img src="${options.headerUrl}" alt="Fuegos d'Azur" style="max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px 4px 0 0;" />`
+      ? `<img src="${options.headerUrl}" alt="Fuegos d'Azur" style="max-width: 80%; height: auto; display: block; margin: 0 auto; border-radius: 4px;" />`
       : `
               <h1 class="logo">🔥 Fuegos d'Azur</h1>
               <p style="color: #6b7280; margin: 5px 0 0 0;">Service Traiteur - Asado Argentin</p>
