@@ -31,8 +31,8 @@ export default async function EmailPreviewPage() {
     const mockData = {
         clientName: 'Franco Corujo',
         eventDate: '24/12/2025',
-        logoUrl: 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogo.png',
-        headerUrl: 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headeremail.png',
+        logoUrl: 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png',
+        headerUrl: 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png',
         year: new Date().getFullYear().toString()
     }
 
