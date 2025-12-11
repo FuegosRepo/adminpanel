@@ -86,7 +86,7 @@ export async function POST(request: Request) {
         headerCid = 'headeremail'
         headerAttachment = {
           filename: 'headeremail.png',
-          content: headerBuffer.toString('base64'),
+          content: headerBuffer,
           content_id: headerCid,
           disposition: 'inline' as const
         }

@@ -10,45 +10,45 @@ export function BaseLayout(content: string, options?: { headerCid?: string }): s
       <style>
         body {
           font-family: 'Helvetica Neue', Arial, sans-serif;
-          line-height: 1.4;
+          line-height: 1.3;
           color: #333;
           max-width: 600px;
           margin: 0 auto;
-          padding: 5px;
+          padding: 0;
           background-color: #f5f5f5;
         }
         .email-container {
           background-color: white;
-          border-radius: 8px;
-          padding: 8px;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+          border-radius: 4px;
+          padding: 5px;
+          box-shadow: none;
         }
         .header {
           text-align: center;
-          margin-bottom: 8px;
-          padding-bottom: 5px;
+          margin-bottom: 0;
+          padding-bottom: 2px;
           border-bottom: 2px solid #d97706;
         }
         .logo {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: bold;
           color: #d97706;
           margin: 0;
         }
         .content {
-          margin-bottom: 8px;
+          margin-bottom: 0;
           white-space: pre-line;
         }
         .footer {
           text-align: center;
-          margin-top: 10px;
+          margin-top: 5px;
           padding-top: 5px;
           border-top: 1px solid #e5e7eb;
-          font-size: 11px;
+          font-size: 10px;
           color: #6b7280;
         }
         .contact-info {
-          margin-top: 5px;
+          margin-top: 2px;
         }
         .contact-info a {
           color: #d97706;
@@ -58,28 +58,28 @@ export function BaseLayout(content: string, options?: { headerCid?: string }): s
         .highlight-box {
           background-color: #fef3c7;
           border-left: 3px solid #e2943a;
-          padding: 8px;
-          margin: 8px 0;
-          border-radius: 6px;
+          padding: 5px;
+          margin: 4px 0;
+          border-radius: 4px;
         }
         .highlight-title {
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 600;
           color: #78350f;
-          margin-bottom: 5px;
+          margin-bottom: 2px;
         }
         .signature-box {
-           margin-top: 10px;
-           padding: 8px;
+           margin-top: 5px;
+           padding: 5px;
            background-color: #1f2937;
            color: white;
-           border-radius: 6px;
+           border-radius: 4px;
         }
         .signature-name {
-           font-size: 16px;
+           font-size: 14px;
            font-weight: 600;
            color: #e2943a;
-           margin-bottom: 2px;
+           margin-bottom: 0;
         }
       </style>
     </head>
@@ -103,7 +103,7 @@ export function BaseLayout(content: string, options?: { headerCid?: string }): s
           <p><strong>Fuegos d'Azur</strong></p>
           <div class="contact-info">
             <p>📞 07 50 85 35 99 • 06 70 65 97 84</p>
-            <p>📧 <a href="mailto:contact@fuegosdazur.fr">contact@fuegosdazur.fr</a></p>
+            <p>📧 <a href="mailto:contact@fuegosdazur.com">contact@fuegosdazur.com</a></p>
             <p>📍 Côte d'Azur, France</p>
           </div>
           <p style="margin-top: 20px; font-size: 11px;">
