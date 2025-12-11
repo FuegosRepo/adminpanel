@@ -1,6 +1,6 @@
 
-export function BaseLayout(content: string): string {
-    return `
+export function BaseLayout(content: string, options?: { headerCid?: string }): string {
+  return `
     <!DOCTYPE html>
     <html lang="fr">
     <head>
@@ -86,8 +86,13 @@ export function BaseLayout(content: string): string {
     <body>
       <div class="email-container">
         <div class="header">
-          <h1 class="logo">🔥 Fuegos d'Azur</h1>
-          <p style="color: #6b7280; margin: 5px 0 0 0;">Service Traiteur - Asado Argentin</p>
+          ${options?.headerCid
+      ? `<img src="cid:${options.headerCid}" alt="Fuegos d'Azur" style="max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 8px 8px 0 0;" />`
+      : `
+              <h1 class="logo">🔥 Fuegos d'Azur</h1>
+              <p style="color: #6b7280; margin: 5px 0 0 0;">Service Traiteur - Asado Argentin</p>
+            `
+    }
         </div>
         
         <div class="content">
