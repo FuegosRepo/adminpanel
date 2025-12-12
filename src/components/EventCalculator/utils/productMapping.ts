@@ -33,6 +33,46 @@ const NAME_MAPPING: { [key: string]: string[] } = {
     'panqueques-dulce': ['panqueques', 'dulce de leche']
 }
 
+// Mapeo específico para materiales (Formulario [Francés/Slug] -> BD [Español])
+export const MATERIAL_MAPPINGS: { [key: string]: string[] } = {
+    'assiettes-plates': ['platos grandes', 'platos principales', 'plato principal'],
+    'assiettes-creuses': ['platos hondos', 'plato hondo'],
+    'assiettes-dessert': ['platos postres', 'plato postre'],
+    'verres-eau': ['vasos agua', 'vaso agua'],
+    'verres-vin': ['copas vino', 'copa vino'],
+    'verres-champagne': ['copas champagne', 'copa champagne'],
+    'verres-cocktail': ['vasos de tragos', 'vaso trago', 'trago'],
+    'couverts': ['juego de cubiertos', 'cubiertos'],
+    'fourchettes': ['tenedores', 'tenedor'],
+    'couteaux': ['cuchillos', 'cuchillo'],
+    'cuilleres': ['cucharas', 'cuchara'],
+    'mange-debout': ['mange debout', 'mesa alta'],
+    'nappes-mange-debout': ['mantel mange debout', 'housse mange debout'],
+    'tables-rondes': ['mesas 10/12', 'mesa redonda'],
+    'nappes': ['mantel mesa 10/12', 'manteles', 'manteleria'],
+    'serviettes': ['servilletas'],
+    'chaises': ['sillas basicas', 'silla'],
+    'chaises-st-remy': ['sillas st rezmy', 'silla st remy', 'saint remy'],
+    'tabourets': ['tabouret', 'taburete'],
+    'parasols': ['sombrilla', 'parasol'],
+    'livraison-reprise': ['envio y reprise', 'envio', 'reprise']
+}
+
+/**
+ * Busca el nombre en francés (key) basado en el nombre en español del producto
+ */
+export function getFrenchNameFromSpanish(spanishName: string): string {
+    const normalizedName = spanishName.toLowerCase().trim()
+
+    // Buscar en los arrays de valores
+    const entry = Object.entries(MATERIAL_MAPPINGS).find(([_, spanishAliases]) =>
+        spanishAliases.some(alias => normalizedName.includes(alias))
+    )
+
+    // Si encuentra, devuelve la key (ej: 'verres-eau'), si no, devuelve el nombre original
+    return entry ? entry[0] : spanishName
+}
+
 /**
  * Mapea nombre de producto del formulario a producto de la BD
  * Utiliza múltiples estrategias de búsqueda para encontrar coincidencias
