@@ -2,6 +2,8 @@ import React from 'react'
 import { Package, X, CheckSquare, Plus } from 'lucide-react'
 import { Product } from '@/types'
 import styles from './MaterialSelectorModal.module.css'
+import { getFrenchNameFromSpanish } from '@/components/EventCalculator/utils/productMapping'
+import { formatItemName } from '../utils/formatItemName'
 
 interface MaterialSelectorModalProps {
     isOpen: boolean
@@ -61,7 +63,15 @@ export function MaterialSelectorModal({
                                         {isSelected && <CheckSquare size={14} color="white" />}
                                     </div>
                                     <div>
-                                        <div className={styles.productName}>{product.name}</div>
+                                        <div className={styles.productName}>
+                                            {formatItemName(getFrenchNameFromSpanish(product.name))}
+                                        </div>
+                                        {/* Show original name if different, for clarity */}
+                                        {getFrenchNameFromSpanish(product.name) !== product.name && (
+                                            <div className={styles.productInfo} style={{ fontStyle: 'italic', fontSize: '0.8em', color: '#666' }}>
+                                                ({product.name})
+                                            </div>
+                                        )}
                                         {product.clarifications && (
                                             <div className={styles.productInfo}>{product.clarifications}</div>
                                         )}

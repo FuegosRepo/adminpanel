@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { Budget, BudgetData } from '../types'
 import { formatItemName } from '../utils/formatItemName'
+import { MATERIAL_MAPPINGS } from '@/components/EventCalculator/utils/productMapping'
 
 export function useBudgetData(budgetId: string) {
     const [budget, setBudget] = useState<Budget | null>(null)
@@ -60,7 +61,13 @@ export function useBudgetData(budgetId: string) {
                     budgetData.service.totalTTC = serviceHT + budgetData.service.tva
                 }
 
-                // Formatear nombres de items de material
+                // Cargamos todos los productos de material para buscar precios correctos
+                const { data: materialProducts } = await supabase
+                    .from('products')
+                    .select('name, price_per_portion')
+                    .eq('category', 'material')
+
+                // Formatear nombres y corregir precios de items de material
                 if (budgetData.material && budgetData.material.items) {
                     budgetData.material.items = budgetData.material.items
                         .filter(item => {
@@ -69,10 +76,59 @@ export function useBudgetData(budgetId: string) {
                                 !itemNameLower.includes('servicio') &&
                                 !itemNameLower.includes('mozos')
                         })
-                        .map(item => ({
-                            ...item,
-                            name: formatItemName(item.name)
-                        }))
+                        .map(item => {
+                            // 1. Formatear nombre para francés (Visualización)
+                            const formattedName = formatItemName(item.name)
+
+                            // 2. Buscar precio correcto en BD (Lógica)
+                            let correctPrice = item.pricePerUnit
+
+                            if (materialProducts) {
+                                // Intentar mapear usando las claves conocidas
+                                const dbMatches = Object.entries(MATERIAL_MAPPINGS).find(([key, _]) =>
+                                    item.name.toLowerCase().includes(key) || formatItemName(item.name).toLowerCase().includes(key)
+                                )
+
+                                let foundProduct = null;
+
+                                if (dbMatches) {
+                                    // Buscar por nombre mapeado (Español)
+                                    const possibleNames = dbMatches[1] as string[]
+                                    foundProduct = materialProducts.find(p =>
+                                        possibleNames.some((name: string) => p.name.toLowerCase().includes(name))
+                                    )
+                                }
+
+                                // Si no se encuentra por mapeo, buscar directo (por si ya estaba en español o coincidencia exacta)
+                                if (!foundProduct) {
+                                    foundProduct = materialProducts.find(p =>
+                                        p.name.toLowerCase() === item.name.toLowerCase() ||
+                                        p.name.toLowerCase().includes(item.name.toLowerCase())
+                                    )
+                                }
+
+                                if (foundProduct) {
+                                    console.log(`✅ Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion}`)
+                                    correctPrice = foundProduct.price_per_portion || 0.50
+                                }
+                            }
+
+                            // Si el precio sigue siendo sospechoso (entero 5, etc) y parece un plato/vaso, forzar 0.50
+                            if (correctPrice >= 1.0 && (
+                                formattedName.toLowerCase().includes('verre') ||
+                                formattedName.toLowerCase().includes('assiette') ||
+                                formattedName.toLowerCase().includes('couverts')
+                            )) {
+                                console.warn(`⚠️ Forzando precio 0.50 para "${formattedName}" (precio anterior: ${correctPrice})`)
+                                correctPrice = 0.50
+                            }
+
+                            return {
+                                ...item,
+                                name: formattedName,
+                                pricePerUnit: correctPrice
+                            }
+                        })
 
                     // Recálculo inicial de material
                     if (budgetData.material.items.length > 0) {

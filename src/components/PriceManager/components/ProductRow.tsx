@@ -2,6 +2,8 @@ import React from 'react'
 import { Product } from '@/types'
 import { Save, Loader2, Package } from 'lucide-react'
 import styles from './ProductRow.module.css'
+import { getFrenchNameFromSpanish } from '@/components/EventCalculator/utils/productMapping'
+import { formatItemName } from '@/components/BudgetEditor/utils/formatItemName'
 
 interface ProductRowProps {
     product: Product
@@ -28,7 +30,17 @@ export function ProductRow({
         <div className={`${styles.productCard} ${!product.active ? styles.inactive : ''} ${isEdited ? styles.edited : ''}`}>
             <div className={styles.productHeader}>
                 <div>
-                    <h4 className={styles.productName}>{product.name}</h4>
+                    <h4 className={styles.productName}>
+                        {product.category === 'material'
+                            ? formatItemName(getFrenchNameFromSpanish(product.name))
+                            : product.name
+                        }
+                    </h4>
+                    {product.category === 'material' && getFrenchNameFromSpanish(product.name) !== product.name && (
+                        <div style={{ fontStyle: 'italic', fontSize: '0.8em', color: '#666' }}>
+                            ({product.name})
+                        </div>
+                    )}
                     {product.is_combo && (
                         <span className={styles.comboBadge}>COMBO</span>
                     )}

@@ -10,6 +10,12 @@ export function formatItemName(name: string): string {
         'mange-debout': 'Mange-debout',
         'assiettes-plates': 'Assiettes plates',
         'assiettes-creuses': 'Assiettes creuses',
+        'assiettes-dessert': 'Assiettes dessert',
+        'verres-cocktail': 'Verres à cocktail',
+        'nappes-mange-debout': 'Nappes Mange-debout',
+        'tables-rondes': 'Tables rondes',
+        'chaises-st-remy': 'Chaises St Rémy',
+        'livraison-reprise': 'Livraison et Reprise'
     }
 
     const lowerName = name.toLowerCase()

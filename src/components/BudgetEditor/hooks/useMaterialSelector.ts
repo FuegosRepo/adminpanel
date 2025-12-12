@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabaseClient'
 import { Product } from '@/types'
 import { BudgetData } from '../types'
 import { recalculateTotals } from '../utils/budgetCalculations'
+import { getFrenchNameFromSpanish } from '@/components/EventCalculator/utils/productMapping'
+import { formatItemName } from '../utils/formatItemName'
 
 export function useMaterialSelector() {
     const [availableMaterials, setAvailableMaterials] = useState<Product[]>([])
@@ -63,7 +65,7 @@ export function useMaterialSelector() {
         materialsToAdd.forEach(product => {
             const price = product.price_per_portion || 0
             newData.material!.items.push({
-                name: product.name,
+                name: formatItemName(getFrenchNameFromSpanish(product.name)),
                 quantity: 1,
                 pricePerUnit: price,
                 total: price * 1
