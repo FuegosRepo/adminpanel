@@ -24,14 +24,21 @@ export const useBudgets = () => {
 
     const deleteBudgetMutation = useMutation({
         mutationFn: async (budgetId: string) => {
-            const { error } = await supabase
+            console.log('Intentando eliminar presupuesto:', budgetId)
+            const { error, data } = await supabase
                 .from('budgets')
                 .delete()
                 .eq('id', budgetId)
+                .select()
 
-            if (error) throw error
+            if (error) {
+                console.error('Error supabase delete:', error)
+                throw error
+            }
+            console.log('Presupuesto eliminado:', data)
         },
         onSuccess: () => {
+            console.log('Invalidating queries after delete')
             queryClient.invalidateQueries({ queryKey: ['budgets'] })
         },
     })

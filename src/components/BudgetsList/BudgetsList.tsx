@@ -3,6 +3,7 @@ import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2 } from 'lucide
 import './BudgetsList.css'
 import { useBudgets } from '@/hooks/useBudgets'
 import { toast } from 'sonner'
+import ConfirmationModal from '@/components/common/ConfirmationModal'
 
 interface Budget {
   id: string
@@ -62,16 +63,23 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
     return budget.status === filter
   })
 
-  const handleDeleteBudget = async (e: React.MouseEvent, budgetId: string) => {
-    e.stopPropagation()
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null)
 
-    if (!window.confirm('⚠️ ¿Estás seguro de eliminar este presupuesto PERMANENTEMENTE?')) {
-      return
-    }
+  const handleDeleteClick = (e: React.MouseEvent, budgetId: string) => {
+    e.stopPropagation()
+    setBudgetToDelete(budgetId)
+    setDeleteModalOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!budgetToDelete) return
 
     try {
-      await deleteBudget(budgetId)
+      await deleteBudget(budgetToDelete)
       toast.success('Presupuesto eliminado correctamente')
+      setDeleteModalOpen(false)
+      setBudgetToDelete(null)
     } catch (error) {
       console.error('Error eliminando:', error)
       toast.error('Error al eliminar el presupuesto')
@@ -186,7 +194,7 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
                     <span className="budget-version">v{budget.version}</span>
                     <button
                       className="btn-delete-card"
-                      onClick={(e) => handleDeleteBudget(e, budget.id)}
+                      onClick={(e) => handleDeleteClick(e, budget.id)}
                       title="Eliminar presupuesto"
                     >
                       <Trash2 size={14} />
@@ -254,6 +262,18 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
           })}
         </div>
       )}
+      <ConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setBudgetToDelete(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        title="¿Eliminar presupuesto?"
+        message="¿Estás seguro de que deseas eliminar este presupuesto permanentemente? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        variant="danger"
+      />
     </div>
   )
 }
