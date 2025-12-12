@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react'
-import { ConfirmationModal } from '@/components/common/ConfirmationModal'
+import ConfirmationModal from '@/components/common/ConfirmationModal'
 
 interface ConfirmationOptions {
     title: string
@@ -71,7 +71,7 @@ export const useConfirmation = () => {
             variant={confirmationState.options.variant}
             type={confirmationState.options.type || 'confirm'}
             onConfirm={handleConfirm}
-            onCancel={handleCancel}
+            onClose={handleCancel}
         />
     )
 
