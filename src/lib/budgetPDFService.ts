@@ -69,14 +69,17 @@ export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise
         // Configurar ruta de fuentes si es necesario (opcional)
         // await chromiumLib.font('https://raw.githack.com/googlei18n/noto-emoji/master/fonts/NotoColorEmoji.ttf');
 
+        // IMPORTANTE: En Netlify/Lambda, a veces es necesario pasar una ruta explícita si la detección automática falla
+        // Por ahora confiamos en la detección automática pero aseguramos que next.config.js evite el bundling
         const executablePath = await chromiumLib.executablePath()
         console.log('📦 Executable path:', executablePath)
 
         browser = await puppeteerCore.default.launch({
-          args: chromiumLib.args,
+          args: [...chromiumLib.args, '--no-sandbox', '--disable-setuid-sandbox'], // Agregar flags extra por seguridad
           defaultViewport: chromiumLib.defaultViewport,
           executablePath,
           headless: chromiumLib.headless,
+          ignoreHTTPSErrors: true,
         })
       } catch (launchError) {
         console.error('❌ Error lanzando Chromium en producción:', launchError)
