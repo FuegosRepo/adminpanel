@@ -10,6 +10,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  experimental: {
+    serverComponentsExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  },
 }
 
 module.exports = nextConfig
