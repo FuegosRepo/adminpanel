@@ -91,10 +91,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error generando PDF:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return NextResponse.json(
       {
-        error: 'Error inesperado',
-        details: error instanceof Error ? error.message : String(error),
+        error: errorMessage, // Enviar error real para debugging
+        details: errorMessage,
         stack: error instanceof Error ? error.stack : undefined
       },
       { status: 500 }

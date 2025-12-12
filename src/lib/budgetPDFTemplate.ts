@@ -123,15 +123,31 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
   const miniLogoBase64 = imageToBase64(miniLogoPath)
 
   // Fix date off-by-one error by handling YYYY-MM-DD manually
-  const [year, month, day] = budgetData.clientInfo.eventDate.split('-').map(Number)
-  const eventDate = new Date(year, month - 1, day).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  let eventDate = 'Date non définie'
+  try {
+    if (budgetData.clientInfo.eventDate) {
+      const [year, month, day] = budgetData.clientInfo.eventDate.split('-').map(Number)
+      if (year && month && day) {
+        eventDate = new Date(year, month - 1, day).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        })
+      }
+    }
+  } catch (e) {
+    console.warn('Error formatting eventDate', e)
+  }
 
-  const validUntilDate = new Date(budgetData.validUntil).toLocaleDateString('fr-FR')
-  const generatedDate = new Date(budgetData.generatedAt).toLocaleDateString('fr-FR')
+  let validUntilDate = ''
+  try {
+    validUntilDate = new Date(budgetData.validUntil || Date.now()).toLocaleDateString('fr-FR')
+  } catch (e) { validUntilDate = new Date().toLocaleDateString('fr-FR') }
+
+  let generatedDate = ''
+  try {
+    generatedDate = new Date(budgetData.generatedAt || Date.now()).toLocaleDateString('fr-FR')
+  } catch (e) { generatedDate = new Date().toLocaleDateString('fr-FR') }
   const menuTypeText = budgetData.clientInfo.menuType === 'dejeuner' ? 'Déjeuner' : 'Dîner'
 
   return `

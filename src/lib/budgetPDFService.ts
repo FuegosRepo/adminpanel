@@ -59,17 +59,29 @@ export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise
     // Configuración condicional para Producción (Serverless) vs Desarrollo
     if (process.env.NODE_ENV === 'production') {
       console.log('☁️ Ejecutando en entorno de PRODUCCIÓN (Chromium)')
-      const chromium = await import('@sparticuz/chromium')
-      const puppeteerCore = await import('puppeteer-core')
+      try {
+        const chromium = await import('@sparticuz/chromium')
+        const puppeteerCore = await import('puppeteer-core')
 
-      const chromiumLib = chromium.default as any
+        // Manejar interop ESM/CJS
+        const chromiumLib = (chromium.default || chromium) as any
 
-      browser = await puppeteerCore.default.launch({
-        args: chromiumLib.args,
-        defaultViewport: chromiumLib.defaultViewport,
-        executablePath: await chromiumLib.executablePath(),
-        headless: chromiumLib.headless,
-      })
+        // Configurar ruta de fuentes si es necesario (opcional)
+        // await chromiumLib.font('https://raw.githack.com/googlei18n/noto-emoji/master/fonts/NotoColorEmoji.ttf');
+
+        const executablePath = await chromiumLib.executablePath()
+        console.log('📦 Executable path:', executablePath)
+
+        browser = await puppeteerCore.default.launch({
+          args: chromiumLib.args,
+          defaultViewport: chromiumLib.defaultViewport,
+          executablePath,
+          headless: chromiumLib.headless,
+        })
+      } catch (launchError) {
+        console.error('❌ Error lanzando Chromium en producción:', launchError)
+        throw launchError
+      }
     } else {
       console.log('💻 Ejecutando en entorno LOCAL (Puppeteer Standard)')
       const puppeteer = await import('puppeteer')
