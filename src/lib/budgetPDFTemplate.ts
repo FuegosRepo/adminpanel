@@ -171,7 +171,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 
     body {
       font-family: 'Helvetica', Arial, sans-serif;
-      background-color: #fed7aa;
+      background-color: #ffd8ab;
       color: #333333;
       line-height: 1.5;
       padding: 0;
@@ -183,7 +183,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 
     .page {
       width: 210mm;
-      background-color: #fed7aa;
+      background-color: #ffd8ab;
       margin: 0 auto;
       padding: 0;
       position: relative;
@@ -193,24 +193,28 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     .header {
       background-color: #e2943a;
       color: white;
-      padding: 15mm 20mm 10mm 20mm; /* Increased top padding */
+      padding: 10mm 20mm;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: relative;
     }
 
-    .header-logo {
+    .header-logo-left {
       width: 25mm;
       height: auto;
       object-fit: contain;
     }
 
-    .header-text {
-      flex: 1;
-      text-align: center;
+    .header-logo-center {
+      width: 60mm; /* Ajustado para que se vea bien en el centro */
+      height: auto;
+      object-fit: contain;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
     }
-
+    
     /* ... */
 
     /* CONTENT */
@@ -220,12 +224,12 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     }
 
     .title {
+      font-family: 'Knewave', cursive;
       font-size: 18pt;
       font-weight: bold;
       color: #333333;
       margin-bottom: 8mm;
     }
-
     /* CLIENT INFO */
     .client-info {
       font-size: 10pt;
@@ -257,6 +261,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     }
 
     .section-title {
+      font-family: 'Knewave', cursive;
       font-size: 14pt;
       font-weight: bold;
       color: #e2943a;
@@ -286,7 +291,6 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     .menu-item {
       font-size: 10pt;
       padding: 1mm 0;
-      border-bottom: 1px dotted #ccc;
     }
 
     .menu-list {
@@ -320,6 +324,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
     }
 
     .amount-title {
+      font-family: 'Knewave', cursive;
       font-size: 11pt;
       font-weight: bold;
       margin-bottom: 4mm;
@@ -339,19 +344,15 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       padding-top: 3mm;
       border-top: 1px solid rgba(255, 255, 255, 0.3);
     }
-
-    /* ... skipped ... */
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Knewave&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="page">
     <!-- HEADER -->
     <div class="header">
-      ${miniLogoBase64 ? `<img src="${miniLogoBase64}" alt="Logo" class="header-logo">` : ''}
-      <div class="header-text">
-        <div class="header-title">Fuegos d'Azur</div>
-        <div class="header-subtitle">Service Traiteur - Asado Argentin</div>
-      </div>
+      <img src="https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png" alt="Logo" class="header-logo-left">
+      <img src="https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png" alt="Fuegos d'Azur" class="header-logo-center">
     </div>
 
     <!-- CONTENT -->
@@ -413,7 +414,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <div class="section-subtitle">Entrees</div>
             <div class="menu-items-list">
               ${budgetData.menu.entrees.map(entree => `
-                <div class="menu-item">${formatText(entree.name)}</div>
+                <div class="menu-item">• ${formatText(entree.name)}</div>
               `).join('')}
             </div>
           </div>
@@ -424,7 +425,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <div class="section-subtitle">Viandes</div>
             <div class="menu-items-list">
               ${budgetData.menu.viandes.map(viande => `
-                <div class="menu-item">${formatText(viande.name)}</div>
+                <div class="menu-item">• ${formatText(viande.name)}</div>
               `).join('')}
             </div>
           </div>
@@ -435,7 +436,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <div class="section-subtitle">Accompagnements et Sauces</div>
             <div class="menu-items-list">
               ${budgetData.menu.accompagnements.map(acc => `
-                <div class="menu-item">${formatText(acc)}</div>
+                <div class="menu-item">• ${formatText(acc)}</div>
               `).join('')}
             </div>
           </div>
@@ -445,7 +446,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
           <div class="menu-category">
             <div class="section-subtitle">Dessert</div>
             <div class="menu-items-list">
-              <div class="menu-item">${formatText(budgetData.menu.dessert.name)}</div>
+              <div class="menu-item">• ${formatText(budgetData.menu.dessert.name)}</div>
             </div>
           </div>
         ` : ''}
@@ -484,7 +485,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             !itemNameLower.includes('mozos')
         })
         .map(item => `
-              <div class="menu-item">${formatText(item.name)}</div>
+              <div class="menu-item">• ${formatText(item.name)}</div>
             `).join('')}
           </div>
         </div>
@@ -613,7 +614,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <span>${budgetData.totals.totalTVA.toFixed(2)} €</span>
             </div>
             ${budgetData.totals.discount && budgetData.totals.discount.amount > 0 ? `
-            <div class="amount-row" style="color: #ef4444;">
+            <div class="amount-row" style="color: #000000; font-weight: bold;">
             <span>Remise (${budgetData.totals.discount.percentage}% - ${budgetData.totals.discount.reason || 'Saison'}):</span>
             <span>-${budgetData.totals.discount.amount.toFixed(2)} €</span>
             </div>

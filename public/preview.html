@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devis - Fuegos d'Azur</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica', Arial, sans-serif;
+      background-color: #ffd8ab;
+      color: #333333;
+      line-height: 1.5;
+      padding: 0;
+      margin: 0;
+      width: 210mm;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      width: 210mm;
+      background-color: #ffd8ab;
+      margin: 0 auto;
+      padding: 0;
+      position: relative;
+    }
+
+    /* HEADER */
+    .header {
+      background-color: #e2943a;
+      color: white;
+      padding: 10mm 20mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .header-logo-left {
+      width: 25mm;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .header-logo-center {
+      width: 60mm; /* Ajustado para que se vea bien en el centro */
+      height: auto;
+      object-fit: contain;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    /* ... */
+
+    /* CONTENT */
+    .content {
+      padding: 10mm 20mm 30mm 20mm; /* Increased bottom padding */
+      position: relative;
+    }
+
+    .title {
+      font-family: 'Knewave', cursive;
+      font-size: 18pt;
+      font-weight: bold;
+      color: #333333;
+      margin-bottom: 8mm;
+    }
+    /* CLIENT INFO */
+    .client-info {
+      font-size: 10pt;
+      margin-bottom: 5mm;
+      padding: 3mm;
+      border-radius: 4mm;
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .client-info-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2mm;
+    }
+
+    .client-info-label {
+      font-weight: 600;
+      color: #333333;
+      margin-right: 2mm;
+      min-width: 30mm;
+    }
+
+    /* MENU SECTIONS */
+    .section {
+      margin-bottom: 6mm;
+      background-color: transparent;
+      padding: 0;
+      box-shadow: none;
+    }
+
+    .section-title {
+      font-family: 'Knewave', cursive;
+      font-size: 14pt;
+      font-weight: bold;
+      color: #e2943a;
+      margin-bottom: 4mm;
+      padding-bottom: 1mm;
+      border-bottom: 1px solid #e2943a;
+    }
+
+    .menu-category {
+      margin-bottom: 4mm;
+    }
+
+    .section-subtitle {
+      font-size: 11pt;
+      font-weight: bold;
+      color: #e2943a;
+      margin-bottom: 2mm;
+    }
+
+    .menu-items-list {
+      margin-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1mm;
+    }
+
+    .menu-item {
+      font-size: 10pt;
+      padding: 1mm 0;
+    }
+
+    .menu-list {
+      font-size: 10pt;
+      margin-left: 10mm;
+      margin-bottom: 5mm;
+    }
+
+    /* AMOUNTS */
+    .amount-section {
+      margin: 5mm 0;
+      /* Espaciador sólido transparente para separar de la página anterior/superior */
+      border-top: 5mm solid transparent;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .totals-section {
+      margin: 5mm 0;
+      border-top: 5mm solid transparent;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Caja visual naranja con bordes perfectos */
+    .orange-box {
+      background-color: #e2943a;
+      color: white;
+      padding: 4mm;
+      border-radius: 2mm; /* Radio normal */
+    }
+
+    .amount-title {
+      font-family: 'Knewave', cursive;
+      font-size: 11pt;
+      font-weight: bold;
+      margin-bottom: 4mm;
+    }
+
+    .amount-row {
+      font-size: 10pt;
+      margin-bottom: 3mm;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .amount-total {
+      font-size: 12pt;
+      font-weight: bold;
+      margin-top: 3mm;
+      padding-top: 3mm;
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Knewave&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="page">
+    <!-- HEADER -->
+    <div class="header">
+      <img src="https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png" alt="Logo" class="header-logo-left">
+      <img src="https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png" alt="Fuegos d'Azur" class="header-logo-center">
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- CLIENT INFO -->
+      <div class="client-info">
+        <div class="client-info-grid">
+          <div class="client-info-item">
+            <span class="client-info-label">Nom :</span>
+            <span class="client-info-value">Jean Dupont</span>
+          </div>
+          
+          <div class="client-info-item">
+            <span class="client-info-label">Téléphone :</span>
+            <span class="client-info-value">+33 6 12 34 56 78</span>
+          </div>
+          
+          <div class="client-info-item">
+            <span class="client-info-label">Email :</span>
+            <span class="client-info-value">jean.dupont@example.com</span>
+          </div>
+          
+          <div class="client-info-item">
+            <span class="client-info-label">Événement :</span>
+            <span class="client-info-value">Mariage</span>
+          </div>
+          
+          
+          <div class="client-info-item">
+            <span class="client-info-label">Lieu :</span>
+            <span class="client-info-value">Château de la Napoule, Mandelieu</span>
+          </div>
+          
+          
+          <div class="client-info-item">
+            <span class="client-info-label">Date :</span>
+            <span class="client-info-value">15/06/2026</span>
+          </div>
+          
+          <div class="client-info-item">
+            <span class="client-info-label">Convives :</span>
+            <span class="client-info-value">80 personnes</span>
+          </div>
+          
+          <div class="client-info-item">
+            <span class="client-info-label">Moment :</span>
+            <span class="client-info-value">Dîner</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MENU -->
+      <div class="section">
+        <h2 class="section-title">Menu Sélectionné</h2>
+
+        
+          <div class="menu-category">
+            <div class="section-subtitle">Entrees</div>
+            <div class="menu-items-list">
+              
+                <div class="menu-item">• Empanadas</div>
+              
+                <div class="menu-item">• Provoleta</div>
+              
+            </div>
+          </div>
+        
+
+        
+          <div class="menu-category">
+            <div class="section-subtitle">Viandes</div>
+            <div class="menu-items-list">
+              
+                <div class="menu-item">• Bife de chorizo</div>
+              
+                <div class="menu-item">• Asado de tira</div>
+              
+            </div>
+          </div>
+        
+
+        
+          <div class="menu-category">
+            <div class="section-subtitle">Accompagnements et Sauces</div>
+            <div class="menu-items-list">
+              
+                <div class="menu-item">• Salade mixte</div>
+              
+                <div class="menu-item">• Légumes grillés</div>
+              
+            </div>
+          </div>
+        
+
+        
+          <div class="menu-category">
+            <div class="section-subtitle">Dessert</div>
+            <div class="menu-items-list">
+              <div class="menu-item">• Flan au dulce de leche</div>
+            </div>
+          </div>
+        
+      </div>
+
+      <!-- MONTANT MENU -->
+      <div class="amount-section">
+        <div class="orange-box">
+            <div class="amount-title">Montant - Menu</div>
+            <div class="amount-row">
+            <span>Montant HT :</span>
+            <span>3200.00 €</span>
+            </div>
+            <div class="amount-row">
+            <span>TVA (10%) :</span>
+            <span>320.00 €</span>
+            </div>
+            <div class="amount-row amount-total">
+            <span>Montant TTC :</span>
+            <span>3520.00 €</span>
+            </div>
+        </div>
+      </div>
+
+      
+        <!-- MATERIAL -->
+        <div class="section">
+          <h2 class="section-title">Matériel demandé</h2>
+          <div class="menu-items-list">
+            
+              <div class="menu-item">• Assiettes plates</div>
+            
+              <div class="menu-item">• Verres de vin</div>
+            
+              <div class="menu-item">• Verres d'eau</div>
+            
+          </div>
+        </div>
+
+        <div class="amount-section">
+          <div class="orange-box">
+            <div class="amount-title">Montant - Matériel</div>
+            <div class="amount-row">
+                <span>Total Matériel :</span>
+                <span>470.00 €</span>
+            </div>
+            
+            <div class="amount-row">
+                <span>Assurance Perte et Casse (6%):</span>
+                <span>30.00 €</span>
+            </div>
+            
+            <div class="amount-row">
+                <span>Montant HT :</span>
+                <span>500.00 €</span>
+            </div>
+            <div class="amount-row">
+                <span>TVA (20%) :</span>
+                <span>100.00 €</span>
+            </div>
+            <div class="amount-row amount-total">
+                <span>Montant TTC :</span>
+                <span>600.00 €</span>
+            </div>
+          </div>
+        </div>
+      
+
+      
+        <!-- DEPLACEMENT -->
+        <div class="amount-section">
+          <div class="orange-box">
+            <div class="amount-title">Montant – Déplacement</div>
+            <div class="amount-row">
+                <span>Distance :</span>
+                <span>50 km</span>
+            </div>
+            <div class="amount-row">
+                <span>Montant HT :</span>
+                <span>100.00 €</span>
+            </div>
+            <div class="amount-row">
+                <span>TVA (20%) :</span>
+                <span>20.00 €</span>
+            </div>
+            <div class="amount-row amount-total">
+                <span>Montant TTC :</span>
+                <span>120.00 €</span>
+            </div>
+          </div>
+        </div>
+      
+
+      
+        <!-- DELIVERY & REPRISE -->
+        <div class="amount-section">
+            <div class="orange-box">
+                <div class="amount-title">Montant – Livraison et Reprise</div>
+                
+                <div class="amount-row">
+                    <span>Livraison :</span>
+                    <span>50.00 €</span>
+                </div>
+                
+                
+                <div class="amount-row">
+                    <span>Reprise :</span>
+                    <span>50.00 €</span>
+                </div>
+                
+                <div class="amount-row">
+                    <span>Montant HT :</span>
+                    <span>100.00 €</span>
+                </div>
+                <div class="amount-row">
+                    <span>TVA (20%) :</span>
+                    <span>20.00 €</span>
+                </div>
+                <div class="amount-row amount-total">
+                    <span>Montant TTC :</span>
+                    <span>120.00 €</span>
+                </div>
+            </div>
+        </div>
+      
+
+      
+        <!-- SERVICE -->
+        <div class="amount-section">
+          <div class="orange-box">
+            <div class="amount-title">Montant – Service</div>
+            <div class="amount-row">
+                <span>4 serveur(s) x 6 heures</span>
+            </div>
+            <div class="amount-row">
+                <span>Montant HT :</span>
+                <span>800.00 €</span>
+            </div>
+            <div class="amount-row">
+                <span>TVA (20%) :</span>
+                <span>160.00 €</span>
+            </div>
+            <div class="amount-row amount-total">
+                <span>Montant TTC :</span>
+                <span>960.00 €</span>
+            </div>
+          </div>
+        </div>
+      
+
+      <!-- TOTALES FINALES -->
+      <div class="totals-section">
+        <div class="orange-box">
+            <div class="amount-title">Montant Général</div>
+            <div class="amount-row">
+            <span>Montant HT total :</span>
+            <span>4700.00 €</span>
+            </div>
+            <div class="amount-row">
+            <span>TVA totale :</span>
+            <span>620.00 €</span>
+            </div>
+            
+            <div class="amount-row" style="color: #000000; font-weight: bold;">
+            <span>Remise (2% - Remise commerciale):</span>
+            <span>-100.00 €</span>
+            </div>
+            
+            <div class="amount-row amount-total">
+            <span>Montant TTC total :</span>
+            <span>5320.00 €</span>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

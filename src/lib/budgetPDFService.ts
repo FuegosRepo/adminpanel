@@ -1,57 +1,11 @@
 import { BudgetData } from './types/budget'
-import fs from 'fs'
-import path from 'path'
 import { generateBudgetHTML } from './budgetPDFTemplate'
 
-// Función helper para convertir imagen a base64
-function imageToBase64(imagePath: string): string {
-  try {
-    // Verificar si el archivo existe
-    if (!fs.existsSync(imagePath)) {
-      console.warn(`⚠️ Imagen no encontrada: ${imagePath}`)
-      return ''
-    }
-
-    const imageBuffer = fs.readFileSync(imagePath)
-    const ext = path.extname(imagePath).toLowerCase()
-    let mimeType = 'image/png'
-
-    if (ext === '.webp') {
-      mimeType = 'image/webp'
-    } else if (ext === '.jpg' || ext === '.jpeg') {
-      mimeType = 'image/jpeg'
-    }
-
-    return `data:${mimeType};base64,${imageBuffer.toString('base64')}`
-  } catch (error) {
-    console.error(`❌ Error leyendo imagen ${imagePath}:`, error)
-    return ''
-  }
-}
-
-// Función helper para obtener la ruta de las imágenes
-function getImagePath(filename: string): string {
-  // Intentar diferentes rutas posibles
-  const possiblePaths = [
-    path.join(process.cwd(), 'src', 'lib', filename), // Desarrollo
-    path.join(process.cwd(), '.next', 'server', 'src', 'lib', filename), // Producción Next.js
-    path.join(process.cwd(), 'lib', filename), // Alternativa
-  ]
-
-  for (const imagePath of possiblePaths) {
-    if (fs.existsSync(imagePath)) {
-      return imagePath
-    }
-  }
-
-  // Si no se encuentra, devolver la ruta más probable
-  return path.join(process.cwd(), 'src', 'lib', filename)
-}
 
 // Nueva función que usa HTML + Puppeteer (más fácil de maquetar)
 export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise<Blob> {
   const html = generateBudgetHTML(budgetData)
-  let browser
+  let browser: any = null
 
   try {
     console.log('🚀 Iniciando Puppeteer...')
@@ -80,7 +34,7 @@ export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise
           executablePath,
           headless: chromiumLib.headless,
           ignoreHTTPSErrors: true,
-        })
+        } as any)
       } catch (launchError) {
         console.error('❌ Error lanzando Chromium en producción:', launchError)
         throw launchError
@@ -126,7 +80,7 @@ export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise
     } finally {
       if (browser) await browser.close()
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error crítico en Puppeteer:', error)
     throw error
   }
