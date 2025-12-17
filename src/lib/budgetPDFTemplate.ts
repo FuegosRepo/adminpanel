@@ -1,6 +1,7 @@
 import { BudgetData } from './types/budget'
 import fs from 'fs'
 import path from 'path'
+import { groupMeatsByCategory, MEAT_CATEGORIES } from './meatMapping'
 
 // Función helper para convertir imagen a base64
 function imageToBase64(imagePath: string): string {
@@ -82,6 +83,11 @@ function formatText(text: string): string {
     'burger': 'Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)',
     'empanadas': '"Empanadas" spécialité d\'argentine',
     'panqueques': 'Panqueques argentins traditionnels avec dulce de leche fondu au brasero, glace vanille et fruits de saison frais',
+    // Issue #3: Specific naming fixes
+    'brochettes de jambon ibérique': 'Brochettes de jambon ibérique',
+    'brochettes de jamón ibérico': 'Brochettes de jambon ibérique',
+    'secreto iberico': 'Secreto de porc Ibérique',
+    'secreto ibérico': 'Secreto de porc Ibérique',
   }
 
   // Aplicar reemplazos específicos (case insensitive)
@@ -134,10 +140,15 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
   const miniLogoBase64 = imageToBase64(miniLogoPath)
 
   // Fix date off-by-one error by handling YYYY-MM-DD manually
+  // CRITICAL DEBUG: Log eventDate value received
+  console.log('📅 PDF Generation - Received eventDate:', budgetData.clientInfo.eventDate)
+  console.log('📄 PDF Generation - Full clientInfo:', JSON.stringify(budgetData.clientInfo, null, 2))
+
   let eventDate = 'Date non définie'
   try {
     if (budgetData.clientInfo.eventDate) {
       const [year, month, day] = budgetData.clientInfo.eventDate.split('-').map(Number)
+
       if (year && month && day) {
         eventDate = new Date(year, month - 1, day).toLocaleDateString('fr-FR', {
           day: '2-digit',
@@ -147,8 +158,9 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       }
     }
   } catch (e) {
-    console.warn('Error formatting eventDate', e)
+    console.error('Error formatting eventDate:', e)
   }
+
 
   let validUntilDate = ''
   try {
@@ -217,8 +229,8 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       position: fixed;
       bottom: 10mm;
       right: 10mm;
-      width: 15mm;
-      opacity: 0.6;
+      width: 10mm;
+      opacity: 0.3;
       z-index: 10;
     }
 
@@ -450,11 +462,40 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
         ${budgetData.menu.viandes && budgetData.menu.viandes.length > 0 ? `
           <div class="menu-category">
             <div class="section-subtitle">Viandes</div>
-            <div class="menu-items-list">
-              ${budgetData.menu.viandes.map(viande => `
-                <div class="menu-item">• ${formatText(viande.name)}</div>
-              `).join('')}
-            </div>
+            ${(() => {
+        const groupedMeats = groupMeatsByCategory(budgetData.menu.viandes)
+        let html = ''
+
+        // Premium category
+        if (groupedMeats.premium.length > 0) {
+          html += `
+                  <div style="margin-bottom: 3mm;">
+                    <div style="font-weight: 600; color: #e2943a; margin-bottom: 1mm; font-size: 10pt;">${MEAT_CATEGORIES.premium}</div>
+                    <div class="menu-items-list">
+                      ${groupedMeats.premium.map(meat => `
+                        <div class="menu-item">• ${meat.displayName}</div>
+                      `).join('')}
+                    </div>
+                  </div>
+                `
+        }
+
+        // Classique category
+        if (groupedMeats.classique.length > 0) {
+          html += `
+                  <div style="margin-bottom: 3mm;">
+                    <div style="font-weight: 600; color: #e2943a; margin-bottom: 1mm; font-size: 10pt;">${MEAT_CATEGORIES.classique}</div>
+                    <div class="menu-items-list">
+                      ${groupedMeats.classique.map(meat => `
+                        <div class="menu-item">• ${meat.displayName}</div>
+                      `).join('')}
+                    </div>
+                  </div>
+                `
+        }
+
+        return html
+      })()}
           </div>
         ` : ''}
 
@@ -512,7 +553,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             !itemNameLower.includes('mozos')
         })
         .map(item => `
-              <div class="menu-item">• ${formatText(item.name)}</div>
+              <div class="menu-item">• ${item.quantity} x ${formatText(item.name)}</div>
             `).join('')}
           </div>
         </div>
@@ -546,7 +587,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
         </div>
       ` : ''}
 
-      ${budgetData.deplacement && budgetData.deplacement.distance > 0 ? `
+      ${budgetData.deplacement && budgetData.deplacement.totalHT > 0 ? `
         <!-- DEPLACEMENT -->
         <div class="amount-section">
           <div class="orange-box">
@@ -604,7 +645,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
         </div>
       ` : ''}
 
-      ${budgetData.service && budgetData.service.mozos > 0 ? `
+      ${budgetData.service && budgetData.service.totalHT > 0 ? `
         <!-- SERVICE -->
         <div class="amount-section">
           <div class="orange-box">
@@ -616,8 +657,6 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
                 <span>Montant HT :</span>
                 <span>${budgetData.service.totalHT.toFixed(2)} €</span>
             </div>
-
-
             <div class="amount-row">
                 <span>TVA (${budgetData.service.tvaPct}%) :</span>
                 <span>${budgetData.service.tva.toFixed(2)} €</span>
