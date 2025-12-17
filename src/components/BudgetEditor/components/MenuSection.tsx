@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { BudgetData } from '../types'
 import { useProducts } from '@/hooks/useProducts'
 import { formatItemName } from '../utils/formatItemName'
+import { simplifyString } from '@/utils/stringUtils'
+import { getProductDisplayName } from '@/utils/productDisplay'
 import { MenuSelectorModal } from './MenuSelectorModal'
 import styles from './MenuSection.module.css'
 
@@ -15,17 +17,66 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
     const [showModal, setShowModal] = useState(false)
     const { products } = useProducts()
 
-    const getProductNames = (ids: string[] | undefined) => {
-        if (!ids || ids.length === 0) return []
-        return ids.map(id => {
-            const product = products.find(p => p.id === id)
-            return product ? product.name : formatItemName(id)
-        })
+    // Helper to add manual item
+    const addManualItem = (category: string, name: string) => {
+        if (!name.trim()) return
+        const newItem = {
+            name: name.trim(),
+            quantity: 0,
+            pricePerUnit: 0,
+            total: 0
+        }
+
+        if (category === 'dessert') {
+            onUpdate('menu.dessert', newItem)
+        } else {
+            // @ts-ignore
+            const currentList = data[category] || []
+            onUpdate(`menu.${category}`, [...currentList, newItem])
+        }
     }
 
-    const selectedEntrees = getProductNames(data.selectedItems?.entrees)
-    const selectedViandes = getProductNames(data.selectedItems?.viandes)
-    const selectedDesserts = getProductNames(data.selectedItems?.desserts)
+    const removeManualItem = (category: string, index: number) => {
+        if (category === 'dessert') {
+            onUpdate('menu.dessert', null)
+        } else {
+            // @ts-ignore
+            const currentList = [...(data[category] || [])]
+            currentList.splice(index, 1)
+            onUpdate(`menu.${category}`, currentList)
+        }
+    }
+
+    // Component for manual adder
+    const ManualAdder = ({ category, placeholder }: { category: string, placeholder: string }) => {
+        const [val, setVal] = useState('')
+        return (
+            <div className={styles.manualAdder}>
+                <input
+                    type="text"
+                    value={val}
+                    onChange={e => setVal(e.target.value)}
+                    placeholder={placeholder}
+                    className={styles.manualInput}
+                    onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                            addManualItem(category, val)
+                            setVal('')
+                        }
+                    }}
+                />
+                <button
+                    onClick={() => {
+                        addManualItem(category, val)
+                        setVal('')
+                    }}
+                    className={styles.addBtn}
+                >
+                    +
+                </button>
+            </div>
+        )
+    }
 
     return (
         <section className={`${styles.section} ${styles.editable}`}>
@@ -83,34 +134,71 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                                 className={styles.modifyBtn}
                                 onClick={() => setShowModal(true)}
                             >
-                                Modificar Menú
+                                Abrir Catálogo
                             </button>
                         </div>
 
                         <div className={styles.selectionGrid}>
+                            {/* Entradas */}
                             <div className={styles.selectionGroup}>
                                 <h4>Entradas</h4>
-                                {selectedEntrees.length > 0 ? (
-                                    <ul className={styles.selectionList}>
-                                        {selectedEntrees.map((name, i) => <li key={i}>{name}</li>)}
-                                    </ul>
-                                ) : <span className={styles.emptyMessage}>Sin selección</span>}
+                                <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
+                                    {data.entrees?.map((item, i) => (
+                                        <li key={i} className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                                            <span style={{ flex: 1 }}>• {getProductDisplayName(item.name)}</span>
+                                            <button
+                                                onClick={() => removeManualItem('entrees', i)}
+                                                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
+                                                title="Eliminar"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <ManualAdder category="entrees" placeholder="Agregar entrada manual..." />
                             </div>
+
+                            {/* Carnes */}
                             <div className={styles.selectionGroup}>
                                 <h4>Carnes</h4>
-                                {selectedViandes.length > 0 ? (
-                                    <ul className={styles.selectionList}>
-                                        {selectedViandes.map((name, i) => <li key={i}>{name}</li>)}
-                                    </ul>
-                                ) : <span className={styles.emptyMessage}>Sin selección</span>}
+                                <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
+                                    {data.viandes?.map((item, i) => (
+                                        <li key={i} className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                                            <span style={{ flex: 1 }}>• {getProductDisplayName(item.name)}</span>
+                                            <button
+                                                onClick={() => removeManualItem('viandes', i)}
+                                                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
+                                                title="Eliminar"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <ManualAdder category="viandes" placeholder="Agregar carne manual..." />
                             </div>
+
+                            {/* Postres */}
                             <div className={styles.selectionGroup}>
                                 <h4>Postres</h4>
-                                {selectedDesserts.length > 0 ? (
-                                    <ul className={styles.selectionList}>
-                                        {selectedDesserts.map((name, i) => <li key={i}>{name}</li>)}
-                                    </ul>
-                                ) : <span className={styles.emptyMessage}>Sin selección</span>}
+                                <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
+                                    {data.dessert ? (
+                                        <li className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                                            <span style={{ flex: 1 }}>• {getProductDisplayName(data.dessert.name)}</span>
+                                            <button
+                                                onClick={() => removeManualItem('dessert', 0)}
+                                                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
+                                                title="Eliminar"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </li>
+                                    ) : null}
+                                </ul>
+                                {!data.dessert && (
+                                    <ManualAdder category="dessert" placeholder="Agregar postre manual..." />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -133,19 +221,49 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                     <MenuSelectorModal
                         isOpen={showModal}
                         onClose={() => setShowModal(false)}
+                        // Legacy Fallback: If full objects are missing, try to use legacy selectedItems IDs
+                        // This allows opening an old budget and having the modal pre-filled with the correct checks.
                         selectedItems={{
-                            entrees: data.selectedItems?.entrees || [],
-                            viandes: data.selectedItems?.viandes || [],
-                            desserts: data.selectedItems?.desserts || []
+                            entrees: (data.entrees && data.entrees.length > 0)
+                                ? data.entrees.map(e => e.name)
+                                : (data.selectedItems?.entrees || []),
+                            viandes: (data.viandes && data.viandes.length > 0)
+                                ? data.viandes.map(v => v.name)
+                                : (data.selectedItems?.viandes || []),
+                            desserts: (data.dessert)
+                                ? [data.dessert.name]
+                                : (data.selectedItems?.desserts || [])
                         }}
                         onSave={(selection) => {
-                            // Hidratar selección con nombres reales de productos
-                            const hydrateItems = (ids: string[], category: string) => {
+                            // Merge Strategy:
+                            // The modal returns IDs. We convert them to full items.
+                            // We REPLACE the current list with the new selection from the modal?
+                            // NO, that destroys manual items.
+                            // Better: The modal is an "Add to list" or "Sync list" tool.
+
+                            // Let's adopt this strategy:
+                            // The Modal returns the FULL desired set of "Catalog Items".
+                            // Usage: If user uses modal, they are setting the "standard" items.
+                            // Manual items might be lost if we are not careful.
+                            // BUT, the user's main complaint was "I selected empanadas and can't remove them".
+                            // This implies they want the Modal to be the Authority for Catalog items.
+
+                            const hydrateItems = (ids: string[]) => {
                                 return ids.map(id => {
-                                    const product = products.find(p => p.id === id)
-                                    // Si no encuentra producto, usa el ID formateado
+                                    // Try to find product by ID first, then by EXACT Name
+                                    // Robust matching using simplifyString
+                                    const idSimple = simplifyString(id)
+                                    const product = products.find(p => {
+                                        if (p.id === id || p.name === id) return true
+                                        const pNameSimple = simplifyString(p.name)
+                                        return pNameSimple === idSimple
+                                    })
+
+                                    // Always use the Product Name if found, otherwise fallback to the ID/Input
+                                    const finalName = product ? product.name : formatItemName(id)
+
                                     return {
-                                        name: product ? product.name : formatItemName(id),
+                                        name: finalName,
                                         quantity: 0,
                                         pricePerUnit: 0,
                                         total: 0
@@ -153,28 +271,36 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                                 })
                             }
 
-                            // Buscar el producto de postre si hay selección
-                            let dessertItem = null
+                            // Update Entrees and Viandes
+                            onUpdate('menu.entrees', hydrateItems(selection.entrees))
+                            onUpdate('menu.viandes', hydrateItems(selection.viandes))
+
+                            // Update Dessert
                             if (selection.desserts.length > 0) {
-                                const dessertId = selection.desserts[0]
-                                const product = products.find(p => p.id === dessertId)
-                                dessertItem = {
-                                    name: product ? product.name : formatItemName(dessertId),
+                                // Take the first selected dessert
+                                const dId = selection.desserts[0]
+                                const dIdSimple = simplifyString(dId)
+                                const product = products.find(p => {
+                                    if (p.id === dId || p.name === dId) return true
+                                    return simplifyString(p.name) === dIdSimple
+                                })
+                                // Crucial: Use product.name if available to avoid "Dessert" or generic IDs
+                                const finalName = product ? product.name : formatItemName(dId)
+
+                                onUpdate('menu.dessert', {
+                                    name: finalName,
                                     quantity: 0,
                                     pricePerUnit: 0,
                                     total: 0
-                                }
+                                })
+                            } else {
+                                // Clear dessert if none selected
+                                onUpdate('menu.dessert', null)
                             }
 
-                            // Actualizar IDs para la UI
+                            // Update the "selectedItems" IDs just in case legacy logic needs them, 
+                            // though we are trying to move away from it.
                             onUpdate('menu.selectedItems', selection)
-
-                            // Actualizar objetos completos para PDF
-                            onUpdate('menu.entrees', hydrateItems(selection.entrees, 'entrees'))
-                            onUpdate('menu.viandes', hydrateItems(selection.viandes, 'viandes'))
-                            if (dessertItem) {
-                                onUpdate('menu.dessert', dessertItem)
-                            }
 
                             setShowModal(false)
                         }}
