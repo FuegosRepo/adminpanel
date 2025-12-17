@@ -71,6 +71,17 @@ function formatText(text: string): string {
     'mange-debout': 'Mange-debout',
     'assiettes-plates': 'Assiettes plates',
     'assiettes-creuses': 'Assiettes creuses',
+    'choripan': 'Choripan (Chorizo argentin grillé au brasero, accompagné d\'un sauce maison et pain artisanal)',
+    'fruits-grilles': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
+    'fruits-grille': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
+    'fruits grillés': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
+    'fruits grilles': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
+    'fruits grille': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
+    'fruits grillé': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
+    'miniburger': 'Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)',
+    'burger': 'Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)',
+    'empanadas': '"Empanadas" spécialité d\'argentine',
+    'panqueques': 'Panqueques argentins traditionnels avec dulce de leche fondu au brasero, glace vanille et fruits de saison frais',
   }
 
   // Aplicar reemplazos específicos (case insensitive)
@@ -181,6 +192,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       print-color-adjust: exact;
     }
 
+
     .page {
       width: 210mm;
       background-color: #ffd8ab;
@@ -198,6 +210,16 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       align-items: center;
       justify-content: space-between;
       position: relative;
+      z-index: 20; /* Ensure header covers watermark on page 1 */
+    }
+
+    .watermark {
+      position: fixed;
+      bottom: 10mm;
+      right: 10mm;
+      width: 15mm;
+      opacity: 0.6;
+      z-index: 10;
     }
 
     .header-logo-left {
@@ -349,6 +371,11 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 </head>
 <body>
   <div class="page">
+    <!-- WATERMARK (Fixed on all pages, hidden by header on page 1) -->
+    <div class="watermark">
+      <img src="https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png" style="width: 100%;" alt="Watermark" />
+    </div>
+
     <!-- HEADER -->
     <div class="header">
       <img src="https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png" alt="Logo" class="header-logo-left">
@@ -431,16 +458,16 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
           </div>
         ` : ''}
 
-        ${budgetData.menu.accompagnements && budgetData.menu.accompagnements.length > 0 ? `
-          <div class="menu-category">
+        <div class="menu-category">
             <div class="section-subtitle">Accompagnements et Sauces</div>
             <div class="menu-items-list">
-              ${budgetData.menu.accompagnements.map(acc => `
-                <div class="menu-item">• ${formatText(acc)}</div>
-              `).join('')}
+              <div class="menu-item">• Pommes de terre "Rusticas" en persillade.</div>
+              <div class="menu-item">• Salade verte, fruits de saison, fromage feta, grains et vinaigrette.</div>
+              <div class="menu-item">• Légumes grillés.</div>
+              <div class="menu-item">• Pain (divers).</div>
+              <div class="menu-item">• Sauce traditionnelle Chimichurri.</div>
             </div>
           </div>
-        ` : ''}
 
         ${budgetData.menu.dessert ? `
           <div class="menu-category">
@@ -589,6 +616,8 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
                 <span>Montant HT :</span>
                 <span>${budgetData.service.totalHT.toFixed(2)} €</span>
             </div>
+
+
             <div class="amount-row">
                 <span>TVA (${budgetData.service.tvaPct}%) :</span>
                 <span>${budgetData.service.tva.toFixed(2)} €</span>
@@ -624,6 +653,11 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <span>${budgetData.totals.totalTTC.toFixed(2)} €</span>
             </div>
         </div>
+      </div>
+
+      <!-- FOOTER IMAGE -->
+      <div style="padding-top: 5mm; padding-bottom: 5mm; text-align: center;">
+        <img src="https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/waves.png" style="width: 30%; display: block; margin: 0 auto;" alt="Footer Waves" />
       </div>
     </div>
   </div>

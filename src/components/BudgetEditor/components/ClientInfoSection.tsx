@@ -60,11 +60,19 @@ export function ClientInfoSection({ data, onUpdate }: ClientInfoSectionProps) {
                     </div>
                     <div className={styles.editField}>
                         <label>Tipo Evento</label>
-                        <input
-                            type="text"
+                        <select
                             value={data.eventType}
                             onChange={(e) => onUpdate('clientInfo.eventType', e.target.value)}
-                        />
+                            className={styles.select}
+                        >
+                            <option value="">Sélectionner...</option>
+                            <option value="Mariage">Mariage</option>
+                            <option value="Anniversaire">Anniversaire</option>
+                            <option value="Corporatif">Corporatif</option>
+                            <option value="Baptême">Baptême</option>
+                            <option value="Fête Privée">Fête Privée</option>
+                            <option value="Autre">Autre</option>
+                        </select>
                     </div>
                     <div className={styles.editField}>
                         <label>Invitados</label>

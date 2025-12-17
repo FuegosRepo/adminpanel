@@ -22,6 +22,25 @@ export interface BudgetData {
             viandes: string[]
             desserts: string[]
         }
+        entrees?: Array<{
+            name: string
+            quantity: number
+            pricePerUnit: number
+            total: number
+        }>
+        viandes?: Array<{
+            name: string
+            quantity: number
+            pricePerUnit: number
+            total: number
+        }>
+        dessert?: {
+            name: string
+            quantity: number
+            pricePerUnit: number
+            total: number
+        } | null
+        accompagnements?: string[]
     }
     material?: {
         items: Array<{

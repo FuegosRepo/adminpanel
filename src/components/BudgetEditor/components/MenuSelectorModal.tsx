@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useProducts } from '@/hooks/useProducts'
+import { simplifyString } from '@/utils/stringUtils'
+import { getProductDisplayName } from '@/utils/productDisplay'
 import styles from './MenuSelectorModal.module.css'
 
 interface MenuSelectorModalProps {
@@ -41,13 +43,25 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
         const currentList = tempSelection[category] || []
         const exists = currentList.includes(id)
         let newList
-        if (exists) {
-            newList = currentList.filter(item => item !== id)
+
+        if (category === 'desserts') {
+            // Single selection for desserts
+            // If clicking the already selected item, deselect it (empty list)
+            // Otherwise, replace selection with new item
+            newList = exists ? [] : [id]
         } else {
-            newList = [...currentList, id]
+            // Multiple selection for entrees/viandes
+            if (exists) {
+                newList = currentList.filter(item => item !== id)
+            } else {
+                newList = [...currentList, id]
+            }
         }
+
         setTempSelection({ ...tempSelection, [category]: newList })
     }
+
+    // Helper to normalize strings for comparison is now imported
 
     const isSelected = (categoryList: string[] | undefined, product: any) => {
         if (!categoryList) return false
@@ -56,29 +70,66 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
             if (item === product.id) return true
             // Exact Name match
             if (item === product.name) return true
-            // Fuzzy Name match (case insensitive, ignoring special chars)
-            const simplify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
-            const itemSimple = simplify(item)
-            const nameSimple = simplify(product.name)
+
+            // Fuzzy Name match
+            const itemSimple = simplifyString(item)
+            const nameSimple = simplifyString(product.name)
+
+            // Special case for 'Cote de boeuf' vs 'Tomahawk'
+            if (itemSimple.includes('tomahawk') && nameSimple.includes('cote')) return true
+            if (itemSimple.includes('cote') && nameSimple.includes('tomahawk')) return true
+
+            // Special case for 'Burger' vs 'Burguer'
+            // DB might have 'Burguer', ID is 'burger'
+            if (itemSimple.includes('burger') && nameSimple.includes('burguer')) return true
+            if (itemSimple.includes('burguer') && nameSimple.includes('burger')) return true
+
             return itemSimple.includes(nameSimple) || nameSimple.includes(itemSimple)
         })
     }
 
-    // Listas de palabras clave para identificar platos principales (vs ingredientes)
+    // Palabras clave para EXCLUIR ingredientes o versiones desglosadas
+    const EXCLUDED_KEYWORDS = [
+        'pan ', 'queso ', 'base ', 'carne ', 'salsa ', 'focaccia', 'salade',
+        'acompañamiento', 'ingrédient', 'supplément', 'flambes'
+    ]
+
+    // Palabras clave para INCLUIR (Platos principales)
     const MAIN_DISH_KEYWORDS = {
-        entrees: ['brochet', 'burg', 'chori', 'empanada', 'secreto'],
-        desserts: ['fruit', 'panqueque']
+        entrees: ['brochet', 'burg', 'choripan', 'empanada', 'secreto'],
+        desserts: ['fruit', 'panqueques']
     }
+
+    // Helper to get display name is now imported from @/utils/productDisplay
+
+    // ... filtering code ...
 
     const isMainDish = (product: any, keywords: string[]) => {
         const name = product.name.toLowerCase()
+        const exactName = name.trim()
+
+        // 1. FILTRO DE EXCLUSIÓN ESPECÍFICO
+        if (exactName === 'chori' || exactName === 'chorizo' || exactName === 'panqueque') return false
+
+        // 2. FILTRO DE EXCLUSIÓN GENERAL
+        if (EXCLUDED_KEYWORDS.some(k => name.includes(k))) return false
+
+        // 3. FILTRO DE CATEGORÍA VIANDES (Carnes)
+        if (product.category === 'carnes_clasicas' || product.category === 'carnes_premium') return true
+
+        // 4. FILTRO DE INCLUSIÓN (Entradas y Postres)
         return keywords.some(k => name.includes(k))
     }
 
+    // Update filtering to ensure we capture the items even if names are short
+    // Logic remains similar but we rely on the DB name for filtering
     const entreesList = products.filter(p =>
         p.category === 'entradas' && isMainDish(p, MAIN_DISH_KEYWORDS.entrees)
     )
-    const viandesList = products.filter(p => p.category === 'carnes_clasicas' || p.category === 'carnes_premium')
+    const viandesList = products.filter(p =>
+        (p.category === 'carnes_clasicas' || p.category === 'carnes_premium') &&
+        !EXCLUDED_KEYWORDS.some(k => p.name.toLowerCase().includes(k))
+    )
     const dessertsList = products.filter(p =>
         p.category === 'postres' && isMainDish(p, MAIN_DISH_KEYWORDS.desserts)
     )
@@ -103,7 +154,7 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
                                         checked={isSelected(tempSelection.entrees, p)}
                                         readOnly
                                     />
-                                    <span>{p.name}</span>
+                                    <span>{getProductDisplayName(p.name)}</span>
                                 </div>
                             ))}
                         </div>
@@ -116,7 +167,7 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
                                         checked={isSelected(tempSelection.viandes, p)}
                                         readOnly
                                     />
-                                    <span>{p.name}</span>
+                                    <span>{getProductDisplayName(p.name)}</span>
                                 </div>
                             ))}
                         </div>
@@ -129,7 +180,7 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
                                         checked={isSelected(tempSelection.desserts, p)}
                                         readOnly
                                     />
-                                    <span>{p.name}</span>
+                                    <span>{getProductDisplayName(p.name)}</span>
                                 </div>
                             ))}
                         </div>
