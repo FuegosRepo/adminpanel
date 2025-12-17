@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { Budget, BudgetData } from '../types'
 import { formatItemName } from '../utils/formatItemName'
 import { MATERIAL_MAPPINGS } from '@/components/EventCalculator/utils/productMapping'
+import { normalizeFrontendIdsToProductNames } from '@/lib/productNormalization'
 
 export function useBudgetData(budgetId: string) {
     const [budget, setBudget] = useState<Budget | null>(null)
@@ -30,25 +31,98 @@ export function useBudgetData(budgetId: string) {
                 // Procesamiento inicial de datos (similar al original)
                 const budgetData = { ...data.budget_data } as BudgetData
 
-                // Si hay un order_id y no hay items seleccionados en el presupuesto, traerlos de la orden
-                if (data.order_id && (!budgetData.menu.selectedItems ||
-                    (budgetData.menu.selectedItems.entrees.length === 0 &&
-                        budgetData.menu.selectedItems.viandes.length === 0 &&
-                        budgetData.menu.selectedItems.desserts.length === 0))) {
-
-                    const { data: orderData } = await supabase
+                // Safe Client Info Backfill Strategy
+                // - Only fills NULL/empty fields  
+                // - Preserves manual edits
+                // - Always fetch selectedItems from orders
+                if (data.order_id) {
+                    const { data: orderData, error: orderError } = await supabase
                         .from('catering_orders')
-                        .select('entrees, viandes, dessert')
+                        .select('entrees, viandes, dessert, event_date, name, email, phone, address, event_type, guest_count')
                         .eq('id', data.order_id)
                         .single()
 
+                    if (orderError) {
+                        console.error('❌ Error fetching order data:', orderError)
+                    }
+
                     if (orderData) {
-                        budgetData.menu.selectedItems = {
-                            entrees: orderData.entrees || [],
-                            viandes: orderData.viandes || [],
-                            desserts: orderData.dessert ? [orderData.dessert] : []
+                        // PHASE 1: PRODUCT NORMALIZATION
+                        // Convert frontend IDs (e.g., 'secreto', 'burger') to database product names
+                        const normalizedEntrees = normalizeFrontendIdsToProductNames(orderData.entrees || [])
+                        const normalizedViandes = normalizeFrontendIdsToProductNames(orderData.viandes || [])
+                        const normalizedDessert = orderData.dessert
+                            ? normalizeFrontendIdsToProductNames([orderData.dessert])[0]
+                            : null
+
+                        // Fetch full product objects from database
+                        const allProductNames = [...normalizedEntrees, ...normalizedViandes]
+                        if (normalizedDessert) allProductNames.push(normalizedDessert)
+
+                        const { data: products, error: productsError } = await supabase
+                            .from('products')
+                            .select('id, name, price_per_portion, category, is_combo')
+                            .in('name', allProductNames)
+
+                        if (productsError) {
+                            console.error('❌ Error fetching products:', productsError)
+                        }
+
+                        // Hydrate selectedItems with full product objects
+                        if (products) {
+                            const findProduct = (name: string) => products.find(p =>
+                                p.name.toLowerCase() === name.toLowerCase()
+                            )
+
+                            budgetData.menu.selectedItems = {
+                                entrees: normalizedEntrees.map(name => findProduct(name)?.name || name),
+                                viandes: normalizedViandes.map(name => findProduct(name)?.name || name),
+                                desserts: normalizedDessert ? [findProduct(normalizedDessert)?.name || normalizedDessert] : []
+                            }
+
+                            console.log('✅ Product normalization complete:', {
+                                originalEntrees: orderData.entrees,
+                                normalizedEntrees,
+                                originalViandes: orderData.viandes,
+                                normalizedViandes,
+                                foundProducts: products.length
+                            })
+                        } else {
+                            // Fallback: use normalized names even if no products found
+                            budgetData.menu.selectedItems = {
+                                entrees: normalizedEntrees,
+                                viandes: normalizedViandes,
+                                desserts: normalizedDessert ? [normalizedDessert] : []
+                            }
+                        }
+
+                        // Safe fallback: Only fill empty fields, never overwrite
+                        // This preserves manual edits while filling in missing data
+                        if (!budgetData.clientInfo.name && orderData.name) {
+                            budgetData.clientInfo.name = orderData.name
+                        }
+                        if (!budgetData.clientInfo.email && orderData.email) {
+                            budgetData.clientInfo.email = orderData.email
+                        }
+                        if (!budgetData.clientInfo.phone && orderData.phone) {
+                            budgetData.clientInfo.phone = orderData.phone
+                        }
+                        if (!budgetData.clientInfo.address && orderData.address) {
+                            budgetData.clientInfo.address = orderData.address
+                        }
+                        if (!budgetData.clientInfo.eventType && orderData.event_type) {
+                            budgetData.clientInfo.eventType = orderData.event_type
+                        }
+                        if (!budgetData.clientInfo.guestCount && orderData.guest_count) {
+                            budgetData.clientInfo.guestCount = orderData.guest_count
+                        }
+                        // Event date: Fill if missing
+                        if (!budgetData.clientInfo.eventDate && orderData.event_date) {
+                            budgetData.clientInfo.eventDate = orderData.event_date
                         }
                     }
+                } else {
+                    // Budget has no order_id - standalone budget
                 }
 
                 // Asegurar valores fijos para servicio si existe
@@ -108,7 +182,7 @@ export function useBudgetData(budgetId: string) {
                                 }
 
                                 if (foundProduct) {
-                                    console.log(`✅ Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion}`)
+                                    console.log(`✅ Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion} `)
                                     correctPrice = foundProduct.price_per_portion || 0.50
                                 }
                             }
@@ -119,7 +193,7 @@ export function useBudgetData(budgetId: string) {
                                 formattedName.toLowerCase().includes('assiette') ||
                                 formattedName.toLowerCase().includes('couverts')
                             )) {
-                                console.warn(`⚠️ Forzando precio 0.50 para "${formattedName}" (precio anterior: ${correctPrice})`)
+                                console.warn(`⚠️ Forzando precio 0.50 para "${formattedName}"(precio anterior: ${correctPrice})`)
                                 correctPrice = 0.50
                             }
 
