@@ -465,7 +465,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <div class="section-subtitle">Entrees</div>
             <div class="menu-items-list">
               ${budgetData.menu.entrees.map(entree => `
-                <div class="menu-item">• ${formatText(getEntreeDisplayName(entree.name))}</div>
+                <div class="menu-item">• ${getEntreeDisplayName(entree.name)}</div>
               `).join('')}
             </div>
           </div>
