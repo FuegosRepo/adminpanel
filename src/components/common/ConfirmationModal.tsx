@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AlertTriangle, CheckCircle, Info, AlertCircle } from 'lucide-react'
 import styles from './ConfirmationModal.module.css'
 
@@ -25,7 +26,27 @@ export default function ConfirmationModal({
     variant = 'danger',
     type = 'confirm'
 }: ConfirmationModalProps) {
-    if (!isOpen) return null
+    // ✅ Track if component is mounted on client
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    // ✅ Prevent body scroll when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [isOpen])
+
+    // ✅ Don't render on server or when not open
+    if (!mounted || !isOpen) return null
 
     const getIcon = () => {
         switch (variant) {
@@ -39,7 +60,7 @@ export default function ConfirmationModal({
 
     const getIconContainerStyle = () => {
         switch (variant) {
-            case 'danger': return styles.iconContainer // default red
+            case 'danger': return styles.iconContainer
             case 'warning': return `${styles.iconContainer} ${styles.headerWarning}`
             case 'success': return `${styles.iconContainer} ${styles.headerSuccess}`
             case 'info': return `${styles.iconContainer} ${styles.headerInfo}`
@@ -49,7 +70,7 @@ export default function ConfirmationModal({
 
     const getConfirmButtonStyle = () => {
         switch (variant) {
-            case 'danger': return styles.confirmButton // default red
+            case 'danger': return styles.confirmButton
             case 'warning': return `${styles.button} ${styles.buttonWarning}`
             case 'success': return `${styles.button} ${styles.buttonSuccess}`
             case 'info': return `${styles.button} ${styles.buttonInfo}`
@@ -57,7 +78,8 @@ export default function ConfirmationModal({
         }
     }
 
-    return (
+    // ✅ Render modal using React Portal at document.body level (client-side only)
+    return createPortal(
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
                 <div className={styles.header}>
@@ -68,10 +90,10 @@ export default function ConfirmationModal({
                 </div>
 
                 <p className={styles.message}>
-                    {message.split('\n').map((line, i) => (
+                    {message.split('\\n').map((line, i) => (
                         <React.Fragment key={i}>
                             {line}
-                            {i < message.split('\n').length - 1 && <br />}
+                            {i < message.split('\\n').length - 1 && <br />}
                         </React.Fragment>
                     ))}
                 </p>
@@ -89,15 +111,13 @@ export default function ConfirmationModal({
                         className={getConfirmButtonStyle()}
                         onClick={() => {
                             onConfirm()
-                            // If it's an alert, we might want to close it automatically on confirm here, 
-                            // but usually the caller handles the logic. 
-                            // However, strictly, onConfirm is just the callback.
                         }}
                     >
                         {confirmLabel || (type === 'alert' ? 'Entendido' : 'Confirmar')}
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }

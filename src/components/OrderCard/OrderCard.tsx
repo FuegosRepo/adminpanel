@@ -4,10 +4,12 @@ import { useState, useEffect, memo } from 'react'
 import { CateringOrder, EmailTemplate } from '@/types'
 import { format, differenceInDays } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock } from 'lucide-react'
+import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { emailTemplates } from '@/data/mockData'
 import { ProductListResolver } from '@/components/admin/ProductListResolver'
+import ConfirmationModal from '@/components/common/ConfirmationModal'  // ✅ Added
+import { toast } from 'sonner'  // ✅ Added
 import styles from './OrderCard.module.css'
 
 interface OrderCardProps {
@@ -18,6 +20,7 @@ interface OrderCardProps {
   onViewDetails: (order: CateringOrder) => void
   onSelectionChange: (orderId: string, isSelected: boolean) => void
   onUpdateOrder?: (orderId: string, updates: Partial<CateringOrder>) => void
+  onDelete?: (orderId: string) => void  // ✅ New prop for delete functionality
 }
 
 const OrderCard = ({
@@ -27,13 +30,15 @@ const OrderCard = ({
   onSendEmail,
   onViewDetails,
   onSelectionChange,
-  onUpdateOrder
+  onUpdateOrder,
+  onDelete  // ✅ Destructure new prop
 }: OrderCardProps) => {
   const [mounted, setMounted] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [relanceModalOpen, setRelanceModalOpen] = useState(false)
   const [lastRelanceDate, setLastRelanceDate] = useState<string | null>(null)
   const [extrasView, setExtrasView] = useState<'compact' | 'detailed'>('compact')
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)  // ✅ Added delete modal state
 
   useEffect(() => {
     setMounted(true)
@@ -83,13 +88,13 @@ const OrderCard = ({
       if (response.ok) {
         setLastRelanceDate(new Date().toISOString())
         setRelanceModalOpen(false)
-        alert('Email de relance enviado correctamente')
+        toast.success('Email de relance enviado correctamente')  // ✅ Toast instead of alert
       } else {
-        alert('Error al enviar el email')
+        toast.error('Error al enviar el email')  // ✅ Toast instead of alert
       }
     } catch (e) {
       console.error(e)
-      alert('Error al enviar el email')
+      toast.error('Error al enviar el email')  // ✅ Toast instead of alert
     }
   }
 
@@ -109,6 +114,7 @@ const OrderCard = ({
     switch (status) {
       case 'pending': return 'Pendiente'
       case 'sent': return 'Enviado'
+      case 'ENVIADO': return 'Enviado'  // ✅ Added ENVIADO mapping
       case 'approved': return 'Aprobado'
       case 'rejected': return 'Rechazado'
       default: return status
@@ -138,9 +144,22 @@ const OrderCard = ({
             <p className={styles.eventDate}>📅 {formatDate(order.contact.eventDate)}</p>
           </div>
           <div className={styles.compactRight}>
-            <span className={`${styles.status} ${styles[order.status]}`}>
+            <span className={`${styles.status} ${styles[order.status === 'ENVIADO' ? 'sent' : order.status]}`}>
               {getStatusText(order.status)}
             </span>
+            {/* ✅ Delete button in compact view */}
+            {onDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setDeleteModalOpen(true)  // ✅ Open modal instead of window.confirm
+                }}
+                className={styles.compactDeleteButton}
+                title="Eliminar pedido"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className={styles.expandButton}
@@ -277,7 +296,7 @@ const OrderCard = ({
                 </button>
                 <button
                   onClick={() => onStatusChange(order.id, 'sent')}
-                  className={`${styles.statusBtn} ${order.status === 'sent' ? `${styles.statusBtnActive} ${styles.sent}` : ''}`}
+                  className={`${styles.statusBtn} ${(order.status === 'sent' || order.status === 'ENVIADO') ? `${styles.statusBtnActive} ${styles.sent}` : ''}`}
                   title="Marcar como Enviado"
                 >
                   Enviado
@@ -325,6 +344,20 @@ const OrderCard = ({
                 <Eye size={16} />
                 Ver Detalles
               </button>
+
+              {/* ✅ New Delete Button */}
+              {onDelete && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setDeleteModalOpen(true)  // ✅ Open modal instead of window.confirm
+                  }}
+                  className={`${styles.actionButton} ${styles.deleteButton}`}
+                  title="Eliminar pedido"
+                >
+                  🗑️ Eliminar
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -342,6 +375,22 @@ const OrderCard = ({
           </div>
         </div>
       )}
+
+      {/* ✅ Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={() => {
+          if (onDelete) {
+            onDelete(order.id)
+          }
+          setDeleteModalOpen(false)
+        }}
+        title="¿Eliminar pedido?"
+        message="¿Estás seguro de que deseas eliminar este pedido?\n\nEsta acción es permanente y eliminará tanto el pedido como el presupuesto en ambas secciones para mantener la sincronización."
+        confirmLabel="Eliminar"
+        variant="danger"
+      />
     </div>
   )
 }

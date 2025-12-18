@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2 } from 'lucide-react'
+import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2, Mail, Calendar, Users, ChevronDown, ChevronUp } from 'lucide-react'
 import './BudgetsList.css'
 import { useBudgets } from '@/hooks/useBudgets'
 import { toast } from 'sonner'
@@ -9,7 +9,7 @@ interface Budget {
   id: string
   order_id: string
   version: number
-  status: 'draft' | 'pending_review' | 'approved' | 'sent' | 'rejected'
+  status: 'draft' | 'pending_review' | 'approved' | 'sent' | 'rejected' | 'ENVIADO'
   budget_data: any
   pdf_url?: string
   created_at: string
@@ -22,34 +22,20 @@ interface BudgetsListProps {
 
 export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
   const { budgets, loading, deleteBudget, createManualBudget } = useBudgets()
-  const [filter, setFilter] = useState<'all' | 'pending_review' | 'approved' | 'sent'>('all')
+  const [filter, setFilter] = useState<'all' | 'pending_review' | 'approved' | 'sent' | 'ENVIADO'>('all')
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return <Clock className="status-icon" />
-      case 'pending_review':
-        return <Eye className="status-icon" />
-      case 'approved':
-        return <CheckCircle className="status-icon" />
-      case 'sent':
-        return <Send className="status-icon" />
-      case 'rejected':
-        return <XCircle className="status-icon" />
-      default:
-        return <FileText className="status-icon" />
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
+  const getStatusText = (status: string) => {
     switch (status) {
       case 'draft':
         return 'Borrador'
       case 'pending_review':
-        return 'Pendiente Revisión'
+        return 'Pendiente'
       case 'approved':
         return 'Aprobado'
       case 'sent':
+        return 'Enviado'
+      case 'ENVIADO':
         return 'Enviado'
       case 'rejected':
         return 'Rechazado'
@@ -58,8 +44,23 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
     }
   }
 
+  const toggleCard = (budgetId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(budgetId)) {
+        newSet.delete(budgetId)
+      } else {
+        newSet.add(budgetId)
+      }
+      return newSet
+    })
+  }
+
   const filteredBudgets = budgets.filter((budget: any) => {
     if (filter === 'all') return true
+    if (filter === 'sent') {
+      return budget.status === 'sent' || budget.status === 'ENVIADO'
+    }
     return budget.status === filter
   })
 
@@ -133,7 +134,7 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
             Pendientes: <strong>{budgets.filter((b: any) => b.status === 'pending_review').length}</strong>
           </span>
           <span className="stat">
-            Enviados: <strong>{budgets.filter((b: any) => b.status === 'sent').length}</strong>
+            Enviados: <strong>{budgets.filter((b: any) => b.status === 'sent' || b.status === 'ENVIADO').length}</strong>
           </span>
           <button
             className="create-manual-btn"
@@ -167,7 +168,7 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
           className={`filter-btn ${filter === 'sent' ? 'active' : ''}`}
           onClick={() => setFilter('sent')}
         >
-          Enviados ({budgets.filter(b => b.status === 'sent').length})
+          Enviados ({budgets.filter(b => b.status === 'sent' || b.status === 'ENVIADO').length})
         </button>
       </div>
 
@@ -182,81 +183,97 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
           {filteredBudgets.map((budget) => {
             const clientInfo = budget.budget_data?.clientInfo || {}
             const totals = budget.budget_data?.totals || {}
+            const isExpanded = expandedCards.has(budget.id)
 
             return (
-              <div key={budget.id} className="budget-card">
-                <div className="budget-card-header">
-                  <div className={`budget-status status-${budget.status}`}>
-                    {getStatusIcon(budget.status)}
-                    <span>{getStatusLabel(budget.status)}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="budget-version">v{budget.version}</span>
-                    <button
-                      className="btn-delete-card"
-                      onClick={(e) => handleDeleteClick(e, budget.id)}
-                      title="Eliminar presupuesto"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="budget-card-body">
-                  <h3 className="budget-client-name">
-                    {clientInfo.name || 'Cliente'}
-                  </h3>
-                  <p className="budget-client-email">{clientInfo.email}</p>
-
-                  <div className="budget-details">
-                    <div className="budget-detail">
-                      <span className="label">Evento:</span>
-                      <span className="value">{clientInfo.eventType || '-'}</span>
+              <div key={budget.id} className={`budget-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                {/* Compact Header - Always Visible */}
+                <div className="budget-compact-view">
+                  <div className="budget-compact-header">
+                    <div className="budget-client-info">
+                      <h3>{clientInfo.name || 'Cliente'}</h3>
+                      <p className="budget-email">{clientInfo.email}</p>
+                      <p className="budget-phone">{clientInfo.phone}</p>
+                      <p className="budget-event-date">
+                        📅 {clientInfo.eventDate ? new Date(clientInfo.eventDate).toLocaleDateString('fr-FR') : '-'}
+                      </p>
                     </div>
-                    <div className="budget-detail">
-                      <span className="label">Invitados:</span>
-                      <span className="value">{clientInfo.guestCount || 0} pers.</span>
-                    </div>
-                    <div className="budget-detail">
-                      <span className="label">Fecha:</span>
-                      <span className="value">
-                        {clientInfo.eventDate ? new Date(clientInfo.eventDate).toLocaleDateString('fr-FR') : '-'}
+                    <div className="budget-compact-right">
+                      <span className={`budget-status status-${budget.status === 'ENVIADO' ? 'sent' : budget.status}`}>
+                        {getStatusText(budget.status)}
                       </span>
+                      <button
+                        onClick={() => toggleCard(budget.id)}
+                        className="budget-expand-button"
+                        aria-label={isExpanded ? 'Contraer tarjeta' : 'Expandir tarjeta'}
+                      >
+                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </button>
                     </div>
                   </div>
+                </div>
 
-                  <div className="budget-total">
-                    <span className="total-label">Total TTC</span>
-                    <span className="total-amount">
-                      {totals.totalTTC ? `${totals.totalTTC.toFixed(2)} €` : '-'}
-                    </span>
+                {/* Expanded Content - Only When Expanded */}
+                {isExpanded && (
+                  <div className="budget-expanded-content">
+                    <div className="budget-details">
+                      <div className="budget-detail-row">
+                        <span className="budget-detail-label">
+                          <Users size={14} /> Invitados:
+                        </span>
+                        <span className="budget-detail-value">{clientInfo.guestCount || 0}</span>
+                      </div>
+                      <div className="budget-detail-row">
+                        <span className="budget-detail-label">
+                          <Calendar size={14} /> Tipo de evento:
+                        </span>
+                        <span className="budget-detail-value">{clientInfo.eventType || '-'}</span>
+                      </div>
+                      <div className="budget-detail-row">
+                        <span className="budget-detail-label">
+                          💰 Total TTC:
+                        </span>
+                        <span className="budget-detail-value budget-price">
+                          {totals.totalTTC ? `${totals.totalTTC.toFixed(2)} €` : '-'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="budget-actions">
+                      <div className="budget-action-buttons">
+                        <button
+                          className="budget-action-button budget-view-button"
+                          onClick={() => onSelectBudget(budget.id)}
+                        >
+                          <Eye size={16} />
+                          Ver y Editar
+                        </button>
+                        {budget.pdf_url && (
+                          <a
+                            href={budget.pdf_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="budget-action-button budget-pdf-button"
+                          >
+                            <FileText size={16} />
+                            Ver PDF
+                          </a>
+                        )}
+                        <button
+                          className="budget-action-button budget-delete-button"
+                          onClick={(e) => handleDeleteClick(e, budget.id)}
+                        >
+                          <Trash2 size={16} />
+                          Eliminar
+                        </button>
+                      </div>
+                      <div className="budget-meta">
+                        <span>Versión: v{budget.version}</span>
+                        <span>Creado: {new Date(budget.created_at).toLocaleDateString('fr-FR')}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                <div className="budget-card-footer">
-                  <button
-                    className="btn-view-budget"
-                    onClick={() => onSelectBudget(budget.id)}
-                  >
-                    <Eye size={16} />
-                    Ver y Editar
-                  </button>
-                  {budget.pdf_url && (
-                    <a
-                      href={budget.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-view-pdf"
-                    >
-                      <FileText size={16} />
-                      Ver PDF
-                    </a>
-                  )}
-                </div>
-
-                <div className="budget-card-meta">
-                  <span>Creado: {new Date(budget.created_at).toLocaleDateString('fr-FR')}</span>
-                </div>
+                )}
               </div>
             )
           })}
@@ -270,11 +287,10 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
         }}
         onConfirm={handleConfirmDelete}
         title="¿Eliminar presupuesto?"
-        message="¿Estás seguro de que deseas eliminar este presupuesto permanentemente? Esta acción no se puede deshacer."
+        message="¿Estás seguro de que deseas eliminar este presupuesto y su pedido relacionado permanentemente? Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         variant="danger"
       />
     </div>
   )
 }
-

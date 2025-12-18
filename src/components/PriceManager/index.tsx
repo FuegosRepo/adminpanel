@@ -12,8 +12,9 @@ import styles from './PriceManager.module.css'
 
 const CATEGORIES = [
     { id: 'entradas', name: 'entradas', displayName: 'Entradas' },
-    { id: 'carnes_clasicas', name: 'carnes_clasicas', displayName: 'Carnes Clásicas' },
-    { id: 'carnes_premium', name: 'carnes_premium', displayName: 'Carnes Premium' },
+    { id: 'viandes_classique', name: 'viandes', subcategory: 'classique', displayName: 'Viandes Classiques' },
+    { id: 'viandes_premium', name: 'viandes', subcategory: 'premium', displayName: 'Viandes Premium' },
+    { id: 'desserts', name: 'desserts', displayName: 'Desserts' },  // ✅ Added desserts
     { id: 'verduras', name: 'verduras', displayName: 'Acompañamiento' },
     { id: 'postres', name: 'postres', displayName: 'Postres' },
     { id: 'pan', name: 'pan', displayName: 'Pan' },
@@ -80,7 +81,16 @@ export default function PriceManager() {
     }
 
     const getFilteredProductsByCategory = (categoryId: string) => {
-        let filtered = products.filter(p => p.category === categoryId)
+        const category = CATEGORIES.find(c => c.id === categoryId)
+        if (!category) return []
+
+        let filtered = products.filter(p => {
+            if (category.subcategory) {
+                return p.category === category.name && p.subcategory === category.subcategory
+            }
+            return p.category === category.name
+        })
+
         if (categoryId === 'entradas') {
             filtered = filtered.filter(p => !HIDE_ENTRADAS_NAMES.has(p.name.trim().toLowerCase()))
         }

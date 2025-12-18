@@ -52,7 +52,7 @@ export function BudgetActions({ onSave, onApproveAndSend, onGeneratePDF, saving,
                 title={hasUnsavedChanges ? 'Primero guarda los cambios' : (!hasPdf ? 'Primero debes generar el PDF' : '')}
             >
                 <CheckCircle2 size={18} />
-                Aprobar y Enviar
+                Enviar Presupuesto
             </button>
         </div>
     )

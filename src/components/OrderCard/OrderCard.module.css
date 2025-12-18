@@ -60,6 +60,24 @@
   color: #374151;
 }
 
+.compactDeleteButton {
+  background: none;
+  border: 1px solid #ef4444;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  color: #ef4444;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compactDeleteButton:hover {
+  background: #ef4444;
+  color: white;
+}
+
 /* Vista expandida */
 .expandedContent {
   margin-top: 1rem;
@@ -73,6 +91,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -88,7 +107,8 @@
 
 .clientInfo {
   flex: 1;
-  min-width: 0; /* Permite que el texto se trunque si es necesario */
+  min-width: 0;
+  /* Permite que el texto se trunque si es necesario */
 }
 
 .clientInfo h3 {
@@ -344,6 +364,17 @@
   box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
 }
 
+.deleteButton {
+  background: #ef4444;
+  color: white;
+}
+
+.deleteButton:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
 .notes {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -397,10 +428,29 @@
   color: #374151;
 }
 
-.chip.wines { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-.chip.decoration { background: #e0e7ff; color: #1e40af; border-color: #93c5fd; }
-.chip.equipment { background: #dcfce7; color: #166534; border-color: #86efac; }
-.chip.request { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+.chip.wines {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.chip.decoration {
+  background: #e0e7ff;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.chip.equipment {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.chip.request {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
 
 .chipCount {
   font-family: 'Courier New', monospace;
@@ -468,43 +518,43 @@
   .collapsed {
     padding: 0.75rem;
   }
-  
+
   .expanded {
     padding: 0.75rem 0.75rem 1rem 0.75rem;
   }
-  
+
   .compactHeader {
     flex-direction: column;
     gap: 0.75rem;
     align-items: stretch;
   }
-  
+
   .compactRight {
     justify-content: space-between;
     align-items: center;
   }
-  
+
   .clientInfo h3 {
     font-size: 1rem;
   }
-  
+
   .clientInfo p {
     font-size: 0.85rem;
   }
-  
+
   .header {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .actions {
     flex-direction: column;
   }
-  
+
   .actionButton {
     justify-content: center;
   }
-  
+
   .expandButton {
     padding: 0.5rem;
   }

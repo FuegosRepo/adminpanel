@@ -46,11 +46,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Actualizar estado a 'approved' y guardar timestamp
+    // 2. Actualizar estado a 'ENVIADO' y guardar timestamp
     const { error: updateError } = await supabase
       .from('budgets')
       .update({
-        status: 'approved',
+        status: 'ENVIADO',  // ✅ Changed from 'approved'
         approved_at: new Date().toISOString(),
         approved_by: 'admin',
         sent_at: new Date().toISOString()
@@ -63,6 +63,22 @@ export async function POST(request: NextRequest) {
         { error: 'Error al actualizar estado del presupuesto' },
         { status: 500 }
       )
+    }
+
+    // ✅ ALSO update catering_orders.status if order_id exists
+    if (budget.order_id) {
+      const { error: orderUpdateError } = await supabase
+        .from('catering_orders')
+        .update({
+          status: 'ENVIADO'
+        })
+        .eq('id', budget.order_id)
+
+      if (orderUpdateError) {
+        console.warn('⚠️ Failed to update order status:', orderUpdateError)
+      } else {
+        console.log('✅ Order status updated to ENVIADO')
+      }
     }
 
     // 3. Descargar PDF desde Supabase Storage

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Trash2, Plus } from 'lucide-react'
 import { BudgetData } from '../types'
+import { BudgetMenuItem } from '@/lib/types/budget'
 import styles from './MaterialSection.module.css'
 
 interface MaterialSectionProps {
@@ -41,18 +42,27 @@ export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: Ma
         onUpdate('material.items', newItems)
     }
 
-    const handleUpdateItem = (index: number, field: string, value: any) => {
-        const newItems = [...data.items]
-        newItems[index] = { ...newItems[index], [field]: value }
-        // Recalculate total for item
-        if (field === 'quantity' || field === 'pricePerUnit') {
-            newItems[index].total = newItems[index].quantity * newItems[index].pricePerUnit
+    const handleItemChange = (index: number, field: keyof BudgetMenuItem, value: any) => {
+        const newItems = [...(data.items || [])]
+
+        // ✅ Type assertion to allow isManualPrice
+        const item = newItems[index] as BudgetMenuItem & { isManualPrice?: boolean }
+
+        if (field === 'pricePerUnit') {
+            item.isManualPrice = true
         }
-        onUpdate('material.items', newItems)
+
+        item[field] = value as never
+
+        if (field === 'quantity' || field === 'pricePerUnit') {
+            item.total = item.quantity * item.pricePerUnit
+        }
+
+        onUpdate('material', { ...data, items: newItems })
     }
 
     return (
-        <section className={`${styles.section} ${styles.editable}`}>
+        <section className={`${styles.section} ${styles.editable} `}>
             <div className={styles.header}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
                     <button
@@ -75,14 +85,14 @@ export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: Ma
             {expanded && (
                 <>
                     <div className={styles.materialList}>
-                        {data.items.map((item, index) => (
-                            <div key={index} className={styles.materialRow}>
+                        {data.items.map((item, idx) => (
+                            <div key={idx} className={styles.materialRow}>
                                 <div className={styles.editField}>
                                     <label>Nombre</label>
                                     <input
                                         type="text"
                                         value={item.name}
-                                        onChange={(e) => handleUpdateItem(index, 'name', e.target.value)}
+                                        onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
                                     />
                                 </div>
                                 <div className={styles.editField}>
@@ -90,7 +100,7 @@ export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: Ma
                                     <input
                                         type="number"
                                         value={item.quantity}
-                                        onChange={(e) => handleUpdateItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                                        onChange={(e) => handleItemChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
                                         min="0"
                                     />
                                 </div>
@@ -99,7 +109,7 @@ export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: Ma
                                     <input
                                         type="number"
                                         value={item.pricePerUnit}
-                                        onChange={(e) => handleUpdateItem(index, 'pricePerUnit', parseFloat(e.target.value) || 0)}
+                                        onChange={(e) => handleItemChange(idx, 'pricePerUnit', parseFloat(e.target.value) || 0)}
                                         step="0.01"
                                     />
                                 </div>
@@ -113,7 +123,7 @@ export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: Ma
                                     />
                                 </div>
                                 <button
-                                    onClick={() => handleDeleteItem(index)}
+                                    onClick={() => handleDeleteItem(idx)}
                                     className={styles.deleteItemBtn}
                                     title="Eliminar item"
                                 >
@@ -194,7 +204,7 @@ export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: Ma
                             <span>TVA ({data.tvaPct}%):</span>
                             <strong>{data.tva.toFixed(2)} €</strong>
                         </div>
-                        <div className={`${styles.totalRow} ${styles.highlight}`}>
+                        <div className={`${styles.totalRow} ${styles.highlight} `}>
                             <span>Total TTC:</span>
                             <strong>{data.totalTTC.toFixed(2)} €</strong>
                         </div>

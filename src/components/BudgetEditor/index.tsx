@@ -1,6 +1,7 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react' // ✅ Added useState, useEffect
+import { useRouter } from 'next/navigation' // ✅ Added useRouter
 import { BudgetEditorProps } from './types'
 import { useBudgetData } from './hooks/useBudgetData'
 import { useBudgetCalculations } from './hooks/useBudgetCalculations'
@@ -15,10 +16,18 @@ import { DeplacementSection } from './components/DeplacementSection'
 import { TotalsSection } from './components/TotalsSection'
 import { BudgetActions } from './components/BudgetActions'
 import { MaterialSelectorModal } from './components/MaterialSelectorModal'
+import ConfirmationModal from '@/components/common/ConfirmationModal' // ✅ Added
+import { toast } from 'sonner' // ✅ Added
 import { isEqual } from 'lodash'
 import styles from './BudgetEditor.module.css'
 
 export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
+    // ✅ Modal states
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+    const [deleteSectionModalOpen, setDeleteSectionModalOpen] = useState(false)
+    const [sectionToDelete, setSectionToDelete] = useState<string | null>(null)
+    const [confirmBeforeApproveModalOpen, setConfirmBeforeApproveModalOpen] = useState(false)
+
     const {
         budget,
         loading,
@@ -76,57 +85,59 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
     const handleApproveAndSend = async () => {
         if (hasUnsavedChanges) {
-            alert('⚠️ Tienes cambios sin guardar. Por favor guarda el presupuesto antes de aprobar.')
+            toast.error('⚠️ Tienes cambios sin guardar. Por favor guarda el presupuesto antes de aprobar.')  // ✅ Toast
             return
         }
 
         if (!budget?.pdf_url) {
-            alert('⚠️ Por favor genera el PDF antes de aprobar y enviar')
+            toast.error('⚠️ Por favor genera el PDF antes de aprobar y enviar')  // ✅ Toast
             return
         }
 
-        const confirmMessage = `¿Estás seguro de aprobar y enviar este presupuesto?\n\nCliente: ${editedData.clientInfo.name}\nEmail: ${editedData.clientInfo.email}\nTotal: ${editedData.totals.totalTTC.toFixed(2)}€`
+        // ✅ Open confirmation modal instead of window.confirm
+        setConfirmBeforeApproveModalOpen(true)
+    }
 
-        if (!window.confirm(confirmMessage)) {
-            return
-        }
-
+    const confirmApproveAndSend = async () => {
         const result = await approveAndSend(editedData.clientInfo.email, editedData.clientInfo.name)
         if (result.success) {
             if (result.result.note) {
                 const message = result.result.warning
-                    ? `✅ Presupuesto aprobado exitosamente!\n\n⚠️ ${result.result.note}`
-                    : `✅ Presupuesto aprobado exitosamente!\n\n⚠️ ${result.result.note}\n\nPDF: ${result.result.pdfUrl}`
-                alert(message)
+                    ? `⚠️ ${result.result.note}`
+                    : `⚠️ ${result.result.note}\n\nPDF: ${result.result.pdfUrl}`
+                toast.success('Presupuesto aprobado exitosamente', { description: message })  // ✅ Toast with description
             } else {
-                alert('✅ Presupuesto aprobado y enviado al cliente por email')
+                toast.success('✅ Presupuesto aprobado y enviado al cliente por email')  // ✅ Toast
             }
         } else {
-            alert(`❌ Error al aprobar presupuesto: ${result.error}`)
+            toast.error(`❌ Error al aprobar presupuesto: ${result.error}`)  // ✅ Toast
         }
+        setConfirmBeforeApproveModalOpen(false)
     }
 
     const handleDeleteBudget = async () => {
-        if (!window.confirm('⚠️ ¿Estás seguro de que quieres eliminar este presupuesto PERMANENTEMENTE?\n\nEsta acción no se puede deshacer.')) {
-            return
-        }
+        // ✅ Open modal instead of window.confirm
+        setDeleteModalOpen(true)
+    }
 
+    const confirmDeleteBudget = async () => {
         const result = await deleteBudgetApi()
         if (result.success) {
-            alert('✅ Presupuesto eliminado correctamente')
+            toast.success('✅ Presupuesto eliminado correctamente')  // ✅ Toast
             if (onBudgetDeleted) {
                 onBudgetDeleted()
             } else {
                 window.location.reload()
             }
         } else {
-            alert('❌ Error al eliminar el presupuesto')
+            toast.error('❌ Error al eliminar el presupuesto')  // ✅ Toast
         }
+        setDeleteModalOpen(false)
     }
 
     const handleGeneratePDF = async () => {
         if (hasUnsavedChanges) {
-            alert('⚠️ Tienes cambios sin guardar. Por favor guarda antes de generar el PDF.')
+            toast.error('⚠️ Tienes cambios sin guardar. Por favor guarda antes de generar el PDF.')  // ✅ Toast
             return
         }
 
@@ -144,7 +155,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
             link.click()
             document.body.removeChild(link)
         } else {
-            alert(`Error al generar PDF: ${result.error}`)
+            toast.error(`Error al generar PDF: ${result.error}`)  // ✅ Toast
         }
     }
 
@@ -154,12 +165,20 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     }
 
     const removeSection = (sectionName: string) => {
-        if (window.confirm(`¿Eliminar sección de ${sectionName}?`)) {
+        // ✅ Open modal instead of window.confirm
+        setSectionToDelete(sectionName)
+        setDeleteSectionModalOpen(true)
+    }
+
+    const confirmRemoveSection = () => {
+        if (sectionToDelete) {
             const newData = { ...editedData }
             // @ts-expect-error: Dynamic key access on BudgetData
-            delete newData[sectionName]
+            delete newData[sectionToDelete]
             setEditedData(newData) // Esto recalculará totales en el hook
         }
+        setDeleteSectionModalOpen(false)
+        setSectionToDelete(null)
     }
 
     return (
@@ -187,8 +206,44 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                 availableMaterials={availableMaterials}
                 selectedMaterialIds={selectedMaterialIds}
                 onToggleSelection={toggleMaterialSelection}
-                onAddSelected={() => addSelectedMaterials(editedData, setEditedData)}
-                existingItemNames={editedData.material?.items.map(i => i.name) || []}
+                onAddSelected={() => addSelectedMaterials(editedData, setEditedData)}  // ✅ Fixed: onAddSelected + setEditedData
+                existingItemNames={editedData.material?.items.map(i => i.name) || []}  // ✅ Added missing prop
+            />
+
+            {/* ✅ Delete Budget Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={confirmDeleteBudget}
+                title="¿Eliminar presupuesto?"
+                message="¿Estás seguro de que deseas eliminar este presupuesto permanentemente?\n\nEsta acción es irreversible y eliminará tanto el presupuesto como el pedido relacionado en ambas secciones para mantener la sincronización."
+                confirmLabel="Eliminar"
+                variant="danger"
+            />
+
+            {/* ✅ Delete Section Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={deleteSectionModalOpen}
+                onClose={() => {
+                    setDeleteSectionModalOpen(false)
+                    setSectionToDelete(null)
+                }}
+                onConfirm={confirmRemoveSection}
+                title={`¿Eliminar sección ${sectionToDelete}?`}
+                message={`¿Estás seguro de que deseas eliminar la sección de ${sectionToDelete}?`}
+                confirmLabel="Eliminar"
+                variant="warning"
+            />
+
+            {/* ✅ Approve and Send Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={confirmBeforeApproveModalOpen}
+                onClose={() => setConfirmBeforeApproveModalOpen(false)}
+                onConfirm={confirmApproveAndSend}
+                title="Enviar Presupuesto"
+                message={`¿Estás seguro de enviar este presupuesto?\n\nCliente: ${editedData.clientInfo.name}\nEmail: ${editedData.clientInfo.email}\nTotal: ${editedData.totals.totalTTC.toFixed(2)}€\n\nSe enviará por email al cliente.`}
+                confirmLabel="Enviar Presupuesto"
+                variant="info"
             />
 
             <ClientInfoSection
