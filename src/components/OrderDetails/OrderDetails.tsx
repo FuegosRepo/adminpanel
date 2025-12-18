@@ -1,229 +1,181 @@
+import React from 'react'
 import { CateringOrder } from '@/types'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { X, Calendar, Users, MapPin, Clock, Mail, Phone, User, CreditCard } from 'lucide-react'
 import styles from './OrderDetails.module.css'
+import { ProductListResolver } from '../admin/ProductListResolver'
 
 interface OrderDetailsProps {
-  order: CateringOrder
-  isOpen: boolean
-  onClose: () => void
+    isOpen: boolean
+    order: CateringOrder
+    onClose: () => void
 }
 
-export default function OrderDetails({ order, isOpen, onClose }: OrderDetailsProps) {
-  if (!isOpen) return null
+export default function OrderDetails({ isOpen, order, onClose }: OrderDetailsProps) {
+    if (!isOpen) return null
 
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: es })
-    } catch {
-      return dateString
+    const formatDate = (dateStr: string | null | undefined) => {
+        if (!dateStr) return 'Non spécifié'
+        try {
+            return new Date(dateStr).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            })
+        } catch (error) {
+            return 'Date invalide'
+        }
     }
-  }
 
-  const formatEventDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy', { locale: es })
-    } catch {
-      return dateString
+    const formatEventType = (type: string) => {
+        const types: { [key: string]: string } = {
+            wedding: 'Mariage',
+            birthday: 'Anniversaire',
+            corporate: 'Événement Professionnel',
+            other: 'Autre'
+        }
+        return types[type] || type
     }
-  }
 
-  const getStatusText = (status: CateringOrder['status']) => {
-    switch (status) {
-      case 'pending': return 'Pendiente'
-      case 'sent': return 'Enviado'
-      case 'approved': return 'Aprobado'
-      case 'rejected': return 'Rechazado'
-      default: return status
-    }
-  }
+    return (
+        <div className={styles.overlay} onClick={onClose}>
+            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.header}>
+                    <h2>Détails de la Commande</h2>
+                    <button onClick={onClose} className={styles.closeBtn} title="Fermer">
+                        <X size={24} />
+                    </button>
+                </div>
 
-  const getEventTypeText = (eventType: string) => {
-    switch (eventType) {
-      case 'mariage': return 'Boda'
-      case 'anniversaire': return 'Cumpleaños'
-      case 'bapteme': return 'Bautizo'
-      case 'corporatif': return 'Corporativo'
-      case 'autre': return 'Otro'
-      default: return eventType
-    }
-  }
+                <div className={styles.content}>
+                    {/* Client Information */}
+                    <section className={styles.section}>
+                        <h3 className={styles.sectionTitle}>
+                            <User size={20} />
+                            Informations Client
+                        </h3>
+                        <div className={styles.infoGrid}>
+                            <div className={styles.infoItem}>
+                                <User size={16} className={styles.icon} />
+                                <div>
+                                    <span className={styles.label}>Nom</span>
+                                    <span className={styles.value}>{order.contact.name}</span>
+                                </div>
+                            </div>
+                            <div className={styles.infoItem}>
+                                <Mail size={16} className={styles.icon} />
+                                <div>
+                                    <span className={styles.label}>Email</span>
+                                    <span className={styles.value}>{order.contact.email}</span>
+                                </div>
+                            </div>
+                            <div className={styles.infoItem}>
+                                <Phone size={16} className={styles.icon} />
+                                <div>
+                                    <span className={styles.label}>Téléphone</span>
+                                    <span className={styles.value}>{order.contact.phone || 'Non fourni'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-  return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>Detalles del Pedido</h2>
-          <p className={styles.subtitle}>ID: {order.id}</p>
+                    {/* Event Information */}
+                    <section className={styles.section}>
+                        <h3 className={styles.sectionTitle}>
+                            <Calendar size={20} />
+                            Informations Événement
+                        </h3>
+                        <div className={styles.infoGrid}>
+                            <div className={styles.infoItem}>
+                                <Calendar size={16} className={styles.icon} />
+                                <div>
+                                    <span className={styles.label}>Date</span>
+                                    <span className={styles.value}>{formatDate(order.contact.eventDate)}</span>
+                                </div>
+                            </div>
+                            <div className={styles.infoItem}>
+                                <CreditCard size={16} className={styles.icon} />
+                                <div>
+                                    <span className={styles.label}>Type</span>
+                                    <span className={styles.value}>{formatEventType(order.contact.eventType)}</span>
+                                </div>
+                            </div>
+                            <div className={styles.infoItem}>
+                                <Users size={16} className={styles.icon} />
+                                <div>
+                                    <span className={styles.label}>Invités</span>
+                                    <span className={styles.value}>{order.contact.guestCount} personnes</span>
+                                </div>
+                            </div>
+                            <div className={styles.infoItem}>
+                                <MapPin size={16} className={styles.icon} />
+                                <div>
+                                    <span className={styles.label}>Lieu</span>
+                                    <span className={styles.value}>{order.contact.address || 'Non spécifié'}</span>
+                                </div>
+                            </div>
+                            <div className={styles.infoItem}>
+                                <Clock size={16} className={styles.icon} />
+                                <div>
+                                    <span className={styles.label}>Moment</span>
+                                    <span className={styles.value}>{order.menu.type === 'dejeuner' ? 'Déjeuner' : 'Dîner'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Menu Selection */}
+                    <section className={styles.section}>
+                        <h3 className={styles.sectionTitle}>Sélection Menu</h3>
+
+                        {/* Entrees */}
+                        {order.entrees && order.entrees.length > 0 && (
+                            <div className={styles.menuCategory}>
+                                <h4 className={styles.categoryTitle}>Entrées</h4>
+                                <ProductListResolver ids={order.entrees} category="entrees" />
+                            </div>
+                        )}
+
+                        {/* Viandes */}
+                        {order.viandes && order.viandes.length > 0 && (
+                            <div className={styles.menuCategory}>
+                                <h4 className={styles.categoryTitle}>Viandes</h4>
+                                <ProductListResolver ids={order.viandes} category="viandes" />
+                            </div>
+                        )}
+
+                        {/* Desserts */}
+                        {order.dessert && order.dessert.length > 0 && (
+                            <div className={styles.menuCategory}>
+                                <h4 className={styles.categoryTitle}>Desserts</h4>
+                                <ProductListResolver ids={order.dessert} category="desserts" />
+                            </div>
+                        )}
+                    </section>
+
+                    {/* Additional Notes */}
+                    {order.notes && (
+                        <section className={styles.section}>
+                            <h3 className={styles.sectionTitle}>Informations Supplémentaires</h3>
+                            <p className={styles.additionalInfo}>{order.notes}</p>
+                        </section>
+                    )}
+
+                    {/* Order Metadata */}
+                    <section className={styles.section}>
+                        <h3 className={styles.sectionTitle}>Informations Commande</h3>
+                        <div className={styles.metadata}>
+                            <div>
+                                <span className={styles.label}>Reçu le:</span>
+                                <span className={styles.value}>{formatDate(order.createdAt)}</span>
+                            </div>
+                            <div>
+                                <span className={styles.label}>Dernière modification:</span>
+                                <span className={styles.value}>{formatDate(order.updatedAt)}</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
         </div>
-
-        <div className={styles.content}>
-          {/* Información del Cliente */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Información del Cliente</h3>
-            <div className={styles.grid}>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Nombre</p>
-                <p className={styles.fieldValue}>{order.contact.name}</p>
-              </div>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Email</p>
-                <p className={styles.fieldValue}>{order.contact.email}</p>
-              </div>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Teléfono</p>
-                <p className={styles.fieldValue}>{order.contact.phone}</p>
-              </div>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Dirección</p>
-                <p className={styles.fieldValue}>{order.contact.address}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Información del Evento */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Información del Evento</h3>
-            <div className={styles.grid}>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Fecha del Evento</p>
-                <p className={styles.fieldValue}>{formatEventDate(order.contact.eventDate)}</p>
-              </div>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Tipo de Evento</p>
-                <p className={styles.fieldValue}>{getEventTypeText(order.contact.eventType)}</p>
-              </div>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Número de Invitados</p>
-                <p className={styles.fieldValue}>{order.contact.guestCount}</p>
-              </div>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Tipo de Menú</p>
-                <p className={styles.fieldValue}>
-                  {order.menu.type === 'dejeuner' ? 'Almuerzo' : order.menu.type === 'diner' ? 'Cena' : 'No especificado'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Selección de Menú */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Selección de Menú</h3>
-            <div className={styles.menuGrid}>
-              {order.entrees.length > 0 && (
-                <div className={styles.menuSection}>
-                  <h4 className={styles.menuSectionTitle}>Entrantes</h4>
-                  <ul className={styles.menuList}>
-                    {order.entrees.map((entree, index) => (
-                      <li key={index} className={styles.menuItem}>{entree}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {order.viandes.length > 0 && (
-                <div className={styles.menuSection}>
-                  <h4 className={styles.menuSectionTitle}>Carnes</h4>
-                  <ul className={styles.menuList}>
-                    {order.viandes.map((viande, index) => (
-                      <li key={index} className={styles.menuItem}>{viande}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {order.dessert && (
-                <div className={styles.menuSection}>
-                  <h4 className={styles.menuSectionTitle}>Postre</h4>
-                  <ul className={styles.menuList}>
-                    <li className={styles.menuItem}>{order.dessert}</li>
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Servicios Extras */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Servicios Extras</h3>
-            <div className={styles.extrasGrid}>
-              <div className={styles.extraItem}>
-                <span className={`${styles.checkmark} ${order.extras.wines ? styles.yes : styles.no}`}>
-                  {order.extras.wines ? '✓' : '✗'}
-                </span>
-                Vinos incluidos
-              </div>
-              <div className={styles.extraItem}>
-                <span className={`${styles.checkmark} ${order.extras.decoration ? styles.yes : styles.no}`}>
-                  {order.extras.decoration ? '✓' : '✗'}
-                </span>
-                Decoración
-              </div>
-            </div>
-            
-            {order.extras.equipment.length > 0 && (
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Equipamiento solicitado</p>
-                <p className={styles.fieldValue}>{order.extras.equipment.join(', ')}</p>
-              </div>
-            )}
-            
-            {order.extras.specialRequest && (
-              <div className={styles.specialRequest}>
-                <p className={styles.specialRequestTitle}>Solicitud Especial</p>
-                <p className={styles.specialRequestText}>{order.extras.specialRequest}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Estado y Precio */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Estado del Pedido</h3>
-            <div className={styles.grid}>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Estado Actual</p>
-                <p className={styles.fieldValue}>{getStatusText(order.status)}</p>
-              </div>
-              {order.estimatedPrice && (
-                <div className={styles.field}>
-                  <p className={styles.fieldLabel}>Precio Estimado</p>
-                  <p className={styles.fieldValue}>€{order.estimatedPrice.toLocaleString()}</p>
-                </div>
-              )}
-            </div>
-            
-            {order.notes && (
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Notas</p>
-                <p className={styles.fieldValue}>{order.notes}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Timeline */}
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Historial</h3>
-            <div className={styles.timeline}>
-              <div className={styles.timelineItem}>
-                <p className={styles.timelineDate}>{formatDate(order.createdAt)}</p>
-                <p className={styles.timelineEvent}>Pedido creado</p>
-              </div>
-              {order.updatedAt !== order.createdAt && (
-                <div className={styles.timelineItem}>
-                  <p className={styles.timelineDate}>{formatDate(order.updatedAt)}</p>
-                  <p className={styles.timelineEvent}>Última actualización</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.actions}>
-            <button onClick={onClose} className={`${styles.button} ${styles.closeButton}`}>
-              Cerrar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+    )
 }

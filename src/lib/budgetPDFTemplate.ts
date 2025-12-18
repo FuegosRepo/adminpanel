@@ -2,6 +2,7 @@ import { BudgetData } from './types/budget'
 import fs from 'fs'
 import path from 'path'
 import { groupMeatsByCategory, MEAT_CATEGORIES } from './meatMapping'
+import { getEntreeDisplayName } from './entreeMapping'
 
 // Función helper para convertir imagen a base64
 function imageToBase64(imagePath: string): string {
@@ -147,9 +148,14 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
   let eventDate = 'Date non définie'
   try {
     if (budgetData.clientInfo.eventDate) {
-      const [year, month, day] = budgetData.clientInfo.eventDate.split('-').map(Number)
+      // Handle both formats: "YYYY-MM-DD" and "YYYY-MM-DDTHH:mm:ss.sssZ"
+      const dateStr = budgetData.clientInfo.eventDate
 
-      if (year && month && day) {
+      // Extract just the date part (YYYY-MM-DD) if it's an ISO timestamp
+      const datePart = dateStr.split('T')[0] // "2025-12-23T..." → "2025-12-23"
+      const [year, month, day] = datePart.split('-').map(Number)
+
+      if (year && month && day && !isNaN(year) && !isNaN(month) && !isNaN(day)) {
         eventDate = new Date(year, month - 1, day).toLocaleDateString('fr-FR', {
           day: '2-digit',
           month: '2-digit',
@@ -273,17 +279,23 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       background-color: rgba(255, 255, 255, 0.5);
     }
 
+    .client-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* 2 columns */
+      column-gap: 5mm;
+      row-gap: 2mm;
+    }
+
     .client-info-item {
       display: flex;
       align-items: center;
-      margin-bottom: 2mm;
     }
 
     .client-info-label {
       font-weight: 600;
       color: #333333;
       margin-right: 2mm;
-      min-width: 30mm;
+      min-width: 25mm;
     }
 
     /* MENU SECTIONS */
@@ -453,7 +465,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <div class="section-subtitle">Entrees</div>
             <div class="menu-items-list">
               ${budgetData.menu.entrees.map(entree => `
-                <div class="menu-item">• ${formatText(entree.name)}</div>
+                <div class="menu-item">• ${formatText(getEntreeDisplayName(entree.name))}</div>
               `).join('')}
             </div>
           </div>
@@ -514,7 +526,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
           <div class="menu-category">
             <div class="section-subtitle">Dessert</div>
             <div class="menu-items-list">
-              <div class="menu-item">• ${formatText(budgetData.menu.dessert.name)}</div>
+              <div class="menu-item">• ${budgetData.menu.dessert.description || formatText(budgetData.menu.dessert.name)}</div>
             </div>
           </div>
         ` : ''}

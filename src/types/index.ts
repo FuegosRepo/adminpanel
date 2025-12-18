@@ -127,7 +127,7 @@ export interface Reminder {
 export interface Product {
   id: string
   name: string
-  category: 'entradas' | 'carnes_clasicas' | 'carnes_premium' | 'verduras' | 'postres' | 'pan' | 'extras' | 'material'
+  category: 'entrees' | 'viandes' | 'desserts' | 'verduras' | 'pan' | 'extras' | 'material'
   price_per_kg: number | null
   price_per_portion: number
   unit_type: 'kg' | 'unidad' | 'porcion'
@@ -136,6 +136,8 @@ export interface Product {
   portion_per_person: string | null // Porción por persona (ej: "1/4", "1/2", "30 gr", "1 feta")
   clarifications: string | null // Aclaraciones importantes (ej: "Con 1 chorizo hago 4 choripanes")
   active: boolean
+  subcategory?: string | null // For premium viandes
+  description?: string | null // Custom description for special items (e.g., birthday cakes)
   created_at: string
   updated_at: string
 }

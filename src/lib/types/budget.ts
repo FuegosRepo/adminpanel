@@ -5,6 +5,7 @@ export interface BudgetMenuItem {
   quantity: number
   pricePerUnit: number
   total: number
+  description?: string // Optional description for special items like birthday cakes
 }
 
 export interface BudgetMenuSection {
