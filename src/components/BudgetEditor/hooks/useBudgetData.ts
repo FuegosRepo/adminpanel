@@ -154,6 +154,17 @@ export function useBudgetData(budgetId: string) {
                             // 1. Formatear nombre para francés (Visualización)
                             const formattedName = formatItemName(item.name)
 
+                            // \u2705 PRESERVE MANUAL PRICES
+                            // If item has isManualPrice flag, keep the existing price
+                            if (item.isManualPrice) {
+                                console.log(`\u2705 Preserving manual price for "${formattedName}": ${item.pricePerUnit}\u20ac`)
+                                return {
+                                    ...item,
+                                    name: formattedName,
+                                    // pricePerUnit unchanged
+                                }
+                            }
+
                             // 2. Buscar precio correcto en BD (Lógica)
                             let correctPrice = item.pricePerUnit
 
@@ -182,7 +193,7 @@ export function useBudgetData(budgetId: string) {
                                 }
 
                                 if (foundProduct) {
-                                    console.log(`✅ Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion} `)
+                                    console.log(`\u2705 Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion} `)
                                     correctPrice = foundProduct.price_per_portion || 0.50
                                 }
                             }
@@ -193,7 +204,7 @@ export function useBudgetData(budgetId: string) {
                                 formattedName.toLowerCase().includes('assiette') ||
                                 formattedName.toLowerCase().includes('couverts')
                             )) {
-                                console.warn(`⚠️ Forzando precio 0.50 para "${formattedName}"(precio anterior: ${correctPrice})`)
+                                console.warn(`\u26a0\ufe0f Forzando precio 0.50 para "${formattedName}"(precio anterior: ${correctPrice})`)
                                 correctPrice = 0.50
                             }
 
@@ -282,12 +293,34 @@ export function useBudgetData(budgetId: string) {
     const deleteBudget = async () => {
         try {
             setSaving(true)
-            const { error } = await supabase
+
+            // Get current budget to find order_id
+            const currentBudget = budget
+
+            // Delete budget first
+            const { error: budgetError } = await supabase
                 .from('budgets')
                 .delete()
                 .eq('id', budgetId)
 
-            if (error) throw error
+            if (budgetError) throw budgetError
+
+            // \u2705 Mirror delete: Also delete related order if exists
+            if (currentBudget?.order_id) {
+                console.log(`\ud83d\uddd1\ufe0f Mirror delete: Removing related order ${currentBudget.order_id}`)
+                const { error: orderError } = await supabase
+                    .from('catering_orders')
+                    .delete()
+                    .eq('id', currentBudget.order_id)
+
+                if (orderError) {
+                    console.warn('\u26a0\ufe0f Failed to delete related order:', orderError)
+                    // Don't throw - budget already deleted
+                } else {
+                    console.log('\u2705 Related order deleted successfully')
+                }
+            }
+
             return { success: true }
         } catch (err) {
             console.error('Error eliminando:', err)
@@ -326,6 +359,17 @@ export function useBudgetData(budgetId: string) {
     const generatePDF = async (currentData: BudgetData) => {
         try {
             setSaving(true)
+
+            // \u2705 Verification logging for transport cost
+            console.log('\ud83d\udd0d PDF Generation - Deplacement data:', currentData.deplacement)
+            if (currentData.deplacement) {
+                console.log('  Distance:', currentData.deplacement.distance, 'km')
+                console.log('  Price per km:', currentData.deplacement.pricePerKm, '\u20ac')
+                console.log('  Total HT:', currentData.deplacement.totalHT, '\u20ac')
+            } else {
+                console.log('  \u26a0\ufe0f No deplacement data present')
+            }
+
             // Guardar primero
             await saveBudget(currentData, 'Guardado automático antes de PDF')
 

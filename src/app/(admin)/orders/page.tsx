@@ -12,6 +12,7 @@ import styles from './orders.module.css'
 import { useOrders } from '@/hooks/useOrders'
 import { useOrderFilters } from '@/hooks/useOrderFilters'
 import { useCallback, useEffect } from 'react'
+import { supabase } from '@/lib/supabaseClient'  // \u2705 Added for delete functionality
 
 export default function OrdersPage() {
     const {
@@ -181,6 +182,47 @@ export default function OrdersPage() {
         setSelectedOrders([])
     }
 
+    // \u2705 Delete order and related budgets
+    const handleDelete = async (orderId: string) => {
+        try {
+            // 1. Find related budgets
+            const { data: relatedBudgets } = await supabase
+                .from('budgets')
+                .select('id')
+                .eq('order_id', orderId)
+
+            // 2. Delete order
+            const { error: orderError } = await supabase
+                .from('catering_orders')
+                .delete()
+                .eq('id', orderId)
+
+            if (orderError) throw orderError
+
+            // 3. Mirror delete: Also delete related budgets
+            if (relatedBudgets && relatedBudgets.length > 0) {
+                const budgetIds = relatedBudgets.map(b => b.id)
+                const { error: budgetError } = await supabase
+                    .from('budgets')
+                    .delete()
+                    .in('id', budgetIds)
+
+                if (budgetError) {
+                    console.warn('\u26a0\ufe0f Failed to delete related budgets:', budgetError)
+                } else {
+                    console.log(`\u2705 Deleted ${budgetIds.length} related budget(s)`)
+                }
+            }
+
+            toast.success('Pedido eliminado correctamente')
+            // Refresh list
+            window.location.reload()
+        } catch (error) {
+            console.error('Error deleting order:', error)
+            toast.error('Error al eliminar el pedido')
+        }
+    }
+
     return (
         <>
             <FilterBar
@@ -240,6 +282,7 @@ export default function OrdersPage() {
                             onViewDetails={handleOpenDetails}
                             onSelectionChange={handleOrderSelection}
                             onUpdateOrder={handleUpdateOrder}
+                            onDelete={handleDelete}  // \u2705 New prop
                         />
                     ))}
                 </div>

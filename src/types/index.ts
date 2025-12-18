@@ -47,7 +47,7 @@ export interface CateringOrder {
   viandes: string[]
   dessert: string | null
   extras: ExtraServices
-  status: 'pending' | 'sent' | 'approved' | 'rejected'
+  status: 'pending' | 'sent' | 'approved' | 'rejected' | 'ENVIADO'  // ✅ Added ENVIADO
   createdAt: string
   updatedAt: string
   estimatedPrice?: number
@@ -64,7 +64,7 @@ export interface EmailTemplate {
 }
 
 export interface FilterOptions {
-  status?: 'pending' | 'sent' | 'approved' | 'rejected' | 'all'
+  status?: 'pending' | 'sent' | 'approved' | 'rejected' | 'ENVIADO' | 'all'  // ✅ Added ENVIADO
   dateFrom?: string
   dateTo?: string
   searchTerm?: string

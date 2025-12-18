@@ -6,6 +6,7 @@ export interface BudgetMenuItem {
   pricePerUnit: number
   total: number
   description?: string // Optional description for special items like birthday cakes
+  isManualPrice?: boolean // \u2705 Flag to preserve admin-edited prices
 }
 
 export interface BudgetMenuSection {
