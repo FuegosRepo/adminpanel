@@ -21,7 +21,7 @@ export interface MeatMapping {
 export const MEAT_MAPPINGS: MeatMapping[] = [
   // === PREMIUM CATEGORY ===
   {
-    dbName: 'Entrecôte / Ojo de bife / Ribeye',
+    dbName: 'Entrecôte / Ojo de bife / Ribeye (ARG)',
     displayName: 'Entrecôte / Ojo de bife / Ribeye [Argentine]',
     category: 'premium'
   },
@@ -31,8 +31,8 @@ export const MEAT_MAPPINGS: MeatMapping[] = [
     category: 'premium'
   },
   {
-    dbName: 'Côte de bœuf / Tomahawk',
-    displayName: 'Côte de bœuf / Tomahawk [France ou USA]',
+    dbName: 'Côte de bœuf ou Tomahawk',
+    displayName: 'Côte de bœuf ou Tomahawk [France ou USA]',
     category: 'premium'
   },
   {
@@ -53,13 +53,18 @@ export const MEAT_MAPPINGS: MeatMapping[] = [
     category: 'classique'
   },
   {
-    dbName: 'Entrecôte / Ojo de bife / Ribeye',
+    dbName: 'Entrecôte / Ojo de bife / Ribeye (FRA)',
     displayName: 'Entrecôte / Ojo de bife / Ribeye [France]',
     category: 'classique'
   },
   {
     dbName: 'Magret de Canard',
     displayName: 'Magret de Canard [France]',
+    category: 'classique'
+  },
+  {
+    dbName: 'Choripan',
+    displayName: 'Choripan - Chorizo argentin grillé au brasero, accompagné de sauce criolla maison et pain artisanal',
     category: 'classique'
   }
 ]
@@ -78,19 +83,20 @@ export const MEAT_CATEGORIES: { [key: string]: string } = {
  * @returns Formatted display name with origin, or original name if not found
  */
 export function getMeatDisplayName(dbName: string): string {
-  const normalized = dbName.trim().toLowerCase()
+  // Normalize: trim, lowercase, and replace all apostrophe variations with standard '
+  const normalized = dbName.trim().toLowerCase().replace(/[''`]/g, "'")
   const mapping = MEAT_MAPPINGS.find(
-    m => m.dbName.toLowerCase() === normalized
+    m => m.dbName.toLowerCase().replace(/[''`]/g, "'") === normalized
   )
   return mapping ? mapping.displayName : dbName
 }
 
 /**
  * Group meat items by category for PDF display
- * @param meatItems - Array of meat items with names
+ * @param meatItems - Array of meat items with names and optional subcategory
  * @returns Object with premium and classique arrays
  */
-export function groupMeatsByCategory(meatItems: Array<{ name: string }>): {
+export function groupMeatsByCategory(meatItems: Array<{ name: string; subcategory?: string | null }>): {
   premium: Array<{ name: string; displayName: string }>
   classique: Array<{ name: string; displayName: string }>
 } {
@@ -100,11 +106,30 @@ export function groupMeatsByCategory(meatItems: Array<{ name: string }>): {
   }
 
   meatItems.forEach(item => {
-    const normalized = item.name.trim().toLowerCase()
-    const mapping = MEAT_MAPPINGS.find(
-      m => m.dbName.toLowerCase() === normalized ||
-        m.displayName.toLowerCase().includes(normalized)
+    // Normalize apostrophes for better matching
+    const normalized = item.name.trim().toLowerCase().replace(/[''`]/g, "'")
+
+    // Try to find mapping - prefer exact match with subcategory if available
+    let mapping = MEAT_MAPPINGS.find(
+      m => {
+        const mappingName = m.dbName.toLowerCase().replace(/[''`]/g, "'")
+        const nameMatches = mappingName === normalized
+
+        // If item has subcategory, match it too for disambiguation
+        if (item.subcategory && nameMatches) {
+          return m.category === item.subcategory
+        }
+
+        return nameMatches
+      }
     )
+
+    // Fallback: partial match if no exact match found
+    if (!mapping) {
+      mapping = MEAT_MAPPINGS.find(
+        m => m.displayName.toLowerCase().replace(/[''`]/g, "'").includes(normalized)
+      )
+    }
 
     if (mapping) {
       result[mapping.category].push({

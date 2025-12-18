@@ -69,6 +69,48 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Presupuesto actualizado a v${newVersion}`)
 
+    // Sync changes to the parent order
+    if (updatedBudget.order_id) {
+      console.log(`🔄 Sincronizando cambios al order ${updatedBudget.order_id}...`)
+
+      const { error: orderUpdateError } = await supabase
+        .from('catering_orders')
+        .update({
+          // Contact info
+          name: budgetData.clientInfo.name,
+          email: budgetData.clientInfo.email,
+          phone: budgetData.clientInfo.phone,
+
+          // Event info
+          event_date: budgetData.clientInfo.eventDate,
+          event_type: budgetData.clientInfo.eventType,
+          guest_count: budgetData.clientInfo.guestCount,
+          address: budgetData.clientInfo.address,
+          menu_type: budgetData.clientInfo.menuType,
+
+          // Menu selections (use selectedItems IDs)
+          entrees: budgetData.menu.selectedItems?.entrees || [],
+          viandes: budgetData.menu.selectedItems?.viandes || [],
+          dessert: budgetData.menu.selectedItems?.desserts?.[0] || null,
+
+          // Notes
+          notes: budgetData.clientInfo.additionalInfo,
+
+          // Meta
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', updatedBudget.order_id)
+
+      if (orderUpdateError) {
+        console.warn('⚠️ Advertencia: No se pudo sincronizar el order:', orderUpdateError.message)
+        // Don't fail the whole request, just log the warning
+      } else {
+        console.log('✅ Order sincronizado exitosamente')
+      }
+    } else {
+      console.log('ℹ️ No hay order_id vinculado, saltando sincronización')
+    }
+
     return NextResponse.json({
       success: true,
       budget: updatedBudget

@@ -7,6 +7,7 @@ import { es } from 'date-fns/locale'
 import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { emailTemplates } from '@/data/mockData'
+import { ProductListResolver } from '@/components/admin/ProductListResolver'
 import styles from './OrderCard.module.css'
 
 interface OrderCardProps {
@@ -186,32 +187,22 @@ const OrderCard = ({
           <div className={styles.menuItems}>
             {order.entrees.length > 0 && (
               <div className={styles.menuSection}>
-                <h4>Entrantes</h4>
-                <ul>
-                  {order.entrees.map((entree, index) => (
-                    <li key={index}>{entree}</li>
-                  ))}
-                </ul>
+                <h4>Entrées</h4>
+                <ProductListResolver ids={order.entrees} category="entrees" />
               </div>
             )}
 
             {order.viandes.length > 0 && (
               <div className={styles.menuSection}>
-                <h4>Carnes</h4>
-                <ul>
-                  {order.viandes.map((viande, index) => (
-                    <li key={index}>{viande}</li>
-                  ))}
-                </ul>
+                <h4>Viandes</h4>
+                <ProductListResolver ids={order.viandes} category="viandes" />
               </div>
             )}
 
             {order.dessert && (
               <div className={styles.menuSection}>
-                <h4>Postre</h4>
-                <ul>
-                  <li>{order.dessert}</li>
-                </ul>
+                <h4>Dessert</h4>
+                <ProductListResolver ids={order.dessert} category="desserts" />
               </div>
             )}
 

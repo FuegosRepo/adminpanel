@@ -61,7 +61,7 @@ export function ClientInfoSection({ data, onUpdate }: ClientInfoSectionProps) {
                     <div className={styles.editField}>
                         <label>Tipo Evento</label>
                         <select
-                            value={data.eventType}
+                            value={data.eventType ? data.eventType.charAt(0).toUpperCase() + data.eventType.slice(1).toLowerCase() : ''}
                             onChange={(e) => onUpdate('clientInfo.eventType', e.target.value)}
                             className={styles.select}
                         >

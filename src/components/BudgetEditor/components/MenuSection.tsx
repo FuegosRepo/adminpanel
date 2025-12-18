@@ -15,7 +15,25 @@ interface MenuSectionProps {
 export function MenuSection({ data, onUpdate }: MenuSectionProps) {
     const [expanded, setExpanded] = useState(true)
     const [showModal, setShowModal] = useState(false)
-    const { products } = useProducts()
+    const { products } = useProducts(true) // Include inactive products
+
+    // Helper to resolve UUID or text to display name
+    const resolveProductName = (nameOrId: string): string => {
+        if (!nameOrId) return ''
+
+        // Check if it's a UUID (with or without spaces/dashes)
+        const cleanId = nameOrId.replace(/\s/g, '-').toLowerCase()
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+        if (uuidRegex.test(cleanId)) {
+            // It's a UUID - try to find product
+            const product = products.find(p => p.id.toLowerCase() === cleanId)
+            return product ? product.name : '❓ Produit inconnu'
+        }
+
+        // Not a UUID - return formatted name
+        return getProductDisplayName(nameOrId)
+    }
 
     // Helper to add manual item
     const addManualItem = (category: string, name: string) => {
@@ -39,11 +57,24 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
     const removeManualItem = (category: string, index: number) => {
         if (category === 'dessert') {
             onUpdate('menu.dessert', null)
+            // Also clear from selectedItems
+            onUpdate('menu.selectedItems.desserts', [])
         } else {
             // @ts-ignore
             const currentList = [...(data[category] || [])]
+            const removedItem = currentList[index]
             currentList.splice(index, 1)
             onUpdate(`menu.${category}`, currentList)
+
+            // Sync selectedItems - remove the deleted item
+            const selectedKey = category // 'entrees' or 'viandes'
+            // @ts-ignore
+            const currentSelected = data.selectedItems?.[selectedKey] || []
+            // Remove by both name and id to handle both cases
+            const newSelected = currentSelected.filter((id: string) =>
+                id !== removedItem.name && id !== removedItem.id
+            )
+            onUpdate(`menu.selectedItems.${selectedKey}`, newSelected)
         }
     }
 
@@ -145,7 +176,7 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                                 <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
                                     {data.entrees?.map((item, i) => (
                                         <li key={i} className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                                            <span style={{ flex: 1 }}>• {getProductDisplayName(item.name)}</span>
+                                            <span style={{ flex: 1 }}>• {resolveProductName(item.name)}</span>
                                             <button
                                                 onClick={() => removeManualItem('entrees', i)}
                                                 style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
@@ -165,7 +196,7 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                                 <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
                                     {data.viandes?.map((item, i) => (
                                         <li key={i} className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                                            <span style={{ flex: 1 }}>• {getProductDisplayName(item.name)}</span>
+                                            <span style={{ flex: 1 }}>• {resolveProductName(item.name)}</span>
                                             <button
                                                 onClick={() => removeManualItem('viandes', i)}
                                                 style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
@@ -185,7 +216,7 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                                 <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
                                     {data.dessert ? (
                                         <li className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                                            <span style={{ flex: 1 }}>• {getProductDisplayName(data.dessert.name)}</span>
+                                            <span style={{ flex: 1 }}>• {resolveProductName(data.dessert.name)}</span>
                                             <button
                                                 onClick={() => removeManualItem('dessert', 0)}
                                                 style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
@@ -249,7 +280,10 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                             // This implies they want the Modal to be the Authority for Catalog items.
 
                             const hydrateItems = (ids: string[]) => {
-                                return ids.map(id => {
+                                // STEP 1: Deduplicate IDs first
+                                const uniqueIds = Array.from(new Set(ids))
+
+                                return uniqueIds.map(id => {
                                     // Try to find product by ID first, then by EXACT Name
                                     // Robust matching using simplifyString
                                     const idSimple = simplifyString(id)
@@ -289,6 +323,7 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
 
                                 onUpdate('menu.dessert', {
                                     name: finalName,
+                                    description: product?.description || undefined, // Pass description for special desserts
                                     quantity: 0,
                                     pricePerUnit: 0,
                                     total: 0
