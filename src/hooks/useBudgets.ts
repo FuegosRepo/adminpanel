@@ -1,26 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabaseClient'
+import { fetchBudgets, BudgetsFilters } from '@/services/budgetsService'
+import { useState } from 'react'
 
-export const useBudgets = () => {
+export const useBudgets = (initialFilters?: BudgetsFilters) => {
     const queryClient = useQueryClient()
+    const [page, setPage] = useState(1)
+    const [pageSize] = useState(10)
+    const [filters, setFilters] = useState<BudgetsFilters>(initialFilters || {})
 
     const {
-        data: budgets = [],
+        data: budgetsData,
         isLoading: loading,
         error
     } = useQuery({
-        queryKey: ['budgets'],
-        queryFn: async () => {
-            const { data, error } = await supabase
-                .from('budgets')
-                .select('*')
-                .order('created_at', { ascending: false })
-
-            if (error) throw error
-            return data || []
-        },
-        staleTime: 1000 * 60 * 5 // 5 minutes cache
+        queryKey: ['budgets', page, pageSize, filters],
+        queryFn: () => fetchBudgets({ page, pageSize, filters }),
+        placeholderData: (previousData) => previousData
     })
+
+    const budgets = budgetsData?.data || []
+    const totalCount = budgetsData?.count || 0
 
     const deleteBudgetMutation = useMutation({
         mutationFn: async (budgetId: string) => {
@@ -61,6 +61,12 @@ export const useBudgets = () => {
 
     return {
         budgets,
+        totalCount,
+        page,
+        setPage,
+        pageSize,
+        filters,
+        setFilters,
         loading,
         error,
         deleteBudget: deleteBudgetMutation.mutateAsync,

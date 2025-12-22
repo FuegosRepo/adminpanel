@@ -29,7 +29,7 @@ export const fetchOrders = async ({
     // Optimization: Select only necessary fields instead of '*'
     let query = supabase
         .from('catering_orders')
-        .select('*', { count: 'exact' })
+        .select('*, budgets(id)', { count: 'exact' })
 
     // Apply filters
     if (filters?.status && filters.status !== 'all') {
@@ -87,7 +87,8 @@ export const fetchOrders = async ({
         updatedAt: row.updated_at,
         estimatedPrice: row.estimated_price || undefined,
         notes: row.notes || undefined,
-        payment: row.payment
+        payment: row.payment,
+        hasBudget: row.budgets && row.budgets.length > 0
     }))
 
     return {

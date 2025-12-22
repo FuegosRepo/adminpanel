@@ -24,30 +24,54 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
 
     // Recalcular material (excluyendo "Serveurs") y aplicar Seguro
     if (updated.material && updated.material.items) {
-        let materialHT = 0
+        let materialHTForInsurance = 0
         updated.material.items
             .filter(item => {
                 // Excluir items relacionados con "Serveurs"
+                const itemNameLower = item.name.toLowerCase()
+                const isServer = itemNameLower.includes('serveur') ||
+                    itemNameLower.includes('servicio') ||
+                    itemNameLower.includes('mozos')
+
+                // También excluir items que sean manualmente "Livraison" o "Reprise" para no duplicar seguro
+                const isDeliveryReprise = itemNameLower.includes('livraison') ||
+                    itemNameLower.includes('reprise')
+
+                return !isServer && !isDeliveryReprise
+            })
+            .forEach(item => {
+                item.total = item.quantity * item.pricePerUnit
+                materialHTForInsurance += item.total
+            })
+
+        // Calcular HT total de materiales (incluyendo los de entrega/recogida manuales que no llevan seguro)
+        let totalMaterialItemsHT = 0
+        updated.material.items
+            .filter(item => {
                 const itemNameLower = item.name.toLowerCase()
                 return !itemNameLower.includes('serveur') &&
                     !itemNameLower.includes('servicio') &&
                     !itemNameLower.includes('mozos')
             })
             .forEach(item => {
-                item.total = item.quantity * item.pricePerUnit
-                materialHT += item.total
+                totalMaterialItemsHT += item.total
             })
+
         const insPct = (updated.material.insurancePct ?? 6) / 100
-        const insurance = materialHT * insPct
+        const insurance = materialHTForInsurance * insPct
         updated.material.insurancePct = insPct * 100
         updated.material.insuranceAmount = insurance
-        const materialHTWithInsurance = materialHT + insurance
-        updated.material.totalHT = materialHTWithInsurance
-        updated.material.tva = materialHTWithInsurance * (updated.material.tvaPct / 100)
+
+        // Agregar Livraison et Reprise al HT de Material
+        const lrCost = (updated.deliveryReprise?.deliveryCost || 0) + (updated.deliveryReprise?.pickupCost || 0)
+
+        const materialHTWithInsuranceAndLR = totalMaterialItemsHT + insurance + lrCost
+        updated.material.totalHT = materialHTWithInsuranceAndLR
+        updated.material.tva = materialHTWithInsuranceAndLR * (updated.material.tvaPct / 100)
         updated.material.totalTTC = updated.material.totalHT + updated.material.tva
     }
 
-    // Recalcular Livraison et Reprise
+    // Recalcular Livraison et Reprise (mantenemos esto por si se usa en otros lados, pero ya se integra en material)
     if (updated.deliveryReprise) {
         const lrHT = (updated.deliveryReprise.deliveryCost || 0) + (updated.deliveryReprise.pickupCost || 0)
         updated.deliveryReprise.totalHT = lrHT
@@ -82,10 +106,13 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         totalTVA += updated.material.tva
     }
 
+    // IMPORTANTE: Ya no sumamos deliveryReprise aquí porque ya está dentro de material
+    /* 
     if (updated.deliveryReprise) {
         totalHT += updated.deliveryReprise.totalHT
         totalTVA += updated.deliveryReprise.tva
     }
+    */
 
     if (updated.boissonsSoft) {
         totalHT += updated.boissonsSoft.totalHT

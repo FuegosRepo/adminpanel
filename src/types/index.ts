@@ -53,6 +53,7 @@ export interface CateringOrder {
   estimatedPrice?: number
   notes?: string
   payment?: PaymentInfo
+  hasBudget?: boolean
 }
 
 export interface EmailTemplate {

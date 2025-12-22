@@ -575,12 +575,22 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <div class="amount-title">Montant - Matériel</div>
             <div class="amount-row">
                 <span>Total Matériel :</span>
-                <span>${(budgetData.material.totalHT - (budgetData.material.insuranceAmount || 0)).toFixed(2)} €</span>
+                <span>${(budgetData.material.items.reduce((acc, item) => {
+          const itemNameLower = item.name.toLowerCase()
+          if (itemNameLower.includes('serveur') || itemNameLower.includes('servicio') || itemNameLower.includes('mozos')) return acc
+          return acc + item.total
+        }, 0)).toFixed(2)} €</span>
             </div>
             ${budgetData.material.insuranceAmount && budgetData.material.insuranceAmount > 0 ? `
             <div class="amount-row">
                 <span>Assurance Perte et Casse (${budgetData.material.insurancePct || 6}%):</span>
                 <span>${budgetData.material.insuranceAmount.toFixed(2)} €</span>
+            </div>
+            ` : ''}
+            ${budgetData.deliveryReprise && (budgetData.deliveryReprise.deliveryCost > 0 || budgetData.deliveryReprise.pickupCost > 0) ? `
+            <div class="amount-row">
+                <span>Livraison et Reprise :</span>
+                <span>${((budgetData.deliveryReprise.deliveryCost || 0) + (budgetData.deliveryReprise.pickupCost || 0)).toFixed(2)} €</span>
             </div>
             ` : ''}
             <div class="amount-row">
@@ -621,39 +631,6 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
                 <span>${budgetData.deplacement.totalTTC.toFixed(2)} €</span>
             </div>
           </div>
-        </div>
-      ` : ''}
-
-      ${budgetData.deliveryReprise && budgetData.deliveryReprise.totalHT > 0 ? `
-        <!-- DELIVERY & REPRISE -->
-        <div class="amount-section">
-            <div class="orange-box">
-                <div class="amount-title">Montant – Livraison et Reprise</div>
-                ${budgetData.deliveryReprise.deliveryCost > 0 ? `
-                <div class="amount-row">
-                    <span>Livraison :</span>
-                    <span>${budgetData.deliveryReprise.deliveryCost.toFixed(2)} €</span>
-                </div>
-                ` : ''}
-                ${budgetData.deliveryReprise.pickupCost > 0 ? `
-                <div class="amount-row">
-                    <span>Reprise :</span>
-                    <span>${budgetData.deliveryReprise.pickupCost.toFixed(2)} €</span>
-                </div>
-                ` : ''}
-                <div class="amount-row">
-                    <span>Montant HT :</span>
-                    <span>${budgetData.deliveryReprise.totalHT.toFixed(2)} €</span>
-                </div>
-                <div class="amount-row">
-                    <span>TVA (${budgetData.deliveryReprise.tvaPct}%) :</span>
-                    <span>${budgetData.deliveryReprise.tva.toFixed(2)} €</span>
-                </div>
-                <div class="amount-row amount-total">
-                    <span>Montant TTC :</span>
-                    <span>${budgetData.deliveryReprise.totalTTC.toFixed(2)} €</span>
-                </div>
-            </div>
         </div>
       ` : ''}
 
