@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 export const useOrders = (initialFilters?: OrdersFilters) => {
     const queryClient = useQueryClient()
     const [page, setPage] = useState(1)
-    const [pageSize] = useState(50)
+    const [pageSize] = useState(10)
     const [filters, setFilters] = useState<OrdersFilters>(initialFilters || {})
 
     const {

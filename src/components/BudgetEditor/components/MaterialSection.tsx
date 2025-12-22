@@ -6,12 +6,13 @@ import styles from './MaterialSection.module.css'
 
 interface MaterialSectionProps {
     data: BudgetData['material']
+    deliveryReprise?: BudgetData['deliveryReprise']
     onUpdate: (path: string, value: any) => void
     onDelete: () => void
     onOpenSelector: () => void
 }
 
-export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: MaterialSectionProps) {
+export function MaterialSection({ data, deliveryReprise, onUpdate, onDelete, onOpenSelector }: MaterialSectionProps) {
     const [expanded, setExpanded] = useState(false)
     const [newMatName, setNewMatName] = useState('')
     const [newMatQty, setNewMatQty] = useState<number>(1)
@@ -181,7 +182,7 @@ export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: Ma
                     <div className={styles.totalsBox}>
                         <div className={styles.totalRow}>
                             <span>Subtotal Material:</span>
-                            <strong>{((data.totalHT || 0) - (data.insuranceAmount || 0)).toFixed(2)} €</strong>
+                            <strong>{((data.items.reduce((acc, item) => acc + item.total, 0))).toFixed(2)} €</strong>
                         </div>
                         <div className={styles.totalRow}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -196,6 +197,20 @@ export function MaterialSection({ data, onUpdate, onDelete, onOpenSelector }: Ma
                             </div>
                             <strong>{data.insuranceAmount?.toFixed(2)} €</strong>
                         </div>
+                        <div className={styles.totalRow}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span>Livraison et reprise:</span>
+                                <input
+                                    type="number"
+                                    value={deliveryReprise?.deliveryCost || 0}
+                                    onChange={(e) => onUpdate('deliveryReprise.deliveryCost', parseFloat(e.target.value) || 0)}
+                                    style={{ width: '80px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                    step="0.01"
+                                />
+                            </div>
+                            <strong>{(deliveryReprise?.deliveryCost || 0).toFixed(2)} €</strong>
+                        </div>
+
                         <div className={styles.totalRow}>
                             <span>Total HT:</span>
                             <strong>{data.totalHT.toFixed(2)} €</strong>

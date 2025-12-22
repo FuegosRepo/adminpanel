@@ -34,23 +34,24 @@
 }
 
 .statusDraft {
-    background-color: #fbbf24;
-    color: #78350f;
+    background-color: #fef3c7;
+    color: #92400e;
 }
 
-.statusPendingReview {
-    background-color: #3b82f6;
-    color: white;
+.statusPending_review {
+    background-color: #fef3c7;
+    color: #92400e;
 }
 
 .statusApproved {
-    background-color: #10b981;
-    color: white;
+    background-color: #d1fae5;
+    color: #065f46;
 }
 
-.statusSent {
-    background-color: #6b7280;
-    color: white;
+.statusSent,
+.statusENVIADO {
+    background-color: #dbeafe;
+    color: #1e40af;
 }
 
 .statusRejected {

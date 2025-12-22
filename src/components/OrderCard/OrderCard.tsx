@@ -4,7 +4,7 @@ import { useState, useEffect, memo } from 'react'
 import { CateringOrder, EmailTemplate } from '@/types'
 import { format, differenceInDays } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock, Trash2 } from 'lucide-react'
+import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock, Trash2, FileText } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { emailTemplates } from '@/data/mockData'
 import { ProductListResolver } from '@/components/admin/ProductListResolver'
@@ -344,6 +344,41 @@ const OrderCard = ({
                 <Eye size={16} />
                 Ver Detalles
               </button>
+
+              {!order.hasBudget && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const confirmGen = confirm('¿Generar presupuesto automático para este pedido?');
+                    if (!confirmGen) return;
+
+                    try {
+                      // Llamamos a la lógica de generación
+                      // Por ahora, usamos el endpoint de Fuegos si está disponible o implementamos uno aquí
+                      // Para mayor robustez, intentaremos llamar al API de generación.
+                      const response = await fetch('/api/generate-budget-from-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId: order.id })
+                      });
+
+                      if (response.ok) {
+                        toast.success('Presupuesto generado correctamente');
+                        window.location.reload(); // Recargar para ver cambios
+                      } else {
+                        throw new Error('Error en el servidor');
+                      }
+                    } catch (err) {
+                      toast.error('No se pudo generar el presupuesto');
+                    }
+                  }}
+                  className={`${styles.actionButton} ${styles.generateButton}`}
+                  title="Generar presupuesto ahora"
+                >
+                  <FileText size={16} />
+                  Generar Presupuesto
+                </button>
+              )}
 
               {/* ✅ New Delete Button */}
               {onDelete && (

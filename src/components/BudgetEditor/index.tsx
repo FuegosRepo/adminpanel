@@ -285,6 +285,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
             {editedData.material ? (
                 <MaterialSection
                     data={editedData.material}
+                    deliveryReprise={editedData.deliveryReprise}
                     onUpdate={updateField}
                     onDelete={() => removeSection('material')}
                     onOpenSelector={() => setShowMaterialSelector(true)}
