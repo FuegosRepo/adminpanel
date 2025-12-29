@@ -634,6 +634,63 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
         </div>
       ` : ''}
 
+      ${budgetData.extras && budgetData.extras.items.length > 0 ? `
+        <!-- EXTRAS -->
+        <div class="amount-section">
+          <div class="orange-box">
+            <div class="amount-title">Montant – Extras</div>
+            ${budgetData.extras.items.length === 1 ? `
+              <!-- Single extra - no need for totals -->
+              <div class="amount-row">
+                  <span>${cleanText(budgetData.extras.items[0].description)}</span>
+                  <span>${budgetData.extras.items[0].priceHT.toFixed(2)} €</span>
+              </div>
+              <div class="amount-row">
+                  <span>TVA (${budgetData.extras.items[0].tvaPct}%) :</span>
+                  <span>${budgetData.extras.items[0].tva.toFixed(2)} €</span>
+              </div>
+              <div class="amount-row amount-total">
+                  <span>Montant TTC :</span>
+                  <span>${budgetData.extras.items[0].priceTTC.toFixed(2)} €</span>
+              </div>
+            ` : `
+              <!-- Multiple extras - show each item then totals -->
+              ${budgetData.extras.items.map(item => `
+                <div class="amount-row">
+                    <span>${cleanText(item.description)}</span>
+                    <span>${item.priceHT.toFixed(2)} €</span>
+                </div>
+                <div class="amount-row">
+                    <span>TVA (${item.tvaPct}%) :</span>
+                    <span>${item.tva.toFixed(2)} €</span>
+                </div>
+                <div class="amount-row amount-total">
+                    <span>Total TTC :</span>
+                    <span>${item.priceTTC.toFixed(2)} €</span>
+                </div>
+              `).join('<div style="margin: 10px 0; border-top: 1px solid #e5e7eb;"></div>')}
+              <div class="amount-row" style="font-weight: bold; margin-top: 15px;">
+                  <span>TOTAL EXTRAS HT :</span>
+                  <span>${budgetData.extras.totalHT.toFixed(2)} €</span>
+              </div>
+              <div class="amount-row" style="font-weight: bold;">
+                  <span>TOTAL TVA :</span>
+                  <span>${budgetData.extras.totalTVA.toFixed(2)} €</span>
+              </div>
+              <div class="amount-row amount-total" style="font-weight: bold;">
+                  <span>TOTAL TTC :</span>
+                  <span>${budgetData.extras.totalTTC.toFixed(2)} €</span>
+              </div>
+            `}
+            ${budgetData.extras.notes ? `
+              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 12px; color: white;">
+                  <strong>Notes :</strong> ${cleanText(budgetData.extras.notes)}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      ` : ''}
+
       ${budgetData.service && budgetData.service.totalHT > 0 ? `
         <!-- SERVICE -->
         <div class="amount-section">
@@ -682,6 +739,16 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             </div>
         </div>
       </div>
+
+      ${budgetData.adminNotes ? `
+      <!-- ADMIN NOTES SECTION -->
+      <div class="section" style="margin-top: 8mm;">
+        <h3 class="section-subtitle" style="color: #e2943a; font-size: 11pt; font-weight: bold; margin-bottom: 3mm;">📝 Notes importantes</h3>
+        <div style="background-color: #e2943a; border-left: 3px solid #d18634; padding: 4mm; border-radius: 2mm; font-size: 10pt; line-height: 1.6; white-space: pre-wrap; color: white;">
+          ${cleanText(budgetData.adminNotes)}
+        </div>
+      </div>
+      ` : ''}
 
       <!-- FOOTER IMAGE -->
       <div style="padding-top: 5mm; padding-bottom: 5mm; text-align: center;">

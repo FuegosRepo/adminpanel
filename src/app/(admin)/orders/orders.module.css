@@ -1,3 +1,54 @@
+/* Tab Navigation */
+.tabsContainer {
+    background: white;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 24px;
+}
+
+.tabsList {
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+}
+
+.tab {
+    padding: 16px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab:hover {
+    color: #374151;
+    background: #f9fafb;
+}
+
+.tabActive {
+    color: #e2943a;
+    border-bottom-color: #e2943a;
+}
+
+.tabBadge {
+    padding: 2px 8px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tabActive .tabBadge {
+    background: #fef3c7;
+    color: #92400e;
+}
+
 .ordersGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));

@@ -73,6 +73,19 @@ export interface BudgetData {
         tvaPct: number
         totalTTC: number
     }
+    extras?: {
+        items: Array<{
+            description: string
+            priceHT: number
+            tvaPct: number
+            tva: number
+            priceTTC: number
+        }>
+        totalHT: number
+        totalTVA: number
+        totalTTC: number
+        notes?: string
+    }
     boissonsSoft?: {
         pricePerPerson: number
         totalPersons: number
@@ -101,6 +114,7 @@ export interface BudgetData {
         }
     }
     notes?: string
+    adminNotes?: string // Custom notes from admin to include in PDF
 }
 
 export interface Budget {

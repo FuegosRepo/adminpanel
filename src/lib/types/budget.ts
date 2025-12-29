@@ -75,6 +75,20 @@ export interface BudgetBoissonsSection {
   totalTTC: number
 }
 
+export interface BudgetExtrasSection {
+  items: {
+    description: string
+    priceHT: number
+    tvaPct: number // 10 or 20
+    tva: number
+    priceTTC: number
+  }[]
+  totalHT: number
+  totalTVA: number
+  totalTTC: number
+  notes?: string
+}
+
 export interface BudgetTotals {
   totalHT: number
   totalTVA: number
@@ -106,6 +120,7 @@ export interface BudgetData {
   service?: BudgetServiceSection
   deliveryReprise?: BudgetDeliverySection
   boissonsSoft?: BudgetBoissonsSection
+  extras?: BudgetExtrasSection
 
   // Totales generales
   totals: BudgetTotals
@@ -113,6 +128,7 @@ export interface BudgetData {
   // Notas y observaciones
   notes?: string
   internalNotes?: string
+  adminNotes?: string // Custom notes from admin to include in PDF
 
   // Metadata
   generatedAt: string
