@@ -13,9 +13,11 @@ import { MaterialSection } from './components/MaterialSection'
 import { DeliveryRepriseSection } from './components/DeliveryRepriseSection'
 import { BoissonsSoftSection } from './components/BoissonsSoftSection'
 import { DeplacementSection } from './components/DeplacementSection'
+import ExtrasSection from './components/ExtrasSection'
 import { TotalsSection } from './components/TotalsSection'
 import { BudgetActions } from './components/BudgetActions'
 import { MaterialSelectorModal } from './components/MaterialSelectorModal'
+import { AdminNotesSection } from './components/AdminNotesSection'
 import ConfirmationModal from '@/components/common/ConfirmationModal' // ✅ Added
 import { toast } from 'sonner' // ✅ Added
 import { isEqual } from 'lodash'
@@ -364,8 +366,36 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                 </div>
             )}
 
+            {/* Extras Section */}
+            {editedData.extras ? (
+                <ExtrasSection
+                    extras={editedData.extras}
+                    onUpdate={updateField}
+                />
+            ) : (
+                <div className={`${styles.section} ${styles.addSectionContainer}`}>
+                    <p>No hay extras configurados</p>
+                    <button
+                        className={styles.addSectionBtn}
+                        onClick={() => addSection('extras', {
+                            items: [],
+                            totalHT: 0,
+                            totalTVA: 0,
+                            totalTTC: 0
+                        })}
+                    >
+                        ➕ Agregar Extra
+                    </button>
+                </div>
+            )}
+
             <TotalsSection
                 data={editedData.totals}
+                onUpdate={updateField}
+            />
+
+            <AdminNotesSection
+                adminNotes={editedData.adminNotes}
                 onUpdate={updateField}
             />
 

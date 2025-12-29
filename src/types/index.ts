@@ -231,3 +231,7 @@ export interface EventCalculationStats {
   most_used_ingredient: any | null
   calculated_at: string
 }
+
+// Export external budget types
+export * from './externalBudget'
+

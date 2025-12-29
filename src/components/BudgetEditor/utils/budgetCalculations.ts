@@ -124,6 +124,12 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         totalTVA += updated.deplacement.tva
     }
 
+    // Recalcular extras
+    if (updated.extras) {
+        totalHT += updated.extras.totalHT
+        totalTVA += updated.extras.totalTVA
+    }
+
     if (updated.service) {
         totalHT += updated.service.totalHT
         totalTVA += updated.service.tva

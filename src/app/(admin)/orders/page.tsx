@@ -1,20 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import FilterBar from '@/components/FilterBar/FilterBar'
 import OrderCard from '@/components/OrderCard/OrderCard'
 import EmailModal from '@/components/EmailModal/EmailModal'
 import OrderDetails from '@/components/OrderDetails/OrderDetails'
+import ExternalBudgetsList from '@/components/ExternalBudgets/ExternalBudgetsList'
 import { CateringOrder, EmailTemplate } from '@/types'
 import { emailTemplates } from '@/data/mockData'
 import styles from './orders.module.css'
 import { useOrders } from '@/hooks/useOrders'
 import { useOrderFilters } from '@/hooks/useOrderFilters'
-import { useCallback, useEffect } from 'react'
-import { supabase } from '@/lib/supabaseClient'  // \u2705 Added for delete functionality
+import { supabase } from '@/lib/supabaseClient'  // ✅ Added for delete functionality
 
 export default function OrdersPage() {
+    const [activeTab, setActiveTab] = useState<'orders' | 'external'>('orders')
+
     const {
         orders,
         handleStatusChange,
@@ -224,111 +226,137 @@ export default function OrdersPage() {
     }
 
     return (
-        <>
-            <FilterBar
-                filters={filters}
-                onFiltersChange={setFilters}
-                resultsCount={totalCount} // Display total server count instead of current page
-            />
+        <div>
+            {/* Tab Navigation */}
+            <div className={styles.tabsContainer}>
+                <div className={styles.tabsList}>
+                    <button
+                        className={`${styles.tab} ${activeTab === 'orders' ? styles.tabActive : ''}`}
+                        onClick={() => setActiveTab('orders')}
+                    >
+                        📦 Pedidos Actuales
+                        <span className={styles.tabBadge}>{totalCount}</span>
+                    </button>
+                    <button
+                        className={`${styles.tab} ${activeTab === 'external' ? styles.tabActive : ''}`}
+                        onClick={() => setActiveTab('external')}
+                    >
+                        📁 Devis Externos
+                        <span className={styles.tabBadge}>462</span>
+                    </button>
+                </div>
+            </div>
 
-            {selectedOrders.length > 0 && (
-                <div className={styles.bulkActions}>
-                    <label className={styles.selectAll}>
-                        <input
-                            type="checkbox"
-                            checked={dataToDisplay.length > 0 && selectedOrders.length === dataToDisplay.length}
-                            onChange={(e) => handleSelectAll(e.target.checked)}
+            {/* Tab Content */}
+            {activeTab === 'orders' ? (
+                <>
+                    <FilterBar
+                        filters={filters}
+                        onFiltersChange={setFilters}
+                        resultsCount={totalCount} // Display total server count instead of current page
+                    />
+
+                    {selectedOrders.length > 0 && (
+                        <div className={styles.bulkActions}>
+                            <label className={styles.selectAll}>
+                                <input
+                                    type="checkbox"
+                                    checked={dataToDisplay.length > 0 && selectedOrders.length === dataToDisplay.length}
+                                    onChange={(e) => handleSelectAll(e.target.checked)}
+                                />
+                                Seleccionar todos ({dataToDisplay.length})
+                            </label>
+
+                            <span className={styles.bulkActionsText}>
+                                {selectedOrders.length} pedido(s) seleccionado(s)
+                            </span>
+
+                            <button
+                                className={styles.bulkButton}
+                                onClick={() => handleBulkEmail('payment_reminder')}
+                            >
+                                📧 Recordatorio de Pago
+                            </button>
+
+                            <button
+                                className={styles.bulkButton}
+                                onClick={() => handleBulkEmail('quote_update')}
+                            >
+                                💰 Presupuesto Actualizado
+                            </button>
+                        </div>
+                    )}
+
+                    {dataToDisplay.length === 0 ? (
+                        <div className={styles.noResults}>
+                            <div className={styles.noResultsIcon}>🔍</div>
+                            <h3 className={styles.noResultsTitle}>No se encontraron pedidos</h3>
+                            <p className={styles.noResultsText}>
+                                Intenta ajustar los filtros de búsqueda para encontrar los pedidos que buscas.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className={styles.ordersGrid}>
+                            {dataToDisplay.map(order => (
+                                <OrderCard
+                                    key={order.id}
+                                    order={order}
+                                    isSelected={selectedOrders.includes(order.id)}
+                                    onStatusChange={handleStatusChange}
+                                    onSendEmail={handleOpenEmailModal}
+                                    onViewDetails={handleOpenDetails}
+                                    onSelectionChange={handleOrderSelection}
+                                    onUpdateOrder={handleUpdateOrder}
+                                    onDelete={handleDelete}  // \u2705 New prop
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Pagination Controls */}
+                    {totalCount > pageSize && (
+                        <div className={styles.pagination}>
+                            <button
+                                disabled={page === 1}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                className={styles.pageButton}
+                            >
+                                Anterior
+                            </button>
+                            <span className={styles.pageInfo}>
+                                Página {page} de {Math.ceil(totalCount / pageSize)}
+                            </span>
+                            <button
+                                disabled={page >= Math.ceil(totalCount / pageSize)}
+                                onClick={() => setPage(p => p + 1)}
+                                className={styles.pageButton}
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Modal de Email */}
+                    {emailModal.isOpen && emailModal.order && (
+                        <EmailModal
+                            isOpen={emailModal.isOpen}
+                            order={emailModal.order}
+                            onClose={handleCloseEmailModal}
+                            onSend={handleSendEmail}
                         />
-                        Seleccionar todos ({dataToDisplay.length})
-                    </label>
+                    )}
 
-                    <span className={styles.bulkActionsText}>
-                        {selectedOrders.length} pedido(s) seleccionado(s)
-                    </span>
-
-                    <button
-                        className={styles.bulkButton}
-                        onClick={() => handleBulkEmail('payment_reminder')}
-                    >
-                        📧 Recordatorio de Pago
-                    </button>
-
-                    <button
-                        className={styles.bulkButton}
-                        onClick={() => handleBulkEmail('quote_update')}
-                    >
-                        💰 Presupuesto Actualizado
-                    </button>
-                </div>
-            )}
-
-            {dataToDisplay.length === 0 ? (
-                <div className={styles.noResults}>
-                    <div className={styles.noResultsIcon}>🔍</div>
-                    <h3 className={styles.noResultsTitle}>No se encontraron pedidos</h3>
-                    <p className={styles.noResultsText}>
-                        Intenta ajustar los filtros de búsqueda para encontrar los pedidos que buscas.
-                    </p>
-                </div>
-            ) : (
-                <div className={styles.ordersGrid}>
-                    {dataToDisplay.map(order => (
-                        <OrderCard
-                            key={order.id}
-                            order={order}
-                            isSelected={selectedOrders.includes(order.id)}
-                            onStatusChange={handleStatusChange}
-                            onSendEmail={handleOpenEmailModal}
-                            onViewDetails={handleOpenDetails}
-                            onSelectionChange={handleOrderSelection}
-                            onUpdateOrder={handleUpdateOrder}
-                            onDelete={handleDelete}  // \u2705 New prop
+                    {/* Modal de Detalles */}
+                    {detailsModal.isOpen && detailsModal.order && (
+                        <OrderDetails
+                            isOpen={detailsModal.isOpen}
+                            order={detailsModal.order}
+                            onClose={handleCloseDetails}
                         />
-                    ))}
-                </div>
+                    )}
+                </>) : (
+                <ExternalBudgetsList />
             )}
-
-            {/* Pagination Controls */}
-            {totalCount > pageSize && (
-                <div className={styles.pagination}>
-                    <button
-                        disabled={page === 1}
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                        className={styles.pageButton}
-                    >
-                        Anterior
-                    </button>
-                    <span className={styles.pageInfo}>
-                        Página {page} de {Math.ceil(totalCount / pageSize)}
-                    </span>
-                    <button
-                        disabled={page >= Math.ceil(totalCount / pageSize)}
-                        onClick={() => setPage(p => p + 1)}
-                        className={styles.pageButton}
-                    >
-                        Siguiente
-                    </button>
-                </div>
-            )}
-
-            {/* Modal de Email */}
-            {emailModal.isOpen && emailModal.order && (
-                <EmailModal
-                    isOpen={emailModal.isOpen}
-                    order={emailModal.order}
-                    onClose={handleCloseEmailModal}
-                    onSend={handleSendEmail}
-                />
-            )}
-
-            {/* Modal de Detalles */}
-            {detailsModal.isOpen && detailsModal.order && (
-                <OrderDetails
-                    isOpen={detailsModal.isOpen}
-                    order={detailsModal.order}
-                    onClose={handleCloseDetails}
-                />
-            )}
-        </>
+        </div>
     )
 }
