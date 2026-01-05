@@ -398,6 +398,28 @@ export function useBudgetData(budgetId: string) {
         }
     }
 
+    const markAsSent = async () => {
+        try {
+            setSaving(true)
+            const response = await fetch('/api/mark-budget-as-sent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ budgetId })
+            })
+
+            const result = await response.json()
+            if (!response.ok) throw new Error(result.error || 'Error al marcar como enviado')
+
+            await loadBudget()
+            return { success: true, result }
+        } catch (err) {
+            console.error('Error marcando como enviado:', err)
+            return { success: false, error: err }
+        } finally {
+            setSaving(false)
+        }
+    }
+
     return {
         budget,
         loading,
@@ -407,6 +429,7 @@ export function useBudgetData(budgetId: string) {
         saveBudget,
         deleteBudget,
         approveAndSend,
-        generatePDF
+        generatePDF,
+        markAsSent
     }
 }

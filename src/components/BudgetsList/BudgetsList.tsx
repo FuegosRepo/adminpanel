@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2, Mail, Calendar, Users, ChevronDown, ChevronUp } from 'lucide-react'
+import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2, Mail, Calendar, Users, ChevronDown, ChevronUp, MailCheck } from 'lucide-react'
 import './BudgetsList.css'
 import { useBudgets } from '@/hooks/useBudgets'
 import { toast } from 'sonner'
@@ -62,6 +62,8 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null)
+  const [markAsSentModalOpen, setMarkAsSentModalOpen] = useState(false)
+  const [budgetToMarkAsSent, setBudgetToMarkAsSent] = useState<string | null>(null)
 
   const handleDeleteClick = (e: React.MouseEvent, budgetId: string) => {
     e.stopPropagation()
@@ -80,6 +82,36 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
     } catch (error) {
       console.error('Error eliminando:', error)
       toast.error('Error al eliminar el presupuesto')
+    }
+  }
+
+  const handleMarkAsSentClick = (e: React.MouseEvent, budgetId: string) => {
+    e.stopPropagation()
+    setBudgetToMarkAsSent(budgetId)
+    setMarkAsSentModalOpen(true)
+  }
+
+  const handleConfirmMarkAsSent = async () => {
+    if (!budgetToMarkAsSent) return
+
+    try {
+      const response = await fetch('/api/mark-budget-as-sent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ budgetId: budgetToMarkAsSent })
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
+
+      toast.success('✅ Presupuesto marcado como enviado')
+      setMarkAsSentModalOpen(false)
+      setBudgetToMarkAsSent(null)
+      // Refresh the list to show updated status
+      window.location.reload()
+    } catch (error: any) {
+      console.error('Error marcando como enviado:', error)
+      toast.error(error.message || 'Error al marcar como enviado')
     }
   }
 
@@ -260,6 +292,16 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
                               Ver PDF
                             </a>
                           )}
+                          {budget.pdf_url && budget.status !== 'approved' && budget.status !== 'sent' && budget.status !== 'ENVIADO' && (
+                            <button
+                              className="budget-action-button budget-mark-sent-button"
+                              onClick={(e) => handleMarkAsSentClick(e, budget.id)}
+                              title="Marcar como enviado sin enviar email"
+                            >
+                              <MailCheck size={16} />
+                              Marcar como Enviado
+                            </button>
+                          )}
                           <button
                             className="budget-action-button budget-delete-button"
                             onClick={(e) => handleDeleteClick(e, budget.id)}
@@ -315,6 +357,18 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
         message="¿Estás seguro de que deseas eliminar este presupuesto y su pedido relacionado permanentemente? Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         variant="danger"
+      />
+      <ConfirmationModal
+        isOpen={markAsSentModalOpen}
+        onClose={() => {
+          setMarkAsSentModalOpen(false)
+          setBudgetToMarkAsSent(null)
+        }}
+        onConfirm={handleConfirmMarkAsSent}
+        title="Marcar como Enviado"
+        message="¿Marcar este presupuesto como enviado? Esto actualizará el estado sin enviar email al cliente."
+        confirmLabel="Marcar como Enviado"
+        variant="info"
       />
     </div>
   )

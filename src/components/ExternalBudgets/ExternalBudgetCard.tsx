@@ -1,5 +1,6 @@
 import { ExternalBudget } from '@/types'
 import { useState } from 'react'
+import { Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateExternalBudget } from '@/services/externalBudgetsService'
 import styles from './ExternalBudgets.module.css'
@@ -190,10 +191,11 @@ export default function ExternalBudgetCard({ budget, onResend, onViewDetails, on
                     </button>
                 )}
                 <button
-                    className={`${styles.actionButton} ${styles.resendButton}`}
+                    className={`${styles.actionButton} ${styles.emailButton}`}
                     onClick={() => onResend(budget.id)}
                 >
-                    ✉️ Reenviar
+                    <Mail size={16} />
+                    Relanzar Devis
                 </button>
             </div>
         </div>

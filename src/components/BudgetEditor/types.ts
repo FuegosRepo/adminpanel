@@ -48,6 +48,7 @@ export interface BudgetData {
             quantity: number
             pricePerUnit: number
             total: number
+            isManualPrice?: boolean
         }>
         insurancePct?: number
         insuranceAmount?: number

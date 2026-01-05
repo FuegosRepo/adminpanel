@@ -48,6 +48,17 @@
     box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
+.btnInfo {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.btnInfo:hover:not(:disabled) {
+    background-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
 .btnSuccess {
     background-color: #10b981;
     color: white;
