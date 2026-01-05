@@ -251,15 +251,15 @@
     border-color: #9ca3af;
 }
 
-.resendButton {
-    background: #e2943a;
+.emailButton {
+    background: #3b82f6;
     color: white;
-    border-color: #e2943a;
+    border-color: #3b82f6;
 }
 
-.resendButton:hover {
-    background: #d18634;
-    border-color: #d18634;
+.emailButton:hover {
+    background: #2563eb;
+    border-color: #2563eb;
 }
 
 .noResults {

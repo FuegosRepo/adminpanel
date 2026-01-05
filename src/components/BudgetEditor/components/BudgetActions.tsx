@@ -1,17 +1,18 @@
 import React from 'react'
-import { Save, CheckCircle2, FileText } from 'lucide-react'
+import { Save, CheckCircle2, FileText, Mail } from 'lucide-react'
 import styles from './BudgetActions.module.css'
 
 interface BudgetActionsProps {
     onSave: () => void
     onApproveAndSend: () => void
+    onMarkAsSent: () => void
     onGeneratePDF: () => void
     saving: boolean
     hasPdf: boolean
     hasUnsavedChanges: boolean
 }
 
-export function BudgetActions({ onSave, onApproveAndSend, onGeneratePDF, saving, hasPdf, hasUnsavedChanges }: BudgetActionsProps) {
+export function BudgetActions({ onSave, onApproveAndSend, onMarkAsSent, onGeneratePDF, saving, hasPdf, hasUnsavedChanges }: BudgetActionsProps) {
     return (
         <div className={styles.budgetActions}>
             {hasUnsavedChanges ? (
@@ -41,6 +42,16 @@ export function BudgetActions({ onSave, onApproveAndSend, onGeneratePDF, saving,
                     >
                         <FileText size={18} />
                         {saving ? 'Generando PDF...' : 'Generar PDF'}
+                    </button>
+
+                    <button
+                        onClick={onMarkAsSent}
+                        className={`${styles.btn} ${styles.btnInfo}`}
+                        disabled={saving || hasUnsavedChanges || !hasPdf}
+                        title={hasUnsavedChanges ? 'Primero guarda los cambios' : (!hasPdf ? 'Primero debes generar el PDF' : 'Marcar como enviado sin enviar email')}
+                    >
+                        <Mail size={18} />
+                        Marcar como Enviado
                     </button>
                 </>
             )}

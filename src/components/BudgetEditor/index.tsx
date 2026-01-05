@@ -29,6 +29,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     const [deleteSectionModalOpen, setDeleteSectionModalOpen] = useState(false)
     const [sectionToDelete, setSectionToDelete] = useState<string | null>(null)
     const [confirmBeforeApproveModalOpen, setConfirmBeforeApproveModalOpen] = useState(false)
+    const [confirmMarkAsSentModalOpen, setConfirmMarkAsSentModalOpen] = useState(false)
 
     const {
         budget,
@@ -38,7 +39,8 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         saveBudget,
         deleteBudget: deleteBudgetApi,
         approveAndSend,
-        generatePDF
+        generatePDF,
+        markAsSent
     } = useBudgetData(budgetId)
 
     const {
@@ -161,6 +163,30 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         }
     }
 
+    const handleMarkAsSent = async () => {
+        if (hasUnsavedChanges) {
+            toast.error('⚠️ Tienes cambios sin guardar. Por favor guarda el presupuesto antes de marcar como enviado.')
+            return
+        }
+
+        if (!budget?.pdf_url) {
+            toast.error('⚠️ Por favor genera el PDF antes de marcar como enviado')
+            return
+        }
+
+        setConfirmMarkAsSentModalOpen(true)
+    }
+
+    const confirmMarkAsSent = async () => {
+        const result = await markAsSent()
+        if (result.success) {
+            toast.success('✅ Presupuesto marcado como enviado correctamente')
+        } else {
+            toast.error(`❌ Error al marcar como enviado: ${result.error}`)
+        }
+        setConfirmMarkAsSentModalOpen(false)
+    }
+
     // Handlers para agregar/eliminar secciones
     const addSection = (sectionName: string, initialData: any) => {
         updateField(sectionName, initialData)
@@ -245,6 +271,17 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                 title="Enviar Presupuesto"
                 message={`¿Estás seguro de enviar este presupuesto?\n\nCliente: ${editedData.clientInfo.name}\nEmail: ${editedData.clientInfo.email}\nTotal: ${editedData.totals.totalTTC.toFixed(2)}€\n\nSe enviará por email al cliente.`}
                 confirmLabel="Enviar Presupuesto"
+                variant="info"
+            />
+
+            {/* ✅ Mark as Sent Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={confirmMarkAsSentModalOpen}
+                onClose={() => setConfirmMarkAsSentModalOpen(false)}
+                onConfirm={confirmMarkAsSent}
+                title="Marcar como Enviado"
+                message={`¿Marcar este presupuesto como enviado?\n\nEsto actualizará el estado sin enviar email al cliente.\n\nCliente: ${editedData.clientInfo.name}\nEmail: ${editedData.clientInfo.email}\nTotal: ${editedData.totals.totalTTC.toFixed(2)}€`}
+                confirmLabel="Marcar como Enviado"
                 variant="info"
             />
 
@@ -402,6 +439,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
             <BudgetActions
                 onSave={handleSave}
                 onApproveAndSend={handleApproveAndSend}
+                onMarkAsSent={handleMarkAsSent}
                 onGeneratePDF={handleGeneratePDF}
                 saving={saving}
                 hasPdf={!!budget?.pdf_url}
