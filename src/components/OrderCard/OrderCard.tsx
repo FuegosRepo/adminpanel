@@ -4,12 +4,13 @@ import { useState, useEffect, memo } from 'react'
 import { CateringOrder, EmailTemplate } from '@/types'
 import { format, differenceInDays } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock, Trash2, FileText } from 'lucide-react'
+import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock, Trash2, FileText, StickyNote } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { emailTemplates } from '@/data/mockData'
 import { ProductListResolver } from '@/components/admin/ProductListResolver'
-import ConfirmationModal from '@/components/common/ConfirmationModal'  // ✅ Added
-import { toast } from 'sonner'  // ✅ Added
+import ConfirmationModal from '@/components/common/ConfirmationModal'
+import InternalNoteModal from '@/components/InternalNoteModal/InternalNoteModal'
+import { toast } from 'sonner'
 import styles from './OrderCard.module.css'
 
 interface OrderCardProps {
@@ -20,7 +21,11 @@ interface OrderCardProps {
   onViewDetails: (order: CateringOrder) => void
   onSelectionChange: (orderId: string, isSelected: boolean) => void
   onUpdateOrder?: (orderId: string, updates: Partial<CateringOrder>) => void
-  onDelete?: (orderId: string) => void  // ✅ New prop for delete functionality
+  onDelete?: (orderId: string) => void
+  onAddInternalNote?: (orderId: string, note: string) => Promise<void>
+  onDeleteInternalNote?: (orderId: string, noteIndex: number) => Promise<void>
+  isAddingNote?: boolean
+  isDeletingNote?: boolean
 }
 
 const OrderCard = ({
@@ -31,14 +36,19 @@ const OrderCard = ({
   onViewDetails,
   onSelectionChange,
   onUpdateOrder,
-  onDelete  // ✅ Destructure new prop
+  onDelete,
+  onAddInternalNote,
+  onDeleteInternalNote,
+  isAddingNote = false,
+  isDeletingNote = false
 }: OrderCardProps) => {
   const [mounted, setMounted] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [relanceModalOpen, setRelanceModalOpen] = useState(false)
   const [lastRelanceDate, setLastRelanceDate] = useState<string | null>(null)
   const [extrasView, setExtrasView] = useState<'compact' | 'detailed'>('compact')
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)  // ✅ Added delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [noteModalOpen, setNoteModalOpen] = useState(false)  // ✅ Internal note modal state
 
   useEffect(() => {
     setMounted(true)
@@ -147,12 +157,26 @@ const OrderCard = ({
             <span className={`${styles.status} ${styles[order.status === 'ENVIADO' ? 'sent' : order.status]}`}>
               {getStatusText(order.status)}
             </span>
-            {/* ✅ Delete button in compact view */}
+            {/* ✅ Internal notes indicator */}
+            {order.internalNotes && order.internalNotes.length > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setNoteModalOpen(true)
+                }}
+                className={styles.noteIndicator}
+                title={`${order.internalNotes.length} nota(s)`}
+              >
+                <StickyNote size={16} />
+                <span className={styles.noteCount}>{order.internalNotes.length}</span>
+              </button>
+            )}
+            {/* Delete button in compact view */}
             {onDelete && (
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  setDeleteModalOpen(true)  // ✅ Open modal instead of window.confirm
+                  setDeleteModalOpen(true)
                 }}
                 className={styles.compactDeleteButton}
                 title="Eliminar pedido"
@@ -380,12 +404,25 @@ const OrderCard = ({
                 </button>
               )}
 
-              {/* ✅ New Delete Button */}
+              {/* ✅ Internal Notes Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setNoteModalOpen(true)
+                }}
+                className={`${styles.actionButton} ${styles.noteButton} ${order.internalNotes?.length ? styles.hasNote : ''}`}
+                title={order.internalNotes?.length ? `${order.internalNotes.length} nota(s)` : 'Agregar nota'}
+              >
+                <StickyNote size={16} />
+                {order.internalNotes?.length ? `Notas (${order.internalNotes.length})` : 'Notas'}
+              </button>
+
+              {/* Delete Button */}
               {onDelete && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    setDeleteModalOpen(true)  // ✅ Open modal instead of window.confirm
+                    setDeleteModalOpen(true)
                   }}
                   className={`${styles.actionButton} ${styles.deleteButton}`}
                   title="Eliminar pedido"
@@ -411,7 +448,6 @@ const OrderCard = ({
         </div>
       )}
 
-      {/* ✅ Delete Confirmation Modal */}
       <ConfirmationModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
@@ -425,6 +461,26 @@ const OrderCard = ({
         message="¿Estás seguro de que deseas eliminar este pedido?\n\nEsta acción es permanente y eliminará tanto el pedido como el presupuesto en ambas secciones para mantener la sincronización."
         confirmLabel="Eliminar"
         variant="danger"
+      />
+
+      {/* ✅ Internal Notes Thread Modal */}
+      <InternalNoteModal
+        isOpen={noteModalOpen}
+        orderName={order.contact.name}
+        notes={order.internalNotes || []}
+        onClose={() => setNoteModalOpen(false)}
+        onAddNote={async (note) => {
+          if (onAddInternalNote) {
+            await onAddInternalNote(order.id, note)
+          }
+        }}
+        onDeleteNote={async (noteIndex) => {
+          if (onDeleteInternalNote) {
+            await onDeleteInternalNote(order.id, noteIndex)
+          }
+        }}
+        isAdding={isAddingNote}
+        isDeleting={isDeletingNote}
       />
     </div>
   )

@@ -21,6 +21,10 @@ export default function OrdersPage() {
         orders,
         handleStatusChange,
         handleUpdateOrder,
+        handleAddInternalNote,  // ✅ Add note to thread
+        handleDeleteInternalNote,  // ✅ Delete note from thread
+        isAddingNote,
+        isDeletingNote,
         page,
         setPage,
         totalCount,
@@ -307,7 +311,11 @@ export default function OrdersPage() {
                                     onViewDetails={handleOpenDetails}
                                     onSelectionChange={handleOrderSelection}
                                     onUpdateOrder={handleUpdateOrder}
-                                    onDelete={handleDelete}  // \u2705 New prop
+                                    onDelete={handleDelete}
+                                    onAddInternalNote={handleAddInternalNote}
+                                    onDeleteInternalNote={handleDeleteInternalNote}
+                                    isAddingNote={isAddingNote}
+                                    isDeletingNote={isDeletingNote}
                                 />
                             ))}
                         </div>

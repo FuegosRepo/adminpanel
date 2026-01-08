@@ -18,7 +18,8 @@ import { TotalsSection } from './components/TotalsSection'
 import { BudgetActions } from './components/BudgetActions'
 import { MaterialSelectorModal } from './components/MaterialSelectorModal'
 import { AdminNotesSection } from './components/AdminNotesSection'
-import ConfirmationModal from '@/components/common/ConfirmationModal' // ✅ Added
+import { InternalNoteSection } from './components/InternalNoteSection'  // ✅ New
+import ConfirmationModal from '@/components/common/ConfirmationModal'
 import { toast } from 'sonner' // ✅ Added
 import { isEqual } from 'lodash'
 import styles from './BudgetEditor.module.css'
@@ -36,11 +37,15 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         loading,
         error,
         saving,
+        internalNotes,  // ✅ Array of notes from linked order
+        orderId,
         saveBudget,
         deleteBudget: deleteBudgetApi,
         approveAndSend,
         generatePDF,
-        markAsSent
+        markAsSent,
+        addInternalNote,  // ✅ Add note to thread
+        deleteInternalNote  // ✅ Delete note from thread
     } = useBudgetData(budgetId)
 
     const {
@@ -429,6 +434,14 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
             <TotalsSection
                 data={editedData.totals}
                 onUpdate={updateField}
+            />
+
+            <InternalNoteSection
+                notes={internalNotes}
+                orderId={orderId}
+                onAdd={addInternalNote}
+                onDelete={deleteInternalNote}
+                saving={saving}
             />
 
             <AdminNotesSection

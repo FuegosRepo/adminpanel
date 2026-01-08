@@ -52,8 +52,15 @@ export interface CateringOrder {
   updatedAt: string
   estimatedPrice?: number
   notes?: string
+  internalNotes?: InternalNote[]  // ✅ Changed to array for thread/history
   payment?: PaymentInfo
   hasBudget?: boolean
+}
+
+// ✅ Individual note in the thread
+export interface InternalNote {
+  text: string
+  createdAt: string
 }
 
 export interface EmailTemplate {
