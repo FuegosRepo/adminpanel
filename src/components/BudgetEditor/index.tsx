@@ -20,8 +20,9 @@ import { MaterialSelectorModal } from './components/MaterialSelectorModal'
 import { AdminNotesSection } from './components/AdminNotesSection'
 import { InternalNoteSection } from './components/InternalNoteSection'  // ✅ New
 import ConfirmationModal from '@/components/common/ConfirmationModal'
-import { toast } from 'sonner' // ✅ Added
+import { toast } from 'sonner'
 import { isEqual } from 'lodash'
+import { recalculateTotals } from './utils/budgetCalculations' // ✅ Import moved to top
 import styles from './BudgetEditor.module.css'
 
 export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
@@ -64,7 +65,9 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     // Sincronizar datos cuando se carga el presupuesto
     React.useEffect(() => {
         if (budget?.budget_data) {
-            setEditedData(budget.budget_data)
+            // ✅ Forzar recálculo inicial para corregir posibles totales viejos/erróneos
+            const correctedData = recalculateTotals(budget.budget_data)
+            setEditedData(correctedData)
         }
     }, [budget, setEditedData])
 
