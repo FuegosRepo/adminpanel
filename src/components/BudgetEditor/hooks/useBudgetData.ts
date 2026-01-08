@@ -511,12 +511,66 @@ export function useBudgetData(budgetId: string) {
         }
     }
 
+    // ✅ Crea un order para un presupuesto huérfano y lo vincula
+    const createLinkedOrder = async (currentData: any) => {
+        try {
+            setSaving(true)
+            console.log('🔗 Creating linked order for orphan budget...')
+
+            // 1. Crear el order con los datos actuales del presupuesto
+            const initialOrder = {
+                status: 'draft',
+                name: currentData.clientInfo?.name || 'Nuevo Presupuesto (Migrado)',
+                email: currentData.clientInfo?.email || '',
+                phone: currentData.clientInfo?.phone || '',
+                event_date: currentData.clientInfo?.eventDate || (new Date()).toISOString(),
+                event_type: currentData.clientInfo?.eventType || '',
+                guest_count: currentData.clientInfo?.guestCount || 0,
+                address: currentData.clientInfo?.address || '',
+                created_at: (new Date()).toISOString(),
+                updated_at: (new Date()).toISOString(),
+                internal_note: [{
+                    text: 'Presupuesto migrado manualmente desde panel admin',
+                    createdAt: (new Date()).toISOString()
+                }]
+            }
+
+            const { data: orderData, error: orderError } = await supabase
+                .from('catering_orders')
+                .insert(initialOrder)
+                .select()
+                .single()
+
+            if (orderError) throw orderError
+            console.log('✅ Order created:', orderData.id)
+
+            // 2. Vincular el presupuesto al nuevo order
+            const { error: updateError } = await supabase
+                .from('budgets')
+                .update({ order_id: orderData.id })
+                .eq('id', budgetId)
+
+            if (updateError) throw updateError
+            console.log('✅ Budget linked to order')
+
+            // 3. Recargar para actualizar estado
+            await loadBudget()
+            return { success: true }
+
+        } catch (err) {
+            console.error('❌ Error linking order:', err)
+            return { success: false, error: err }
+        } finally {
+            setSaving(false)
+        }
+    }
+
     return {
         budget,
         loading,
         error,
         saving,
-        internalNotes,  // ✅ Array of notes
+        internalNotes,
         orderId,
         loadBudget,
         saveBudget,
@@ -524,7 +578,8 @@ export function useBudgetData(budgetId: string) {
         approveAndSend,
         generatePDF,
         markAsSent,
-        addInternalNote,  // ✅ Add note to thread
-        deleteInternalNote  // ✅ Delete note from thread
+        addInternalNote,
+        deleteInternalNote,
+        createLinkedOrder // ✅ Expose new function
     }
 }

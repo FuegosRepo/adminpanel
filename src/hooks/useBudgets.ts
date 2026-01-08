@@ -45,9 +45,44 @@ export const useBudgets = (initialFilters?: BudgetsFilters) => {
 
     const createManualBudgetMutation = useMutation({
         mutationFn: async (initialData: any) => {
+            console.log('📝 Creating manual budget, first creating order...')
+
+            // 1. Create a minimal order first to link
+            const initialOrder = {
+                status: 'draft',
+                name: 'Nuevo Presupuesto (Manual)',
+                email: '',
+                event_date: (new Date()).toISOString(),
+                created_at: (new Date()).toISOString(),
+                updated_at: (new Date()).toISOString(),
+                internal_note: [{
+                    text: 'Presupuesto creado manualmente desde panel admin',
+                    createdAt: (new Date()).toISOString()
+                }]
+            }
+
+            const { data: orderData, error: orderError } = await supabase
+                .from('catering_orders')
+                .insert(initialOrder)
+                .select()
+                .single()
+
+            if (orderError) {
+                console.error('❌ Error creating parent order:', orderError)
+                throw orderError
+            }
+
+            console.log('✅ Parent order created:', orderData.id)
+
+            // 2. Link budget to new order
+            const budgetWithOrder = {
+                ...initialData,
+                order_id: orderData.id
+            }
+
             const { data, error } = await supabase
                 .from('budgets')
-                .insert(initialData)
+                .insert(budgetWithOrder)
                 .select()
                 .single()
 
@@ -56,6 +91,8 @@ export const useBudgets = (initialFilters?: BudgetsFilters) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['budgets'] })
+            // Also invalidate orders to show the new one immediately
+            queryClient.invalidateQueries({ queryKey: ['orders'] })
         }
     })
 

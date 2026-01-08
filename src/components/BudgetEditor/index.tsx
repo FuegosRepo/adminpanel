@@ -20,8 +20,9 @@ import { MaterialSelectorModal } from './components/MaterialSelectorModal'
 import { AdminNotesSection } from './components/AdminNotesSection'
 import { InternalNoteSection } from './components/InternalNoteSection'  // ✅ New
 import ConfirmationModal from '@/components/common/ConfirmationModal'
-import { toast } from 'sonner' // ✅ Added
+import { toast } from 'sonner'
 import { isEqual } from 'lodash'
+import { recalculateTotals } from './utils/budgetCalculations' // ✅ Import moved to top
 import styles from './BudgetEditor.module.css'
 
 export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
@@ -44,8 +45,9 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         approveAndSend,
         generatePDF,
         markAsSent,
-        addInternalNote,  // ✅ Add note to thread
-        deleteInternalNote  // ✅ Delete note from thread
+        addInternalNote,
+        deleteInternalNote,
+        createLinkedOrder
     } = useBudgetData(budgetId)
 
     const {
@@ -63,7 +65,9 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     // Sincronizar datos cuando se carga el presupuesto
     React.useEffect(() => {
         if (budget?.budget_data) {
-            setEditedData(budget.budget_data)
+            // ✅ Forzar recálculo inicial para corregir posibles totales viejos/erróneos
+            const correctedData = recalculateTotals(budget.budget_data)
+            setEditedData(correctedData)
         }
     }, [budget, setEditedData])
 
@@ -435,6 +439,55 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                 data={editedData.totals}
                 onUpdate={updateField}
             />
+
+            {/* Banner para migrar presupuestos antiguos sin order_id */}
+            {!orderId && !loading && (
+                <div style={{
+                    background: 'rgba(234, 179, 8, 0.1)',
+                    border: '1px solid rgba(234, 179, 8, 0.3)',
+                    borderRadius: '8px',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    color: '#fbbf24'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                        <div>
+                            <strong>Presupuesto sin pedido vinculado</strong>
+                            <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.8 }}>
+                                Este presupuesto no aparece en la lista de Pedidos. Migralo para corregirlo.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={async () => {
+                            const toastId = toast.loading('Creando pedido vinculado...')
+                            const result = await createLinkedOrder(editedData)
+                            if (result.success) {
+                                toast.success('✅ Pedido creado y vinculado correctamente', { id: toastId })
+                            } else {
+                                toast.error('❌ Error al migrar presupuesto', { id: toastId })
+                            }
+                        }}
+                        disabled={saving}
+                        style={{
+                            background: '#fbbf24',
+                            color: '#000',
+                            border: 'none',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '6px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            opacity: saving ? 0.5 : 1
+                        }}
+                    >
+                        {saving ? 'Migrando...' : '🔗 Vincular a nuevo Pedido'}
+                    </button>
+                </div>
+            )}
 
             <InternalNoteSection
                 notes={internalNotes}
