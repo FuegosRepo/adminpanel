@@ -386,6 +386,80 @@
   box-shadow: 0 2px 4px rgba(217, 119, 6, 0.3);
 }
 
+/* Internal Note Indicator (compact view) */
+.noteIndicator {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  color: #fbbf24;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.noteIndicator:hover {
+  background: #fef3c7;
+  color: #d97706;
+  transform: scale(1.1);
+}
+
+.noteCount {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: #fbbf24;
+  color: #1f2937;
+  border-radius: 50%;
+  min-width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -2px;
+  right: -2px;
+}
+
+.noteIndicator {
+  position: relative;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Internal Note Button (action bar) */
+.noteButton {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.noteButton:hover {
+  background: #fef3c7;
+  color: #d97706;
+  border-color: #fbbf24;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.2);
+}
+
+.noteButton.hasNote {
+  background: #fef3c7;
+  color: #d97706;
+  border-color: #fbbf24;
+}
+
 .notes {
   margin-top: 1rem;
   padding: 0.75rem;

@@ -62,20 +62,26 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         updated.material.insurancePct = insPct * 100
         updated.material.insuranceAmount = insurance
 
-        // Agregar Livraison et Reprise al HT de Material
-        const lrCost = (updated.deliveryReprise?.deliveryCost || 0) + (updated.deliveryReprise?.pickupCost || 0)
+        // ✅ Calcular Livraison HT + TVA al 20%
+        const lrHT = (updated.deliveryReprise?.deliveryCost || 0) + (updated.deliveryReprise?.pickupCost || 0)
+        const lrTVA = lrHT * 0.20  // TVA fijo 20% para Livraison
 
-        const materialHTWithInsuranceAndLR = totalMaterialItemsHT + insurance + lrCost
-        updated.material.totalHT = materialHTWithInsuranceAndLR
-        updated.material.tva = materialHTWithInsuranceAndLR * (updated.material.tvaPct / 100)
+        // Material HT = Items + Insurance + Livraison
+        const materialHTWithInsurance = totalMaterialItemsHT + insurance
+        const materialTVA = materialHTWithInsurance * (updated.material.tvaPct / 100)
+
+        // ✅ Material TTC incluye Livraison con su propia TVA calculada aparte
+        updated.material.totalHT = materialHTWithInsurance + lrHT
+        updated.material.tva = materialTVA + lrTVA  // Suma ambas TVAs
         updated.material.totalTTC = updated.material.totalHT + updated.material.tva
     }
 
-    // Recalcular Livraison et Reprise (mantenemos esto por si se usa en otros lados, pero ya se integra en material)
+    // Actualizar valores de Livraison (solo para referencia, ya está incluido en Material)
     if (updated.deliveryReprise) {
         const lrHT = (updated.deliveryReprise.deliveryCost || 0) + (updated.deliveryReprise.pickupCost || 0)
         updated.deliveryReprise.totalHT = lrHT
-        updated.deliveryReprise.tva = lrHT * ((updated.deliveryReprise.tvaPct || 0) / 100)
+        updated.deliveryReprise.tvaPct = 20
+        updated.deliveryReprise.tva = lrHT * 0.20
         updated.deliveryReprise.totalTTC = updated.deliveryReprise.totalHT + updated.deliveryReprise.tva
     }
 
@@ -106,13 +112,11 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         totalTVA += updated.material.tva
     }
 
-    // IMPORTANTE: Ya no sumamos deliveryReprise aquí porque ya está dentro de material
-    /* 
-    if (updated.deliveryReprise) {
-        totalHT += updated.deliveryReprise.totalHT
-        totalTVA += updated.deliveryReprise.tva
-    }
-    */
+    // ⚠️ Livraison ya está incluido en Material, NO sumar aquí para evitar duplicación
+    // if (updated.deliveryReprise) {
+    //     totalHT += updated.deliveryReprise.totalHT
+    //     totalTVA += updated.deliveryReprise.tva
+    // }
 
     if (updated.boissonsSoft) {
         totalHT += updated.boissonsSoft.totalHT

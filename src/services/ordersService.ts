@@ -21,6 +21,38 @@ export type OrdersResponse = {
     error: any
 }
 
+// ✅ Helper: Parse internal_notes with defensive handling for array/object/string
+function parseInternalNotes(data: any): { text: string; createdAt: string }[] | undefined {
+    if (!data) return undefined
+
+    // If it's a string, try to parse it
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data)
+        } catch {
+            return [{ text: data, createdAt: new Date().toISOString() }]
+        }
+    }
+
+    // If it's an array (new format)
+    if (Array.isArray(data)) {
+        return data.map((note: any) => ({
+            text: note.text || '',
+            createdAt: note.createdAt || note.created_at || new Date().toISOString()
+        }))
+    }
+
+    // If it's a single object (old format), wrap in array
+    if (typeof data === 'object') {
+        return [{
+            text: data.text || '',
+            createdAt: data.createdAt || data.updatedAt || data.updated_at || new Date().toISOString()
+        }]
+    }
+
+    return undefined
+}
+
 export const fetchOrders = async ({
     page = 1,
     pageSize = 50,
@@ -87,6 +119,7 @@ export const fetchOrders = async ({
         updatedAt: row.updated_at,
         estimatedPrice: row.estimated_price || undefined,
         notes: row.notes || undefined,
+        internalNotes: parseInternalNotes(row.internal_note),  // ✅ Parse as array
         payment: row.payment,
         hasBudget: row.budgets && row.budgets.length > 0
     }))

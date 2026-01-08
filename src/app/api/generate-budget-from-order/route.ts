@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
         const menuTotalTTC = menuTotalHT + menuTVA
 
         let discount = null
+        let menuTotalTTCWithDiscount = menuTotalTTC
         if (menuType === 'dejeuner') {
             const discountAmount = menuTotalTTC * 0.1
             discount = {
@@ -79,6 +80,8 @@ export async function POST(request: NextRequest) {
                 amount: discountAmount,
                 reason: 'Événement à midi - 10%'
             }
+            // Aplicar descuento solo al menú
+            menuTotalTTCWithDiscount = menuTotalTTC - discountAmount
         }
 
         // Extras / Material
@@ -108,8 +111,8 @@ export async function POST(request: NextRequest) {
 
         const totalHT = menuTotalHT + (material?.totalHT || 0)
         const totalTVA = menuTVA + (material?.tva || 0)
-        let totalTTC = menuTotalTTC + (material?.totalTTC || 0)
-        if (discount) totalTTC -= discount.amount
+        // El total TTC usa el menú con descuento + material sin descuento
+        const totalTTC = menuTotalTTCWithDiscount + (material?.totalTTC || 0)
 
         const budgetData = {
             generatedAt: new Date().toISOString(),

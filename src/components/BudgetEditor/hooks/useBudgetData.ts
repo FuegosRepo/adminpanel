@@ -10,6 +10,8 @@ export function useBudgetData(budgetId: string) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
+    const [internalNotes, setInternalNotes] = useState<{ text: string; createdAt: string }[]>([])  // ✅ Array of notes
+    const [orderId, setOrderId] = useState<string | null>(null)
 
     const loadBudget = useCallback(async () => {
         try {
@@ -36,9 +38,10 @@ export function useBudgetData(budgetId: string) {
                 // - Preserves manual edits
                 // - Always fetch selectedItems from orders
                 if (data.order_id) {
+                    setOrderId(data.order_id)  // ✅ Store order_id
                     const { data: orderData, error: orderError } = await supabase
                         .from('catering_orders')
-                        .select('entrees, viandes, dessert, event_date, name, email, phone, address, event_type, guest_count')
+                        .select('entrees, viandes, dessert, event_date, name, email, phone, address, event_type, guest_count, internal_note')
                         .eq('id', data.order_id)
                         .single()
 
@@ -47,6 +50,30 @@ export function useBudgetData(budgetId: string) {
                     }
 
                     if (orderData) {
+                        // ✅ Parse internal notes array
+                        if (orderData.internal_note) {
+                            let noteData = orderData.internal_note
+                            if (typeof noteData === 'string') {
+                                try { noteData = JSON.parse(noteData) } catch { noteData = null }
+                            }
+                            // Handle array or single object
+                            if (Array.isArray(noteData)) {
+                                setInternalNotes(noteData.map((n: any) => ({
+                                    text: n.text || '',
+                                    createdAt: n.createdAt || n.created_at || new Date().toISOString()
+                                })))
+                            } else if (noteData && typeof noteData === 'object') {
+                                // Legacy single object format
+                                setInternalNotes([{
+                                    text: noteData.text || '',
+                                    createdAt: noteData.createdAt || noteData.updatedAt || new Date().toISOString()
+                                }])
+                            } else {
+                                setInternalNotes([])
+                            }
+                        } else {
+                            setInternalNotes([])
+                        }
                         // PHASE 1: PRODUCT NORMALIZATION
                         // Convert frontend IDs (e.g., 'secreto', 'burger') to database product names
                         const normalizedEntrees = normalizeFrontendIdsToProductNames(orderData.entrees || [])
@@ -420,16 +447,84 @@ export function useBudgetData(budgetId: string) {
         }
     }
 
+    // ✅ Add new internal note to thread
+    const addInternalNote = async (note: string) => {
+        if (!orderId) {
+            console.warn('⚠️ No order_id linked to this budget')
+            return { success: false, error: 'No hay pedido vinculado' }
+        }
+        if (!note.trim()) return { success: false, error: 'Nota vacía' }
+
+        try {
+            setSaving(true)
+
+            // Add new note at beginning of array (newest first)
+            const newNote = { text: note.trim(), createdAt: new Date().toISOString() }
+            const updatedNotes = [newNote, ...internalNotes]
+
+            const { error } = await supabase
+                .from('catering_orders')
+                .update({
+                    internal_note: updatedNotes,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', orderId)
+
+            if (error) throw error
+
+            setInternalNotes(updatedNotes)
+            return { success: true }
+        } catch (err) {
+            console.error('❌ Error adding note:', err)
+            return { success: false, error: err }
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    // ✅ Delete note from thread by index
+    const deleteInternalNote = async (noteIndex: number) => {
+        if (!orderId) return { success: false, error: 'No hay pedido vinculado' }
+
+        try {
+            setSaving(true)
+
+            const updatedNotes = internalNotes.filter((_, i) => i !== noteIndex)
+
+            const { error } = await supabase
+                .from('catering_orders')
+                .update({
+                    internal_note: updatedNotes.length > 0 ? updatedNotes : null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', orderId)
+
+            if (error) throw error
+
+            setInternalNotes(updatedNotes)
+            return { success: true }
+        } catch (err) {
+            console.error('❌ Error deleting note:', err)
+            return { success: false, error: err }
+        } finally {
+            setSaving(false)
+        }
+    }
+
     return {
         budget,
         loading,
         error,
         saving,
+        internalNotes,  // ✅ Array of notes
+        orderId,
         loadBudget,
         saveBudget,
         deleteBudget,
         approveAndSend,
         generatePDF,
-        markAsSent
+        markAsSent,
+        addInternalNote,  // ✅ Add note to thread
+        deleteInternalNote  // ✅ Delete note from thread
     }
 }
