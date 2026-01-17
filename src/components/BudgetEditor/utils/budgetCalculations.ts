@@ -8,7 +8,21 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         const menuHT = updated.menu.pricePerPerson * updated.menu.totalPersons
         updated.menu.totalHT = menuHT
         updated.menu.tva = menuHT * (updated.menu.tvaPct / 100)
-        updated.menu.totalTTC = menuHT + updated.menu.tva
+        let menuTTC = menuHT + updated.menu.tva
+
+        // Descuento 10% para Déjeuner (solo al menú)
+        if (updated.clientInfo.menuType === 'dejeuner') {
+            const discountAmount = menuHT * 0.10
+            updated.menu.discount = {
+                percentage: 10,
+                amount: discountAmount,
+                reason: 'Événement à midi - 10%'
+            }
+            menuTTC -= discountAmount
+        } else {
+            updated.menu.discount = undefined
+        }
+        updated.menu.totalTTC = menuTTC
     }
 
     // Recalcular servicio (valores fijos: 40€/hora HT, TVA 20%)

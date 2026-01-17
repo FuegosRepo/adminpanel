@@ -21,6 +21,12 @@ export type OrdersResponse = {
     error: any
 }
 
+// ✅ Helper: Sanitize search term to prevent pattern injection
+function sanitizeSearchTerm(term: string): string {
+    // Remove special characters that could affect the query pattern
+    return term.replace(/[%_\\'";\-\(\)\[\]{}]/g, '').trim()
+}
+
 // ✅ Helper: Parse internal_notes with defensive handling for array/object/string
 function parseInternalNotes(data: any): { text: string; createdAt: string }[] | undefined {
     if (!data) return undefined
@@ -69,9 +75,12 @@ export const fetchOrders = async ({
     }
 
     if (filters?.searchTerm) {
-        const term = filters.searchTerm
-        // Search in multiple columns using OR syntax
-        query = query.or(`name.ilike.%${term}%,email.ilike.%${term}%`)
+        // ✅ Sanitize before use
+        const term = sanitizeSearchTerm(filters.searchTerm)
+        if (term.length > 0) {
+            // Search in multiple columns using OR syntax
+            query = query.or(`name.ilike.%${term}%,email.ilike.%${term}%`)
+        }
     }
 
     // Apply date filters if they exist in filters (assuming filters might have them based on useOrderFilters)

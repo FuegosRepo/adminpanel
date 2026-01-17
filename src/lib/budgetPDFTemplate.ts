@@ -544,6 +544,12 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <span>TVA (${budgetData.menu.tvaPct}%) :</span>
             <span>${budgetData.menu.tva.toFixed(2)} €</span>
             </div>
+            ${budgetData.menu.discount && budgetData.menu.discount.amount > 0 ? `
+            <div class="amount-row" style="color: #000000; font-weight: bold;">
+            <span>Remise (${budgetData.menu.discount.percentage}% - ${budgetData.menu.discount.reason}):</span>
+            <span>-${budgetData.menu.discount.amount.toFixed(2)} €</span>
+            </div>
+            ` : ''}
             <div class="amount-row amount-total">
             <span>Montant TTC :</span>
             <span>${budgetData.menu.totalTTC.toFixed(2)} €</span>
@@ -727,12 +733,6 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <span>TVA totale :</span>
             <span>${budgetData.totals.totalTVA.toFixed(2)} €</span>
             </div>
-            ${budgetData.totals.discount && budgetData.totals.discount.amount > 0 ? `
-            <div class="amount-row" style="color: #000000; font-weight: bold;">
-            <span>Remise (${budgetData.totals.discount.percentage}% - ${budgetData.totals.discount.reason || 'Saison'}):</span>
-            <span>-${budgetData.totals.discount.amount.toFixed(2)} €</span>
-            </div>
-            ` : ''}
             <div class="amount-row amount-total">
             <span>Montant TTC total :</span>
             <span>${budgetData.totals.totalTTC.toFixed(2)} €</span>

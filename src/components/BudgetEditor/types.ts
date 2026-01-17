@@ -16,6 +16,11 @@ export interface BudgetData {
         tva: number
         tvaPct: number
         totalTTC: number
+        discount?: {
+            percentage: number
+            amount: number
+            reason: string
+        }
         notes?: string
         selectedItems?: {
             entrees: string[]

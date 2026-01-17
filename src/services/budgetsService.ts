@@ -11,6 +11,12 @@ export type FetchBudgetsParams = {
     filters?: BudgetsFilters
 }
 
+// ✅ Sanitize search term to prevent pattern injection
+function sanitizeSearchTerm(term: string): string {
+    // Remove special characters that could affect the query pattern
+    return term.replace(/[%_\\'";\-\(\)\[\]{}]/g, '').trim()
+}
+
 export const fetchBudgets = async ({
     page = 1,
     pageSize = 10,
@@ -31,9 +37,12 @@ export const fetchBudgets = async ({
     }
 
     if (filters?.searchTerm) {
-        const term = filters.searchTerm
-        // Search in budget_data JSON (clientInfo.name or email)
-        query = query.or(`budget_data->clientInfo->>name.ilike.%${term}%,budget_data->clientInfo->>email.ilike.%${term}%`)
+        // ✅ Sanitize before use
+        const term = sanitizeSearchTerm(filters.searchTerm)
+        if (term.length > 0) {
+            // Search in budget_data JSON (clientInfo.name or email)
+            query = query.or(`budget_data->clientInfo->>name.ilike.%${term}%,budget_data->clientInfo->>email.ilike.%${term}%`)
+        }
     }
 
     // Apply pagination

@@ -243,6 +243,12 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                             <span>TVA ({data.tvaPct}%):</span>
                             <strong>{data.tva.toFixed(2)} €</strong>
                         </div>
+                        {data.discount && data.discount.amount > 0 && (
+                            <div className={styles.totalRow}>
+                                <span>Remise ({data.discount.percentage}%):</span>
+                                <strong style={{ color: '#22c55e' }}>- {data.discount.amount.toFixed(2)} €</strong>
+                            </div>
+                        )}
                         <div className={`${styles.totalRow} ${styles.highlight}`}>
                             <span>Total TTC:</span>
                             <strong>{data.totalTTC.toFixed(2)} €</strong>

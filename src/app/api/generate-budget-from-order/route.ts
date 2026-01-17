@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/utils/supabase/server'
 
 export async function POST(request: NextRequest) {
     try {
+        // ✅ Use authenticated server client
+        const supabase = createClient()
+
+        // ✅ Verify user session
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+            return NextResponse.json(
+                { error: 'No autorizado. Por favor inicie sesión.' },
+                { status: 401 }
+            )
+        }
+
         const { orderId } = await request.json()
 
         if (!orderId) {
@@ -137,7 +149,8 @@ export async function POST(request: NextRequest) {
                 totalHT: menuTotalHT,
                 tva: menuTVA,
                 tvaPct: 10,
-                totalTTC: menuTotalTTC,
+                totalTTC: menuTotalTTCWithDiscount,  // ✅ Now uses the discounted value
+                discount: discount,  // ✅ Discount now in menu section
                 selectedItems: {
                     entrees: (order.entrees || []).map(getName),
                     viandes: (order.viandes || []).map(getName),
@@ -148,8 +161,8 @@ export async function POST(request: NextRequest) {
             totals: {
                 totalHT,
                 totalTVA,
-                totalTTC,
-                discount: discount
+                totalTTC
+                // Removed: discount is now in menu section
             }
         }
 
