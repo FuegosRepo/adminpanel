@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/utils/supabase/server'
 import fs from 'fs'
 import path from 'path'
 import { sendEmail, validateEmailConfig } from '@/lib/emails/service'
 import { BudgetApprovedTemplate } from '@/lib/emails/templates/BudgetApproved'
 import { BaseLayout } from '@/lib/emails/templates/BaseLayout'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseKey)
-
 export async function POST(request: NextRequest) {
   try {
+    // ✅ Use authenticated server client
+    const supabase = createClient()
+
+    // ✅ Verify user session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autorizado. Por favor inicie sesión.' },
+        { status: 401 }
+      )
+    }
+
     const { budgetId, clientEmail, clientName } = await request.json()
 
     if (!budgetId || !clientEmail) {

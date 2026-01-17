@@ -20,6 +20,11 @@ export interface BudgetMenuSection {
   tva: number
   tvaPct: number
   totalTTC: number
+  discount?: {
+    percentage: number
+    amount: number
+    reason: string
+  }
   notes?: string
 }
 

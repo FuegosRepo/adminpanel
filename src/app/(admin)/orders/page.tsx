@@ -7,11 +7,10 @@ import OrderCard from '@/components/OrderCard/OrderCard'
 import EmailModal from '@/components/EmailModal/EmailModal'
 import OrderDetails from '@/components/OrderDetails/OrderDetails'
 import ExternalBudgetsList from '@/components/ExternalBudgets/ExternalBudgetsList'
-import { CateringOrder, EmailTemplate } from '@/types'
+import { CateringOrder, EmailTemplate, FilterOptions } from '@/types'
 import { emailTemplates } from '@/data/mockData'
 import styles from './orders.module.css'
 import { useOrders } from '@/hooks/useOrders'
-import { useOrderFilters } from '@/hooks/useOrderFilters'
 import { supabase } from '@/lib/supabaseClient'  // ✅ Added for delete functionality
 
 export default function OrdersPage() {
@@ -28,10 +27,10 @@ export default function OrdersPage() {
         page,
         setPage,
         totalCount,
-        pageSize
+        pageSize,
+        filters,      // ✅ Now using filters from useOrders
+        setFilters    // ✅ Now using setFilters from useOrders
     } = useOrders()
-    // Passing initial filters state if we wanted to persist URL logic later
-    const { filters, setFilters } = useOrderFilters(orders) // passed orders just to satisfy old signature? No, updated signature.
 
     // Effect: Reset page to 1 when filters change
     useEffect(() => {
@@ -255,8 +254,8 @@ export default function OrdersPage() {
             {activeTab === 'orders' ? (
                 <>
                     <FilterBar
-                        filters={filters}
-                        onFiltersChange={setFilters}
+                        filters={filters as FilterOptions}
+                        onFiltersChange={(f: FilterOptions) => setFilters(f)}
                         resultsCount={totalCount} // Display total server count instead of current page
                     />
 

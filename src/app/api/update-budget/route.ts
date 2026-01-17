@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/utils/supabase/server'
 import { BudgetData } from '@/lib/types/budget'
 
 export async function POST(request: NextRequest) {
   try {
+    // ✅ Use authenticated server client
+    const supabase = createClient()
+
+    // ✅ Verify user session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autorizado. Por favor inicie sesión.' },
+        { status: 401 }
+      )
+    }
+
     const { budgetId, budgetData, editedBy, changesSummary } = await request.json()
 
     if (!budgetId || !budgetData) {
