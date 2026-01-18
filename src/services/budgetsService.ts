@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import { sanitizeSearchTerm, getPaginationRange } from '@/utils/queryHelpers'
 
 export type BudgetsFilters = {
     status?: string
@@ -11,12 +12,6 @@ export type FetchBudgetsParams = {
     filters?: BudgetsFilters
 }
 
-// ✅ Sanitize search term to prevent pattern injection
-function sanitizeSearchTerm(term: string): string {
-    // Remove special characters that could affect the query pattern
-    return term.replace(/[%_\\'";\-\(\)\[\]{}]/g, '').trim()
-}
-
 export const fetchBudgets = async ({
     page = 1,
     pageSize = 10,
@@ -25,7 +20,7 @@ export const fetchBudgets = async ({
     // Select only essential fields for the list to save data
     let query = supabase
         .from('budgets')
-        .select('id, order_id, version, status, budget_data, created_at, updated_at', { count: 'exact' })
+        .select('id, order_id, version, status, budget_data, pdf_url, created_at, updated_at', { count: 'exact' })
 
     // Apply filters
     if (filters?.status && filters.status !== 'all') {
@@ -37,7 +32,7 @@ export const fetchBudgets = async ({
     }
 
     if (filters?.searchTerm) {
-        // ✅ Sanitize before use
+        // ✅ Use shared sanitization helper
         const term = sanitizeSearchTerm(filters.searchTerm)
         if (term.length > 0) {
             // Search in budget_data JSON (clientInfo.name or email)
@@ -45,9 +40,8 @@ export const fetchBudgets = async ({
         }
     }
 
-    // Apply pagination
-    const from = (page - 1) * pageSize
-    const to = from + pageSize - 1
+    // ✅ Use shared pagination helper
+    const { from, to } = getPaginationRange(page, pageSize)
 
     query = query
         .order('created_at', { ascending: false })

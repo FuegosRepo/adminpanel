@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/utils/supabase/server'
 import { generateBudgetPDF, getBudgetPDFFilename } from '@/lib/budgetPDFService'
 import { BudgetData } from '@/lib/types/budget'
 
 export async function POST(request: NextRequest) {
   try {
+    // ✅ Use authenticated server client
+    const supabase = createClient()
+
+    // ✅ Verify user session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autorizado. Por favor inicie sesión.' },
+        { status: 401 }
+      )
+    }
+
     const { budgetId, budgetData: providedData } = await request.json()
 
     if (!budgetId) {
@@ -83,10 +95,15 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ PDF generado: ${pdfUrl}`)
 
-    return NextResponse.json({
-      success: true,
-      pdfUrl,
-      filename
+    // Return PDF binary directly with metadata in headers
+    // This allows the frontend to display it immediately (Blob pattern)
+    // while still receiving the persistent URL for state updates
+    return new NextResponse(pdfBlob, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'X-Pdf-Url': pdfUrl,
+        'X-Pdf-Filename': filename
+      }
     })
 
   } catch (error) {
@@ -94,7 +111,7 @@ export async function POST(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     return NextResponse.json(
       {
-        error: errorMessage, // Enviar error real para debugging
+        error: errorMessage,
         details: errorMessage,
         stack: error instanceof Error ? error.stack : undefined
       },

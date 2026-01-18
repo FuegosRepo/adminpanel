@@ -1,21 +1,29 @@
 // Tipos para el sistema de presupuestos
 
+// ✅ Centralized status type for consistency
+export type BudgetStatus = 'draft' | 'pending_review' | 'approved' | 'sent' | 'ENVIADO' | 'rejected'
+
 export interface BudgetMenuItem {
   name: string
   quantity: number
   pricePerUnit: number
   total: number
   description?: string // Optional description for special items like birthday cakes
-  isManualPrice?: boolean // \u2705 Flag to preserve admin-edited prices
+  isManualPrice?: boolean // ✅ Flag to preserve admin-edited prices
 }
 
 export interface BudgetMenuSection {
   pricePerPerson: number
   totalPersons: number
-  entrees: BudgetMenuItem[]
-  viandes: BudgetMenuItem[]
-  dessert: BudgetMenuItem
-  accompagnements: string[]
+  entrees?: BudgetMenuItem[]  // Optional for compatibility
+  viandes?: BudgetMenuItem[]  // Optional for compatibility
+  dessert?: BudgetMenuItem | null  // Optional for compatibility
+  accompagnements?: string[]  // Optional for compatibility
+  selectedItems?: {
+    entrees: string[]
+    viandes: string[]
+    desserts: string[]
+  }
   totalHT: number
   tva: number
   tvaPct: number
@@ -144,7 +152,7 @@ export interface Budget {
   id: string
   order_id: string
   version: number
-  status: 'draft' | 'pending_review' | 'approved' | 'sent' | 'rejected'
+  status: BudgetStatus  // ✅ Using centralized type
   budget_data: BudgetData
   pdf_url?: string
   ai_prompt_used?: string
@@ -170,8 +178,8 @@ export interface BudgetVersionHistory {
   changed_at: string
   changes: {
     field: string
-    oldValue: any
-    newValue: any
+    oldValue: unknown  // Changed from any to unknown for type safety
+    newValue: unknown  // Changed from any to unknown for type safety
   }[]
   summary: string
 }

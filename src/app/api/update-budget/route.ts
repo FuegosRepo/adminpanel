@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { BudgetData } from '@/lib/types/budget'
+import { budgetLogger } from '@/utils/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,6 +11,7 @@ export async function POST(request: NextRequest) {
     // ✅ Verify user session
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
+      budgetLogger.warn('Unauthorized access attempt to update-budget')
       return NextResponse.json(
         { error: 'No autorizado. Por favor inicie sesión.' },
         { status: 401 }
@@ -25,7 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`✏️ Actualizando presupuesto ${budgetId}...`)
+    budgetLogger.info('Updating budget', { action: 'update', budgetId })
 
     // Obtener versión actual
     const { data: currentBudget, error: fetchError } = await supabase
@@ -99,6 +101,9 @@ export async function POST(request: NextRequest) {
           guest_count: budgetData.clientInfo.guestCount,
           address: budgetData.clientInfo.address,
           menu_type: budgetData.clientInfo.menuType,
+
+          // ✅ Sync the price - this was missing!
+          estimated_price: budgetData.totals?.totalTTC || 0,
 
           // Menu selections (use selectedItems IDs)
           entrees: budgetData.menu.selectedItems?.entrees || [],

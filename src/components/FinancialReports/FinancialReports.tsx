@@ -63,7 +63,7 @@ export default function FinancialReports({ orders }: FinancialReportsProps) {
     }
 
     const endDate = endOfMonth(now)
-    
+
     // Filtrar órdenes del período
     const periodOrders = orders.filter(order => {
       const orderDate = new Date(order.createdAt)
@@ -102,7 +102,7 @@ export default function FinancialReports({ orders }: FinancialReportsProps) {
     const monthlyData: MonthlyFinancialData[] = months.map(month => {
       const monthStart = startOfMonth(month)
       const monthEnd = endOfMonth(month)
-      
+
       const monthOrders = periodOrders.filter(order => {
         const orderDate = new Date(order.createdAt)
         return orderDate >= monthStart && orderDate <= monthEnd
@@ -274,14 +274,14 @@ export default function FinancialReports({ orders }: FinancialReportsProps) {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis tickFormatter={(value) => `€${value}`} />
-                      <Tooltip 
-                        formatter={(value: number) => [formatCurrency(value), 'Ingresos']}
+                      <Tooltip
+                        formatter={(value) => [formatCurrency(Number(value)), 'Ingresos']}
                         labelFormatter={(label) => `Mes: ${label}`}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="revenue" 
-                        stroke="#d97706" 
+                      <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#d97706"
                         strokeWidth={3}
                         dot={{ fill: '#d97706', strokeWidth: 2, r: 4 }}
                       />
@@ -297,7 +297,7 @@ export default function FinancialReports({ orders }: FinancialReportsProps) {
                   {paymentChartData.map((item, index) => (
                     <div key={index} className={styles.paymentItem}>
                       <div className={styles.paymentLabel}>
-                        <div 
+                        <div
                           className={styles.paymentDot}
                           style={{ backgroundColor: item.color }}
                         ></div>

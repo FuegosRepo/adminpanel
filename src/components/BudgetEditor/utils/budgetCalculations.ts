@@ -1,4 +1,11 @@
 import { BudgetData } from '../types'
+import {
+    DEJEUNER_DISCOUNT_PERCENTAGE,
+    DEJEUNER_DISCOUNT_REASON,
+    SERVICE_PRICE_PER_HOUR,
+    TVA_SERVICE,
+    MATERIAL_INSURANCE_PERCENTAGE
+} from '@/lib/constants/pricing'
 
 export const recalculateTotals = (data: BudgetData): BudgetData => {
     const updated = { ...data }
@@ -10,13 +17,13 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         updated.menu.tva = menuHT * (updated.menu.tvaPct / 100)
         let menuTTC = menuHT + updated.menu.tva
 
-        // Descuento 10% para Déjeuner (solo al menú)
+        // Descuento para Déjeuner (solo al menú)
         if (updated.clientInfo.menuType === 'dejeuner') {
-            const discountAmount = menuHT * 0.10
+            const discountAmount = menuHT * (DEJEUNER_DISCOUNT_PERCENTAGE / 100)
             updated.menu.discount = {
-                percentage: 10,
+                percentage: DEJEUNER_DISCOUNT_PERCENTAGE,
                 amount: discountAmount,
-                reason: 'Événement à midi - 10%'
+                reason: DEJEUNER_DISCOUNT_REASON
             }
             menuTTC -= discountAmount
         } else {
@@ -25,11 +32,10 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         updated.menu.totalTTC = menuTTC
     }
 
-    // Recalcular servicio (valores fijos: 40€/hora HT, TVA 20%)
+    // Recalcular servicio (usando constantes)
     if (updated.service) {
-        // Asegurar valores fijos
-        updated.service.pricePerHour = 40
-        updated.service.tvaPct = 20
+        updated.service.pricePerHour = SERVICE_PRICE_PER_HOUR
+        updated.service.tvaPct = TVA_SERVICE
         const serviceHT = updated.service.mozos * updated.service.hours * updated.service.pricePerHour
         updated.service.totalHT = serviceHT
         updated.service.tva = serviceHT * (updated.service.tvaPct / 100)

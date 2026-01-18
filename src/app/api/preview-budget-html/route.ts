@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/utils/supabase/server'
 import { generateBudgetHTML } from '@/lib/budgetPDFTemplate'
 import { BudgetData } from '@/lib/types/budget'
 
 export async function GET(request: NextRequest) {
   try {
+    // ✅ Use authenticated server client
+    const supabase = createClient()
+
+    // ✅ Verify user session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      return NextResponse.json(
+        { error: 'No autorizado. Por favor inicie sesión.' },
+        { status: 401 }
+      )
+    }
+
     const searchParams = request.nextUrl.searchParams
     const budgetId = searchParams.get('budgetId')
 
@@ -48,9 +60,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error generando HTML preview:', error)
     return NextResponse.json(
-      { 
-        error: 'Error inesperado', 
-        details: error instanceof Error ? error.message : String(error) 
+      {
+        error: 'Error inesperado',
+        details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     )

@@ -14,7 +14,7 @@
 
 .budgets-list-header h2 {
   margin: 0;
-  color: #333;
+  color: #1f2937; /* Darker for better contrast */
   font-size: 28px;
 }
 
@@ -27,7 +27,7 @@
   padding: 10px 16px;
   border: none;
   border-radius: 8px;
-  background-color: #e2943a;
+  background-color: #c77e2b; /* Darker orange for white text contrast */
   color: white;
   font-weight: 600;
   cursor: pointer;
@@ -35,20 +35,20 @@
 }
 
 .create-manual-btn:hover {
-  background-color: #d18634;
+  background-color: #a66620; /* Even darker on hover */
   transform: translateY(-2px);
 }
 
 .stat {
   padding: 8px 16px;
-  background-color: #f9fafb;
+  background-color: #f3f4f6; /* Slightly darker bg */
   border-radius: 8px;
   font-size: 14px;
-  color: #6b7280;
+  color: #4b5563; /* Darker gray (gray-600) */
 }
 
 .stat strong {
-  color: #e2943a;
+  color: #c05621; /* Darker orange for text contrast */
   margin-left: 5px;
 }
 
@@ -67,7 +67,7 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  color: #6b7280;
+  color: #4b5563; /* Darker gray */
   transition: all 0.2s;
 }
 
@@ -141,7 +141,7 @@
 
 .budget-client-info p {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: #4b5563; /* Darker gray */
   margin: 0.125rem 0;
 }
 
@@ -179,27 +179,27 @@
 }
 
 .status-draft {
-  background: #fef3c7;
+  background: #fffbeb; /* Lighter yellow bg */
   color: #92400e;
 }
 
 .status-pending_review {
-  background: #fef3c7;
+  background: #fffbeb;
   color: #92400e;
 }
 
 .status-approved {
-  background: #d1fae5;
+  background: #ecfdf5; /* Lighter green */
   color: #065f46;
 }
 
 .status-sent {
-  background: #dbeafe;
+  background: #eff6ff; /* Lighter blue */
   color: #1e40af;
 }
 
 .status-rejected {
-  background: #fee2e2;
+  background: #fef2f2;
   color: #991b1b;
 }
 
@@ -210,7 +210,7 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 6px;
-  color: #6b7280;
+  color: #4b5563; /* Darker gray */
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -219,7 +219,7 @@
 
 .budget-expand-button:hover {
   background: #f3f4f6;
-  color: #374151;
+  color: #1f2937;
 }
 
 /* Expanded Content */
@@ -256,7 +256,7 @@
 }
 
 .budget-detail-label {
-  color: #6b7280;
+  color: #4b5563; /* Darker gray */
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -351,7 +351,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: #6b7280; /* Darker gray */
 }
 
 /* Empty & Loading States */
@@ -518,5 +518,5 @@
 
 .page-info {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #4b5563; /* Darker gray */
 }

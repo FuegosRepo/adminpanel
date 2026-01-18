@@ -16,10 +16,18 @@ const mockBudgetData: BudgetData = {
         address: 'Château de la Napoule, Mandelieu'
     },
     menu: {
-        entrees: [{ name: 'Empanadas' }, { name: 'Provoleta' }],
-        viandes: [{ name: 'Bife de Chorizo' }, { name: 'Asado de Tira' }],
+        pricePerPerson: 44,
+        totalPersons: 80,
+        entrees: [
+            { name: 'Empanadas', quantity: 80, pricePerUnit: 5, total: 400 },
+            { name: 'Provoleta', quantity: 80, pricePerUnit: 5, total: 400 }
+        ],
+        viandes: [
+            { name: 'Bife de Chorizo', quantity: 40, pricePerUnit: 15, total: 600 },
+            { name: 'Asado de Tira', quantity: 40, pricePerUnit: 12, total: 480 }
+        ],
         accompagnements: ['Salade Mixte', 'Légumes Grillés'],
-        dessert: { name: 'Flan au Dulce de Leche' },
+        dessert: { name: 'Flan au Dulce de Leche', quantity: 80, pricePerUnit: 6, total: 480 },
         totalHT: 3200,
         tva: 320,
         tvaPct: 10,
@@ -27,9 +35,9 @@ const mockBudgetData: BudgetData = {
     },
     material: {
         items: [
-            { name: 'Assiettes plates', quantity: 80, price: 0.5 },
-            { name: 'Verres de vin', quantity: 80, price: 0.3 },
-            { name: 'Verres d\'eau', quantity: 80, price: 0.3 }
+            { name: 'Assiettes plates', quantity: 80, pricePerUnit: 0.5, total: 40 },
+            { name: 'Verres de vin', quantity: 80, pricePerUnit: 0.3, total: 24 },
+            { name: 'Verres d\'eau', quantity: 80, pricePerUnit: 0.3, total: 24 }
         ],
         totalHT: 500,
         tva: 100,
@@ -41,6 +49,7 @@ const mockBudgetData: BudgetData = {
     service: {
         mozos: 4,
         hours: 6,
+        pricePerHour: 40,
         totalHT: 800,
         tva: 160,
         tvaPct: 20,
@@ -48,6 +57,7 @@ const mockBudgetData: BudgetData = {
     },
     deplacement: {
         distance: 50,
+        pricePerKm: 2,
         totalHT: 100,
         tva: 20,
         tvaPct: 20,
