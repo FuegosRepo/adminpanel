@@ -45,6 +45,10 @@ export const useOrderStats = () => {
                 approvedCount: approvedRes.count || 0,
                 totalRevenue
             }
-        }
+        },
+        // ✅ Optimización de Performance:
+        // Cachear estos datos por 5 minutos para evitar bloquear la navegación
+        staleTime: 1000 * 60 * 5, // 5 minutos
+        gcTime: 1000 * 60 * 10,   // 10 minutos
     })
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'  // ✅ Add for cache invalidation
 import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2, Mail, Calendar, Users, ChevronDown, ChevronUp, MailCheck } from 'lucide-react'
 import './BudgetsList.css'
 import { useBudgets } from '@/hooks/useBudgets'
@@ -22,6 +23,7 @@ interface BudgetsListProps {
 
 export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
   const { budgets, totalCount, page, setPage, pageSize, filters, setFilters, loading, deleteBudget, createManualBudget } = useBudgets()
+  const queryClient = useQueryClient()  // ✅ For cache invalidation
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
 
   const getStatusText = (status: string) => {
@@ -107,8 +109,9 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
       toast.success('✅ Presupuesto marcado como enviado')
       setMarkAsSentModalOpen(false)
       setBudgetToMarkAsSent(null)
-      // Refresh the list to show updated status
-      window.location.reload()
+      // ✅ Invalidate cache instead of full page reload
+      queryClient.invalidateQueries({ queryKey: ['budgets'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
     } catch (error: any) {
       console.error('Error marcando como enviado:', error)
       toast.error(error.message || 'Error al marcar como enviado')

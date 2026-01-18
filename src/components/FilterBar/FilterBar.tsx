@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react'
 import { FilterOptions } from '@/types'
 import styles from './FilterBar.module.css'
 
@@ -7,9 +8,31 @@ interface FilterBarProps {
   resultsCount: number
 }
 
+// ✅ Debounce delay in milliseconds
+const SEARCH_DEBOUNCE_MS = 300
+
 export default function FilterBar({ filters, onFiltersChange, resultsCount }: FilterBarProps) {
+  // ✅ Local state for immediate input feedback
+  const [localSearchTerm, setLocalSearchTerm] = useState(filters.searchTerm || '')
+
+  // ✅ Sync local state when external filters change
+  useEffect(() => {
+    setLocalSearchTerm(filters.searchTerm || '')
+  }, [filters.searchTerm])
+
+  // ✅ Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearchTerm !== (filters.searchTerm || '')) {
+        onFiltersChange({ ...filters, searchTerm: localSearchTerm })
+      }
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => clearTimeout(timer)
+  }, [localSearchTerm]) // Only depend on localSearchTerm
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFiltersChange({ ...filters, searchTerm: e.target.value })
+    setLocalSearchTerm(e.target.value)  // ✅ Update local state immediately
   }
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -26,6 +49,7 @@ export default function FilterBar({ filters, onFiltersChange, resultsCount }: Fi
   }
 
   const clearFilters = () => {
+    setLocalSearchTerm('')  // ✅ Also clear local state
     onFiltersChange({
       status: 'all',
       dateFrom: '',
@@ -40,11 +64,11 @@ export default function FilterBar({ filters, onFiltersChange, resultsCount }: Fi
         <input
           type="text"
           placeholder="Buscar por nombre, email..."
-          value={filters.searchTerm || ''}
+          value={localSearchTerm}
           onChange={handleSearchChange}
           className={styles.searchInput}
         />
-        
+
         <select
           value={filters.status || 'all'}
           onChange={handleStatusChange}
@@ -56,7 +80,7 @@ export default function FilterBar({ filters, onFiltersChange, resultsCount }: Fi
           <option value="approved">Aprobado</option>
           <option value="rejected">Rechazado</option>
         </select>
-        
+
         <input
           type="date"
           value={filters.dateFrom || ''}
@@ -64,7 +88,7 @@ export default function FilterBar({ filters, onFiltersChange, resultsCount }: Fi
           className={styles.dateInput}
           placeholder="Fecha desde"
         />
-        
+
         <input
           type="date"
           value={filters.dateTo || ''}
@@ -72,11 +96,11 @@ export default function FilterBar({ filters, onFiltersChange, resultsCount }: Fi
           className={styles.dateInput}
           placeholder="Fecha hasta"
         />
-        
+
         <button onClick={clearFilters} className={styles.clearButton}>
           Limpiar
         </button>
-        
+
         <span className={styles.resultsCount}>
           {resultsCount} resultado{resultsCount !== 1 ? 's' : ''}
         </span>

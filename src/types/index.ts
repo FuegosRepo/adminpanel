@@ -135,7 +135,7 @@ export interface Reminder {
 export interface Product {
   id: string
   name: string
-  category: 'entrees' | 'viandes' | 'desserts' | 'verduras' | 'pan' | 'extras' | 'material'
+  category: 'entrees' | 'viandes' | 'desserts' | 'verduras' | 'pan' | 'extras' | 'material' | 'entradas' | 'carnes_clasicas' | 'carnes_premium' | 'postres'
   price_per_kg: number | null
   price_per_portion: number
   unit_type: 'kg' | 'unidad' | 'porcion'

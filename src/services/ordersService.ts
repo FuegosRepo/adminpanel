@@ -1,6 +1,6 @@
-
 import { supabase } from '@/lib/supabaseClient'
 import { CateringOrder } from '@/types'
+import { sanitizeSearchTerm, getPaginationRange } from '@/utils/queryHelpers'
 
 export type OrdersFilters = {
     status?: string
@@ -18,41 +18,43 @@ export type FetchOrdersParams = {
 export type OrdersResponse = {
     data: CateringOrder[]
     count: number
-    error: any
+    error: string | null
 }
 
-// ✅ Helper: Sanitize search term to prevent pattern injection
-function sanitizeSearchTerm(term: string): string {
-    // Remove special characters that could affect the query pattern
-    return term.replace(/[%_\\'";\-\(\)\[\]{}]/g, '').trim()
-}
+/**
+ * Parses internal_notes with defensive handling for array/object/string formats
+ * @param rawData - Raw internal_note data from database
+ * @returns Normalized array of notes or undefined
+ */
+function parseInternalNotes(rawData: unknown): { text: string; createdAt: string }[] | undefined {
+    if (!rawData) return undefined
 
-// ✅ Helper: Parse internal_notes with defensive handling for array/object/string
-function parseInternalNotes(data: any): { text: string; createdAt: string }[] | undefined {
-    if (!data) return undefined
+    let data: unknown = rawData
 
     // If it's a string, try to parse it
     if (typeof data === 'string') {
         try {
             data = JSON.parse(data)
         } catch {
-            return [{ text: data, createdAt: new Date().toISOString() }]
+            // Return the raw string as a note
+            return [{ text: String(rawData), createdAt: new Date().toISOString() }]
         }
     }
 
     // If it's an array (new format)
     if (Array.isArray(data)) {
-        return data.map((note: any) => ({
+        return data.map((note: { text?: string; createdAt?: string; created_at?: string }) => ({
             text: note.text || '',
             createdAt: note.createdAt || note.created_at || new Date().toISOString()
         }))
     }
 
     // If it's a single object (old format), wrap in array
-    if (typeof data === 'object') {
+    if (typeof data === 'object' && data !== null) {
+        const obj = data as { text?: string; createdAt?: string; updatedAt?: string; updated_at?: string }
         return [{
-            text: data.text || '',
-            createdAt: data.createdAt || data.updatedAt || data.updated_at || new Date().toISOString()
+            text: obj.text || '',
+            createdAt: obj.createdAt || obj.updatedAt || obj.updated_at || new Date().toISOString()
         }]
     }
 
@@ -75,7 +77,7 @@ export const fetchOrders = async ({
     }
 
     if (filters?.searchTerm) {
-        // ✅ Sanitize before use
+        // ✅ Use shared sanitization helper
         const term = sanitizeSearchTerm(filters.searchTerm)
         if (term.length > 0) {
             // Search in multiple columns using OR syntax
@@ -83,7 +85,7 @@ export const fetchOrders = async ({
         }
     }
 
-    // Apply date filters if they exist in filters (assuming filters might have them based on useOrderFilters)
+    // Apply date filters
     if (filters?.dateFrom) {
         query = query.gte('event_date', filters.dateFrom)
     }
@@ -91,9 +93,8 @@ export const fetchOrders = async ({
         query = query.lte('event_date', filters.dateTo)
     }
 
-    // Apply pagination
-    const from = (page - 1) * pageSize
-    const to = from + pageSize - 1
+    // ✅ Use shared pagination helper
+    const { from, to } = getPaginationRange(page, pageSize)
 
     query = query
         .order('created_at', { ascending: false })
@@ -106,7 +107,29 @@ export const fetchOrders = async ({
     }
 
     // Map to internal type
-    const mapped: CateringOrder[] = (data || []).map((row: any) => ({
+    const mapped: CateringOrder[] = (data || []).map((row: {
+        id: string
+        email: string
+        name: string
+        phone?: string
+        event_date?: string
+        event_type?: string
+        address?: string
+        guest_count?: number
+        menu_type?: string
+        entrees?: string[]
+        viandes?: string[]
+        dessert?: string | null
+        extras?: { wines?: boolean; equipment?: string[]; decoration?: boolean; specialRequest?: string }
+        status?: string
+        created_at: string
+        updated_at: string
+        estimated_price?: number
+        notes?: string
+        internal_note?: unknown
+        payment?: CateringOrder['payment']
+        budgets?: { id: string }[]
+    }) => ({
         id: row.id,
         contact: {
             email: row.email,
@@ -114,21 +137,25 @@ export const fetchOrders = async ({
             phone: row.phone || '',
             eventDate: row.event_date || '',
             eventType: row.event_type || '',
-            // eventTime: row.event_time || undefined, // Not selected anymore to save bytes if unused, add back if needed
             address: row.address || '',
             guestCount: row.guest_count || 0
         },
-        menu: { type: row.menu_type },
+        menu: { type: (row.menu_type as 'dejeuner' | 'diner') || null },
         entrees: row.entrees || [],
         viandes: row.viandes || [],
         dessert: row.dessert || null,
-        extras: row.extras || { wines: false, equipment: [], decoration: false, specialRequest: '' },
-        status: row.status || 'pending',
+        extras: {
+            wines: row.extras?.wines ?? false,
+            equipment: row.extras?.equipment ?? [],
+            decoration: row.extras?.decoration ?? false,
+            specialRequest: row.extras?.specialRequest ?? ''
+        },
+        status: (row.status || 'pending') as 'pending' | 'sent' | 'approved' | 'rejected' | 'ENVIADO',
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         estimatedPrice: row.estimated_price || undefined,
         notes: row.notes || undefined,
-        internalNotes: parseInternalNotes(row.internal_note),  // ✅ Parse as array
+        internalNotes: parseInternalNotes(row.internal_note),
         payment: row.payment,
         hasBudget: row.budgets && row.budgets.length > 0
     }))

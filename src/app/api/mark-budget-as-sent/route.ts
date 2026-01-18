@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/utils/supabase/server'
 
 export async function POST(request: NextRequest) {
     try {
+        // ✅ Use authenticated server client
+        const supabase = createClient()
+
+        // ✅ Verify user session
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+            return NextResponse.json(
+                { error: 'No autorizado. Por favor inicie sesión.' },
+                { status: 401 }
+            )
+        }
+
         const { budgetId } = await request.json()
 
         if (!budgetId) {
@@ -38,7 +50,6 @@ export async function POST(request: NextRequest) {
         }
 
         // 2. Actualizar estado a 'sent' y guardar timestamp
-        // NOTA: NO enviamos email al cliente - solo marcamos como enviado
         const { error: updateError } = await supabase
             .from('budgets')
             .update({
@@ -57,6 +68,25 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // ✅ 3. Sync order status and estimated_price
+        if (budget.order_id) {
+            const budgetData = budget.budget_data as any
+            const { error: orderUpdateError } = await supabase
+                .from('catering_orders')
+                .update({
+                    status: 'sent',
+                    estimated_price: budgetData?.totals?.totalTTC || 0,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', budget.order_id)
+
+            if (orderUpdateError) {
+                console.warn('⚠️ Failed to sync order status:', orderUpdateError)
+            } else {
+                console.log('✅ Order status synced to sent')
+            }
+        }
+
         console.log('✅ Presupuesto marcado como enviado manualmente (sin envío de email)')
 
         return NextResponse.json({
@@ -72,3 +102,4 @@ export async function POST(request: NextRequest) {
         )
     }
 }
+

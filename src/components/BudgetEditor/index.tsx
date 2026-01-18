@@ -25,13 +25,18 @@ import { isEqual } from 'lodash'
 import { recalculateTotals } from './utils/budgetCalculations' // ✅ Import moved to top
 import styles from './BudgetEditor.module.css'
 
+import { useBudgetModals } from './hooks/useBudgetModals' // ✅ Import hook
+
 export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
-    // ✅ Modal states
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-    const [deleteSectionModalOpen, setDeleteSectionModalOpen] = useState(false)
-    const [sectionToDelete, setSectionToDelete] = useState<string | null>(null)
-    const [confirmBeforeApproveModalOpen, setConfirmBeforeApproveModalOpen] = useState(false)
-    const [confirmMarkAsSentModalOpen, setConfirmMarkAsSentModalOpen] = useState(false)
+    // ✅ Use custom hook for modals
+    const {
+        modals,
+        sectionToDelete,
+        openModal,
+        closeModal,
+        promptDeleteSection,
+        closeDeleteSection
+    } = useBudgetModals() // ✅ Replaces 5+ useState calls
 
     const {
         budget,
@@ -108,7 +113,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         }
 
         // ✅ Open confirmation modal instead of window.confirm
-        setConfirmBeforeApproveModalOpen(true)
+        openModal('confirmApprove')
     }
 
     const confirmApproveAndSend = async () => {
@@ -125,12 +130,12 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         } else {
             toast.error(`❌ Error al aprobar presupuesto: ${result.error}`)  // ✅ Toast
         }
-        setConfirmBeforeApproveModalOpen(false)
+        closeModal('confirmApprove')
     }
 
     const handleDeleteBudget = async () => {
         // ✅ Open modal instead of window.confirm
-        setDeleteModalOpen(true)
+        openModal('deleteBudget')
     }
 
     const confirmDeleteBudget = async () => {
@@ -145,7 +150,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         } else {
             toast.error('❌ Error al eliminar el presupuesto')  // ✅ Toast
         }
-        setDeleteModalOpen(false)
+        closeModal('deleteBudget')
     }
 
     const handleGeneratePDF = async () => {
@@ -155,18 +160,23 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         }
 
         const result = await generatePDF(editedData)
-        if (result.success && result.pdfUrl) {
-            console.log('✅ PDF generado:', result.pdfUrl)
-            const pdfUrlWithCache = `${result.pdfUrl}${result.pdfUrl.includes('?') ? '&' : '?'}_=${Date.now()}`
+        if (result.success) {
+            console.log('✅ PDF generado correctamente')
 
-            // Usar un enlace temporal para evitar bloqueadores de popups
-            const link = document.createElement('a')
-            link.href = pdfUrlWithCache
-            link.target = '_blank'
-            link.rel = 'noopener noreferrer'
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
+            // ✅ BLOB Pattern: Open blob URL instantly (no waiting for remote fetch)
+            if (result.pdfBlob) {
+                const blobUrl = URL.createObjectURL(result.pdfBlob)
+                // Open in new tab
+                window.open(blobUrl, '_blank')
+
+                // Cleanup memory after a delay
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+            } else if ('pdfUrl' in result && result.pdfUrl) {
+                // Fallback to URL if no blob available
+                window.open(result.pdfUrl as string, '_blank')
+            }
+
+            toast.success('PDF generado y abierto')
         } else {
             toast.error(`Error al generar PDF: ${result.error}`)  // ✅ Toast
         }
@@ -183,7 +193,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
             return
         }
 
-        setConfirmMarkAsSentModalOpen(true)
+        openModal('confirmSent')
     }
 
     const confirmMarkAsSent = async () => {
@@ -193,7 +203,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         } else {
             toast.error(`❌ Error al marcar como enviado: ${result.error}`)
         }
-        setConfirmMarkAsSentModalOpen(false)
+        closeModal('confirmSent')
     }
 
     // Handlers para agregar/eliminar secciones
@@ -203,8 +213,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
     const removeSection = (sectionName: string) => {
         // ✅ Open modal instead of window.confirm
-        setSectionToDelete(sectionName)
-        setDeleteSectionModalOpen(true)
+        promptDeleteSection(sectionName)
     }
 
     const confirmRemoveSection = () => {
@@ -214,8 +223,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
             delete newData[sectionToDelete]
             setEditedData(newData) // Esto recalculará totales en el hook
         }
-        setDeleteSectionModalOpen(false)
-        setSectionToDelete(null)
+        closeDeleteSection()
     }
 
     return (
@@ -249,8 +257,8 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
             {/* ✅ Delete Budget Confirmation Modal */}
             <ConfirmationModal
-                isOpen={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
+                isOpen={modals.deleteBudget}
+                onClose={() => closeModal('deleteBudget')}
                 onConfirm={confirmDeleteBudget}
                 title="¿Eliminar presupuesto?"
                 message="¿Estás seguro de que deseas eliminar este presupuesto permanentemente?\n\nEsta acción es irreversible y eliminará tanto el presupuesto como el pedido relacionado en ambas secciones para mantener la sincronización."
@@ -260,11 +268,8 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
             {/* ✅ Delete Section Confirmation Modal */}
             <ConfirmationModal
-                isOpen={deleteSectionModalOpen}
-                onClose={() => {
-                    setDeleteSectionModalOpen(false)
-                    setSectionToDelete(null)
-                }}
+                isOpen={modals.deleteSection}
+                onClose={closeDeleteSection}
                 onConfirm={confirmRemoveSection}
                 title={`¿Eliminar sección ${sectionToDelete}?`}
                 message={`¿Estás seguro de que deseas eliminar la sección de ${sectionToDelete}?`}
@@ -274,8 +279,8 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
             {/* ✅ Approve and Send Confirmation Modal */}
             <ConfirmationModal
-                isOpen={confirmBeforeApproveModalOpen}
-                onClose={() => setConfirmBeforeApproveModalOpen(false)}
+                isOpen={modals.confirmApprove}
+                onClose={() => closeModal('confirmApprove')}
                 onConfirm={confirmApproveAndSend}
                 title="Enviar Presupuesto"
                 message={`¿Estás seguro de enviar este presupuesto?\n\nCliente: ${editedData.clientInfo.name}\nEmail: ${editedData.clientInfo.email}\nTotal: ${editedData.totals.totalTTC.toFixed(2)}€\n\nSe enviará por email al cliente.`}
@@ -285,8 +290,8 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
             {/* ✅ Mark as Sent Confirmation Modal */}
             <ConfirmationModal
-                isOpen={confirmMarkAsSentModalOpen}
-                onClose={() => setConfirmMarkAsSentModalOpen(false)}
+                isOpen={modals.confirmSent}
+                onClose={() => closeModal('confirmSent')}
                 onConfirm={confirmMarkAsSent}
                 title="Marcar como Enviado"
                 message={`¿Marcar este presupuesto como enviado?\n\nEsto actualizará el estado sin enviar email al cliente.\n\nCliente: ${editedData.clientInfo.name}\nEmail: ${editedData.clientInfo.email}\nTotal: ${editedData.totals.totalTTC.toFixed(2)}€`}

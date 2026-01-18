@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'  // ✅ Add for cache invalidation
 import { supabase } from '@/lib/supabaseClient'
 import { Budget, BudgetData } from '../types'
 import { formatItemName } from '../utils/formatItemName'
@@ -6,6 +7,7 @@ import { MATERIAL_MAPPINGS } from '@/components/EventCalculator/utils/productMap
 import { normalizeFrontendIdsToProductNames } from '@/lib/productNormalization'
 
 export function useBudgetData(budgetId: string) {
+    const queryClient = useQueryClient()  // ✅ Get query client
     const [budget, setBudget] = useState<Budget | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -306,6 +308,10 @@ export function useBudgetData(budgetId: string) {
             const result = await response.json()
             console.log('✅ Cambios guardados:', result)
 
+            // ✅ Invalidate React Query caches so lists refresh with updated data
+            queryClient.invalidateQueries({ queryKey: ['budgets'] })
+            queryClient.invalidateQueries({ queryKey: ['orders'] })
+
             // Recargar presupuesto para actualizar versión y estado
             const updatedData = await loadBudget()
             return { success: true, data: updatedData }
@@ -383,7 +389,7 @@ export function useBudgetData(budgetId: string) {
         }
     }
 
-    const generatePDF = async (currentData: BudgetData) => {
+    const generatePDF = async (currentData: BudgetData): Promise<{ success: true; pdfUrl: string; pdfBlob: Blob } | { success: false; error: any }> => {
         try {
             setSaving(true)
 
@@ -414,9 +420,23 @@ export function useBudgetData(budgetId: string) {
                 throw new Error(errorData.error || 'Error al generar PDF')
             }
 
-            const result = await response.json()
-            await loadBudget()
-            return { success: true, pdfUrl: result.pdfUrl }
+            // ✅ Blob Pattern Implementation
+            // 1. Get metadata from headers
+            const pdfUrl = response.headers.get('X-Pdf-Url')
+            if (!pdfUrl) throw new Error('No PDF URL in response headers')
+
+            // 2. Get binary data
+            const blob = await response.blob()
+
+            // 3. Optimistic Update (Avoid full reload)
+            if (budget) {
+                setBudget({ ...budget, pdf_url: pdfUrl })
+            }
+
+            // 4. Invalidate List Query in Background (don't await/block)
+            queryClient.invalidateQueries({ queryKey: ['budgets'] })
+
+            return { success: true, pdfUrl, pdfBlob: blob }
         } catch (err) {
             console.error('Error generando PDF:', err)
             return { success: false, error: err }

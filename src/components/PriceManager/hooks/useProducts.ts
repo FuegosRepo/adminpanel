@@ -14,16 +14,16 @@ export function useProducts() {
 
     const queryClient = useQueryClient()
 
-    // Use React Query for fetching
+    // Use React Query for fetching - include inactive products for admin management
     const { data: serverProducts, isLoading: loading, error: queryError } = useQuery({
-        queryKey: ['products'], // Share key with global hook!
-        queryFn: fetchProducts,
+        queryKey: ['products', true], // Include inactive for admin
+        queryFn: () => fetchProducts(true),  // ✅ Pass true to include inactive products
         staleTime: 1000 * 60 * 5
     })
 
     // Sync server data to local state when loaded (only if not editing)
     useEffect(() => {
-        if (serverProducts && editedProducts.size === 0) {
+        if (serverProducts && Array.isArray(serverProducts) && editedProducts.size === 0) {
             setProducts(serverProducts)
         }
     }, [serverProducts, editedProducts.size])
