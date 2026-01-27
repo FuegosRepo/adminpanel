@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'  // ✅ Add for cache invalidation
 import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2, Mail, Calendar, Users, ChevronDown, ChevronUp, MailCheck } from 'lucide-react'
 import './BudgetsList.css'
 import { useBudgets } from '@/hooks/useBudgets'
 import { toast } from 'sonner'
 import ConfirmationModal from '@/components/common/ConfirmationModal'
+import type { BudgetsFilters } from '@/services/budgetsService'
 
 interface Budget {
   id: string
@@ -19,10 +20,15 @@ interface Budget {
 
 interface BudgetsListProps {
   onSelectBudget: (budgetId: string) => void
+  // ✅ Props para persistir paginación desde el padre
+  page: number
+  setPage: (page: number) => void
+  filters: BudgetsFilters
+  setFilters: (filters: BudgetsFilters) => void
 }
 
-export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
-  const { budgets, totalCount, page, setPage, pageSize, filters, setFilters, loading, deleteBudget, createManualBudget } = useBudgets()
+export default function BudgetsList({ onSelectBudget, page, setPage, filters, setFilters }: BudgetsListProps) {
+  const { budgets, totalCount, pageSize, loading, deleteBudget, createManualBudget } = useBudgets({ page, filters })
   const queryClient = useQueryClient()  // ✅ For cache invalidation
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
 
@@ -57,10 +63,11 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
     })
   }
 
-  // Effect to reset page when filters change
-  useEffect(() => {
-    setPage(1)
-  }, [filters.status, setPage])
+  // ✅ Función para cambiar filtros y resetear página - solo se ejecuta con acción del usuario
+  const handleFilterChange = (newFilters: BudgetsFilters) => {
+    setFilters(newFilters)
+    setPage(1)  // Reset a página 1 solo cuando el usuario cambia un filtro
+  }
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null)
@@ -173,25 +180,25 @@ export default function BudgetsList({ onSelectBudget }: BudgetsListProps) {
       <div className="budgets-list-filters">
         <button
           className={`filter-btn ${!filters.status || filters.status === 'all' ? 'active' : ''}`}
-          onClick={() => setFilters({ ...filters, status: 'all' })}
+          onClick={() => handleFilterChange({ ...filters, status: 'all' })}
         >
           Todos
         </button>
         <button
           className={`filter-btn ${filters.status === 'pending_review' ? 'active' : ''}`}
-          onClick={() => setFilters({ ...filters, status: 'pending_review' })}
+          onClick={() => handleFilterChange({ ...filters, status: 'pending_review' })}
         >
           Pendientes
         </button>
         <button
           className={`filter-btn ${filters.status === 'approved' ? 'active' : ''}`}
-          onClick={() => setFilters({ ...filters, status: 'approved' })}
+          onClick={() => handleFilterChange({ ...filters, status: 'approved' })}
         >
           Aprobados
         </button>
         <button
           className={`filter-btn ${filters.status === 'sent' ? 'active' : ''}`}
-          onClick={() => setFilters({ ...filters, status: 'sent' })}
+          onClick={() => handleFilterChange({ ...filters, status: 'sent' })}
         >
           Enviados
         </button>

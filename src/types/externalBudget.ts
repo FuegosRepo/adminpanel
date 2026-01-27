@@ -15,6 +15,7 @@ export interface ExternalBudget {
     notes: string | null
     admin_comments: string | null
     categoria: string | null
+    relance_count: number  // ✅ Contador de relances
     imported_at: string
     original_timestamp: string | null
     created_at: string

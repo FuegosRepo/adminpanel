@@ -46,6 +46,7 @@ const OrderCard = ({
   const [isExpanded, setIsExpanded] = useState(false)
   const [relanceModalOpen, setRelanceModalOpen] = useState(false)
   const [lastRelanceDate, setLastRelanceDate] = useState<string | null>(null)
+  const [relanceCount, setRelanceCount] = useState(0)  // ✅ Contador de relances
   const [extrasView, setExtrasView] = useState<'compact' | 'detailed'>('compact')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [noteModalOpen, setNoteModalOpen] = useState(false)  // ✅ Internal note modal state
@@ -55,23 +56,22 @@ const OrderCard = ({
   }, [])
 
   useEffect(() => {
-    if (isExpanded) {
-      const fetchLastRelance = async () => {
-        const { data } = await supabase
-          .from('email_logs')
-          .select('sent_at')
-          .eq('order_id', order.id)
-          .eq('subject', 'Relance - Votre devis Fuegos d\'Azur') // Asunto del template ID 5
-          .order('sent_at', { ascending: false })
-          .limit(1)
+    // ✅ Fetch relance count and last date immediately (not just when expanded)
+    const fetchRelanceData = async () => {
+      const { data, count } = await supabase
+        .from('email_logs')
+        .select('sent_at', { count: 'exact' })
+        .eq('order_id', order.id)
+        .eq('subject', 'Relance - Votre devis Fuegos d\'Azur')
+        .order('sent_at', { ascending: false })
 
-        if (data && data.length > 0) {
-          setLastRelanceDate(data[0].sent_at)
-        }
+      if (data && data.length > 0) {
+        setLastRelanceDate(data[0].sent_at)
       }
-      fetchLastRelance()
+      setRelanceCount(count || 0)
     }
-  }, [isExpanded, order.id])
+    fetchRelanceData()
+  }, [order.id])
 
 
 
@@ -97,8 +97,9 @@ const OrderCard = ({
 
       if (response.ok) {
         setLastRelanceDate(new Date().toISOString())
+        setRelanceCount(prev => prev + 1)  // ✅ Incrementar contador
         setRelanceModalOpen(false)
-        toast.success('Email de relance enviado correctamente')  // ✅ Toast instead of alert
+        toast.success('Email de relance enviado correctamente')
       } else {
         toast.error('Error al enviar el email')  // ✅ Toast instead of alert
       }
@@ -157,6 +158,12 @@ const OrderCard = ({
             <span className={`${styles.status} ${styles[order.status === 'ENVIADO' ? 'sent' : order.status]}`}>
               {getStatusText(order.status)}
             </span>
+            {/* ✅ Badge de relance */}
+            {relanceCount > 0 && (
+              <span className={`${styles.status} ${styles.relanced}`} title={`Relanzado ${relanceCount} ${relanceCount === 1 ? 'vez' : 'veces'}`}>
+                🔄 Relanzado {relanceCount}x
+              </span>
+            )}
             {/* ✅ Internal notes indicator */}
             {order.internalNotes && order.internalNotes.length > 0 && (
               <button
