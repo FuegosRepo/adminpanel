@@ -46,11 +46,27 @@ export default function ExternalBudgetsList() {
 
     const handleResend = async (budgetId: string) => {
         try {
-            // TODO: Implement resend email functionality
-            toast.info('Funcionalidad de reenvío en desarrollo')
-            console.log('Resending budget:', budgetId)
+            // Encontrar el budget para obtener el contador actual
+            const budget = budgets.find(b => b.id === budgetId)
+            if (!budget) {
+                toast.error('Budget no encontrado')
+                return
+            }
+
+            // ✅ Incrementar contador y actualizar fecha de último envío
+            const { updateExternalBudget } = await import('@/services/externalBudgetsService')
+            const { error } = await updateExternalBudget(budgetId, {
+                relance_count: (budget.relance_count || 0) + 1,
+                last_sent_at: new Date().toISOString(),
+                status: 'sent' as const
+            })
+
+            if (error) throw error
+
+            toast.success(`✅ Relance enviado (${(budget.relance_count || 0) + 1}ª vez)`)
+            refresh()  // Refrescar lista para ver el nuevo contador
         } catch (error) {
-            toast.error('Error al reenviar el devis')
+            toast.error('Error al relanzar el devis')
             console.error(error)
         }
     }

@@ -169,6 +169,12 @@
   color: #991b1b;
 }
 
+/* ✅ Badge de relanzado */
+.status.relanced {
+  background: #e9d5ff;
+  color: #7c3aed;
+}
+
 .details {
   margin: 1rem 0;
 }

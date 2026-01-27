@@ -3,11 +3,22 @@ import { supabase } from '@/lib/supabaseClient'
 import { fetchBudgets, BudgetsFilters } from '@/services/budgetsService'
 import { useState } from 'react'
 
-export const useBudgets = (initialFilters?: BudgetsFilters) => {
+interface UseBudgetsOptions {
+    // ✅ Parámetros externos opcionales para persistir paginación desde el padre
+    page?: number
+    filters?: BudgetsFilters
+}
+
+export const useBudgets = (options?: UseBudgetsOptions) => {
     const queryClient = useQueryClient()
-    const [page, setPage] = useState(1)
+
+    // ✅ Usar valores externos si se pasan, sino fallback a estado interno
+    const [internalPage, setInternalPage] = useState(1)
+    const [internalFilters, setInternalFilters] = useState<BudgetsFilters>({})
+
+    const page = options?.page ?? internalPage
+    const filters = options?.filters ?? internalFilters
     const [pageSize] = useState(10)
-    const [filters, setFilters] = useState<BudgetsFilters>(initialFilters || {})
 
     const {
         data: budgetsData,
@@ -100,10 +111,8 @@ export const useBudgets = (initialFilters?: BudgetsFilters) => {
         budgets,
         totalCount,
         page,
-        setPage,
         pageSize,
         filters,
-        setFilters,
         loading,
         error,
         deleteBudget: deleteBudgetMutation.mutateAsync,

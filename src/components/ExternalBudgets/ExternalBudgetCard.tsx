@@ -123,17 +123,25 @@ export default function ExternalBudgetCard({ budget, onResend, onViewDetails, on
                     )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end', flexShrink: 0 }}>
-                    <select
-                        className={`${styles.statusSelect} ${getStatusBadgeClass(budget.status)}`}
-                        value={budget.status}
-                        onChange={(e) => handleStatusChange(e.target.value)}
-                        disabled={isUpdating}
-                    >
-                        <option value="pending">🟡 Pendiente</option>
-                        <option value="sent">📤 Enviado</option>
-                        <option value="accepted">✅ Aceptado</option>
-                        <option value="rejected">❌ Rechazado</option>
-                    </select>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <select
+                            className={`${styles.statusSelect} ${getStatusBadgeClass(budget.status)}`}
+                            value={budget.status}
+                            onChange={(e) => handleStatusChange(e.target.value)}
+                            disabled={isUpdating}
+                        >
+                            <option value="pending">🟡 Pendiente</option>
+                            <option value="sent">📤 Enviado</option>
+                            <option value="accepted">✅ Aceptado</option>
+                            <option value="rejected">❌ Rechazado</option>
+                        </select>
+                        {/* ✅ Badge de relance */}
+                        {budget.relance_count > 0 && (
+                            <span className={styles.relanceBadge} title={`Relanzado ${budget.relance_count} ${budget.relance_count === 1 ? 'vez' : 'veces'}`}>
+                                🔄 {budget.relance_count}x
+                            </span>
+                        )}
+                    </div>
                     {budget.last_sent_at && (
                         <div className={styles.sentTimeAgo}>
                             🕐 {getTimeAgo(budget.last_sent_at)}
