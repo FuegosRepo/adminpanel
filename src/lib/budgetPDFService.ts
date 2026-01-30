@@ -95,20 +95,33 @@ export async function generateBudgetPDF(budgetData: BudgetData): Promise<Blob> {
 
 
 export function getBudgetPDFFilename(budgetData: BudgetData): string {
-  const clientName = (budgetData.clientInfo.name || 'Client').replace(/[^a-zA-Z0-9_-]/g, '_')
+  const clientName = (budgetData.clientInfo.name || 'Client').trim()
 
+  // Intentar usar la fecha del evento, si no la de generación
+  let dateToUse = budgetData.clientInfo.eventDate || budgetData.generatedAt
   let dateStr: string
+
   try {
-    const d = new Date(budgetData.generatedAt)
+    const d = new Date(dateToUse)
     if (isNaN(d.getTime())) {
       dateStr = new Date().toISOString().split('T')[0]
     } else {
-      dateStr = d.toISOString().split('T')[0]
+      // Formatear como DD-MM-YYYY
+      const day = String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const year = d.getFullYear()
+      dateStr = `${day}-${month}-${year}`
     }
   } catch (e) {
-    dateStr = new Date().toISOString().split('T')[0]
+    dateStr = 'Fecha'
   }
 
-  return `Devis_Fuegos_${clientName}_${dateStr}.pdf`
+  // Limpiar caracteres prohibidos en nombres de archivos
+  // Reemplazar espacios con guiones bajos para compatibilidad con Supabase Storage
+  const safeClientName = clientName
+    .replace(/[/\\?%*:|"<>]/g, '')  // Eliminar caracteres prohibidos
+    .replace(/\s+/g, '_')           // Reemplazar espacios con guiones bajos
+
+  return `Devis_${safeClientName}_${dateStr}.pdf`
 }
 

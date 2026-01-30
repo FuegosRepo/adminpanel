@@ -143,6 +143,9 @@ const OrderCard = ({
     }
   }
 
+  // Estado para menú colapsable
+  const [menuExpanded, setMenuExpanded] = useState(false)
+
   return (
     <div className={`${styles.card} ${isExpanded ? styles.expanded : styles.collapsed}`}>
       {/* Vista compacta - siempre visible */}
@@ -152,160 +155,81 @@ const OrderCard = ({
             <h3>{order.contact.name}</h3>
             <p className={styles.email}>{order.contact.email}</p>
             <p className={styles.phone}>{order.contact.phone}</p>
-            <p className={styles.eventDate}>📅 {formatDate(order.contact.eventDate)}</p>
           </div>
           <div className={styles.compactRight}>
-            <span className={`${styles.status} ${styles[order.status === 'ENVIADO' ? 'sent' : order.status]}`}>
-              {getStatusText(order.status)}
-            </span>
-            {/* ✅ Badge de relance */}
-            {relanceCount > 0 && (
-              <span className={`${styles.status} ${styles.relanced}`} title={`Relanzado ${relanceCount} ${relanceCount === 1 ? 'vez' : 'veces'}`}>
-                🔄 Relanzado {relanceCount}x
+            {/* Badge group - status + relance conectados */}
+            <div className={styles.badgeGroup}>
+              <span className={`${styles.statusBadge} ${styles[order.status === 'ENVIADO' ? 'sent' : order.status]} ${relanceCount > 0 ? styles.hasRelance : ''}`}>
+                {getStatusText(order.status)}
               </span>
-            )}
-            {/* ✅ Internal notes indicator */}
-            {order.internalNotes && order.internalNotes.length > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setNoteModalOpen(true)
-                }}
-                className={styles.noteIndicator}
-                title={`${order.internalNotes.length} nota(s)`}
-              >
-                <StickyNote size={16} />
-                <span className={styles.noteCount}>{order.internalNotes.length}</span>
-              </button>
-            )}
-            {/* Delete button in compact view */}
-            {onDelete && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setDeleteModalOpen(true)
-                }}
-                className={styles.compactDeleteButton}
-                title="Eliminar pedido"
-              >
-                <Trash2 size={16} />
-              </button>
-            )}
+              {relanceCount > 0 && (
+                <span className={styles.relanceBadge}>
+                  {relanceCount}x
+                </span>
+              )}
+            </div>
+            {/* Expand button */}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className={styles.expandButton}
-              aria-label={isExpanded ? 'Contraer tarjeta' : 'Expandir tarjeta'}
+              aria-label={isExpanded ? 'Contraer' : 'Expandir'}
             >
               {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
           </div>
         </div>
+
+        {/* Chips de info rápida */}
+        <div className={styles.quickInfo}>
+          <span className={styles.infoChip}>📅 {formatDate(order.contact.eventDate)}</span>
+          <span className={styles.infoChip}>👥 {order.contact.guestCount} personas</span>
+          {order.estimatedPrice && (
+            <span className={`${styles.infoChip} ${styles.priceChip}`}>€{mounted ? order.estimatedPrice.toLocaleString() : order.estimatedPrice}</span>
+          )}
+          <span className={styles.infoChip}>{getEventTypeText(order.contact.eventType)}</span>
+          <span className={styles.infoChip}>🍽️ {order.menu.type === 'dejeuner' ? 'Almuerzo' : order.menu.type === 'diner' ? 'Cena' : 'Menú'}</span>
+        </div>
       </div>
 
-      {/* Vista expandida - solo visible cuando isExpanded es true */}
+      {/* Vista expandida */}
       {isExpanded && (
         <div className={styles.expandedContent}>
-          <div className={styles.details}>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Fecha del evento:</span>
-              <span className={styles.detailValue}>{formatDate(order.contact.eventDate)}</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Tipo de evento:</span>
-              <span className={styles.detailValue}>{getEventTypeText(order.contact.eventType)}</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Invitados:</span>
-              <span className={styles.detailValue}>{order.contact.guestCount}</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Tipo de menú:</span>
-              <span className={styles.detailValue}>
-                {order.menu.type === 'dejeuner' ? 'Almuerzo' : order.menu.type === 'diner' ? 'Cena' : 'No especificado'}
-              </span>
-            </div>
-            {order.estimatedPrice && (
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>Precio estimado:</span>
-                <span className={`${styles.detailValue} ${styles.price}`}>
-                  €{mounted ? order.estimatedPrice.toLocaleString() : order.estimatedPrice}
-                </span>
-              </div>
-            )}
-          </div>
+          {/* Menú colapsable */}
+          <button
+            className={styles.menuToggle}
+            onClick={() => setMenuExpanded(!menuExpanded)}
+          >
+            {menuExpanded ? '▲' : '▼'} Ver menú completo
+          </button>
 
-          <div className={styles.menuItems}>
-            {order.entrees.length > 0 && (
-              <div className={styles.menuSection}>
-                <h4>Entrées</h4>
-                <ProductListResolver ids={order.entrees} category="entrees" />
-              </div>
-            )}
-
-            {order.viandes.length > 0 && (
-              <div className={styles.menuSection}>
-                <h4>Viandes</h4>
-                <ProductListResolver ids={order.viandes} category="viandes" />
-              </div>
-            )}
-
-            {order.dessert && (
-              <div className={styles.menuSection}>
-                <h4>Dessert</h4>
-                <ProductListResolver ids={order.dessert} category="desserts" />
-              </div>
-            )}
-
-            {/* Extras */}
-            <div className={styles.menuSection}>
-              <h4>Extras</h4>
-              <select
-                className={styles.extrasSelect}
-                value={extrasView}
-                onChange={(e) => setExtrasView(e.target.value as 'compact' | 'detailed')}
-              >
-                <option value="compact">Vista compacta</option>
-                <option value="detailed">Vista detallada</option>
-              </select>
-
-              {extrasView === 'detailed' ? (
-                <div className={styles.extrasChips}>
-                  {order.extras.wines && (
-                    <span className={`${styles.chip} ${styles.wines}`}>🍷 Vinos incluidos</span>
-                  )}
-                  {order.extras.decoration && (
-                    <span className={`${styles.chip} ${styles.decoration}`}>🎨 Decoración incluida</span>
-                  )}
-                  {order.extras.equipment.length > 0 && order.extras.equipment.map((equip, index) => (
-                    <span key={index} className={`${styles.chip} ${styles.equipment}`}>🔧 {equip}</span>
-                  ))}
-                  {order.extras.specialRequest && (
-                    <span className={`${styles.chip} ${styles.request}`}>📝 {order.extras.specialRequest}</span>
-                  )}
-                </div>
-              ) : (
-                <div className={styles.extrasChips}>
-                  {order.extras.wines && (
-                    <span className={`${styles.chip} ${styles.wines}`}>🍷 Vinos</span>
-                  )}
-                  {order.extras.decoration && (
-                    <span className={`${styles.chip} ${styles.decoration}`}>🎨 Decoración</span>
-                  )}
-                  {order.extras.equipment.length > 0 && (
-                    <span className={`${styles.chip} ${styles.equipment}`}>
-                      🔧 <span className={styles.chipCount}>{order.extras.equipment.length}</span> ítems
-                    </span>
-                  )}
-                  {order.extras.specialRequest && (
-                    <span className={`${styles.chip} ${styles.request}`}>📝 {order.extras.specialRequest}</span>
-                  )}
-                  {!(order.extras.wines || order.extras.decoration || order.extras.equipment.length > 0 || order.extras.specialRequest) && (
-                    <span className={styles.chip}>Sin extras</span>
-                  )}
+          {menuExpanded && (
+            <div className={styles.menuItems}>
+              {order.entrees.length > 0 && (
+                <div className={styles.menuSection}>
+                  <h4>Entrées</h4>
+                  <ProductListResolver ids={order.entrees} category="entrees" />
                 </div>
               )}
+              {order.viandes.length > 0 && (
+                <div className={styles.menuSection}>
+                  <h4>Viandes</h4>
+                  <ProductListResolver ids={order.viandes} category="viandes" />
+                </div>
+              )}
+              {order.dessert && (
+                <div className={styles.menuSection}>
+                  <h4>Dessert</h4>
+                  <ProductListResolver ids={order.dessert} category="desserts" />
+                </div>
+              )}
+              {/* Extras simplificados */}
+              <div className={styles.extrasChips}>
+                {order.extras.wines && <span className={`${styles.chip} ${styles.wines}`}>🍷 Vinos</span>}
+                {order.extras.decoration && <span className={`${styles.chip} ${styles.decoration}`}>🎨 Decoración</span>}
+                {order.extras.equipment.length > 0 && <span className={`${styles.chip} ${styles.equipment}`}>🔧 {order.extras.equipment.length} equipos</span>}
+              </div>
             </div>
-          </div>
+          )}
 
           {order.notes && (
             <div className={styles.notes}>
@@ -313,60 +237,32 @@ const OrderCard = ({
             </div>
           )}
 
-          <div className={styles.actions}>
-            {/* Sección de Estado - Botones en lugar de dropdown */}
-            <div className={styles.statusSection}>
-              <label className={styles.statusLabel}>Estado:</label>
-              <div className={styles.statusButtons}>
-                <button
-                  onClick={() => onStatusChange(order.id, 'pending')}
-                  className={`${styles.statusBtn} ${order.status === 'pending' ? `${styles.statusBtnActive} ${styles.pending}` : ''}`}
-                  title="Marcar como Pendiente"
-                >
-                  Pendiente
-                </button>
-                <button
-                  onClick={() => onStatusChange(order.id, 'sent')}
-                  className={`${styles.statusBtn} ${(order.status === 'sent' || order.status === 'ENVIADO') ? `${styles.statusBtnActive} ${styles.sent}` : ''}`}
-                  title="Marcar como Enviado"
-                >
-                  Enviado
-                </button>
-                <button
-                  onClick={() => onStatusChange(order.id, 'approved')}
-                  className={`${styles.statusBtn} ${order.status === 'approved' ? `${styles.statusBtnActive} ${styles.approved}` : ''}`}
-                  title="Marcar como Aprobado"
-                >
-                  Aprobado
-                </button>
-                <button
-                  onClick={() => onStatusChange(order.id, 'rejected')}
-                  className={`${styles.statusBtn} ${order.status === 'rejected' ? `${styles.statusBtnActive} ${styles.rejected}` : ''}`}
-                  title="Marcar como Rechazado"
-                >
-                  Rechazado
-                </button>
-              </div>
-            </div>
+          {/* Selector de estado */}
+          <div className={styles.statusSelector}>
+            <span className={styles.statusLabel}>Estado:</span>
+            <select
+              className={styles.statusSelect}
+              value={order.status === 'ENVIADO' ? 'sent' : order.status}
+              onChange={(e) => onStatusChange(order.id, e.target.value as CateringOrder['status'])}
+            >
+              <option value="pending">Pendiente</option>
+              <option value="sent">Enviado</option>
+              <option value="approved">Aprobado</option>
+              <option value="rejected">Rechazado</option>
+            </select>
+          </div>
 
-            {/* Sección de Acciones */}
-            <div className={styles.actionButtons}>
+          {/* Barra de acciones simplificada */}
+          <div className={styles.actionBar}>
+            <div className={styles.mainActions}>
               <button
                 onClick={handleRelanceClick}
                 className={`${styles.actionButton} ${styles.emailButton}`}
                 title="Enviar email de relance"
               >
                 <Mail size={16} />
-                Relanzar Devis
+                Relanzar
               </button>
-
-              {lastRelanceDate && (
-                <div className={styles.relanceInfo}>
-                  <Clock size={14} />
-                  <span>Último envío: hace {getDaysSinceRelance()} días</span>
-                </div>
-              )}
-
               <button
                 onClick={() => onViewDetails(order)}
                 className={`${styles.actionButton} ${styles.viewButton}`}
@@ -375,70 +271,59 @@ const OrderCard = ({
                 <Eye size={16} />
                 Ver Detalles
               </button>
-
               {!order.hasBudget && (
                 <button
                   onClick={async (e) => {
                     e.stopPropagation();
-                    const confirmGen = confirm('¿Generar presupuesto automático para este pedido?');
+                    const confirmGen = confirm('¿Generar presupuesto automático?');
                     if (!confirmGen) return;
-
                     try {
-                      // Llamamos a la lógica de generación
-                      // Por ahora, usamos el endpoint de Fuegos si está disponible o implementamos uno aquí
-                      // Para mayor robustez, intentaremos llamar al API de generación.
                       const response = await fetch('/api/generate-budget-from-order', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ orderId: order.id })
                       });
-
                       if (response.ok) {
-                        toast.success('Presupuesto generado correctamente');
-                        window.location.reload(); // Recargar para ver cambios
-                      } else {
-                        throw new Error('Error en el servidor');
-                      }
-                    } catch (err) {
-                      toast.error('No se pudo generar el presupuesto');
-                    }
+                        toast.success('Presupuesto generado');
+                        window.location.reload();
+                      } else throw new Error('Error');
+                    } catch { toast.error('No se pudo generar'); }
                   }}
                   className={`${styles.actionButton} ${styles.generateButton}`}
-                  title="Generar presupuesto ahora"
                 >
                   <FileText size={16} />
-                  Generar Presupuesto
+                  Generar
                 </button>
               )}
-
-              {/* ✅ Internal Notes Button */}
+            </div>
+            <div className={styles.iconActions}>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setNoteModalOpen(true)
-                }}
-                className={`${styles.actionButton} ${styles.noteButton} ${order.internalNotes?.length ? styles.hasNote : ''}`}
-                title={order.internalNotes?.length ? `${order.internalNotes.length} nota(s)` : 'Agregar nota'}
+                onClick={(e) => { e.stopPropagation(); setNoteModalOpen(true) }}
+                className={`${styles.iconButton} ${order.internalNotes?.length ? styles.hasNote : ''}`}
+                title={order.internalNotes?.length ? `${order.internalNotes.length} nota(s)` : 'Notas'}
               >
-                <StickyNote size={16} />
-                {order.internalNotes?.length ? `Notas (${order.internalNotes.length})` : 'Notas'}
+                <StickyNote size={18} />
+                {order.internalNotes?.length ? <span className={styles.noteBadge}>{order.internalNotes.length}</span> : null}
               </button>
-
-              {/* Delete Button */}
               {onDelete && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setDeleteModalOpen(true)
-                  }}
-                  className={`${styles.actionButton} ${styles.deleteButton}`}
-                  title="Eliminar pedido"
+                  onClick={(e) => { e.stopPropagation(); setDeleteModalOpen(true) }}
+                  className={`${styles.iconButton} ${styles.deleteIcon}`}
+                  title="Eliminar"
                 >
-                  🗑️ Eliminar
+                  <Trash2 size={18} />
                 </button>
               )}
             </div>
           </div>
+
+          {/* Info de último relance */}
+          {lastRelanceDate && (
+            <div className={styles.relanceInfo}>
+              <Clock size={12} />
+              <span>Último envío: hace {getDaysSinceRelance()} días</span>
+            </div>
+          )}
         </div>
       )}
       {relanceModalOpen && (

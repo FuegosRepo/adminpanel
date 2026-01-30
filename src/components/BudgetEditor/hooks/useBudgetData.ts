@@ -389,18 +389,18 @@ export function useBudgetData(budgetId: string) {
         }
     }
 
-    const generatePDF = async (currentData: BudgetData): Promise<{ success: true; pdfUrl: string; pdfBlob: Blob } | { success: false; error: any }> => {
+    const generatePDF = async (currentData: BudgetData): Promise<{ success: true; pdfUrl: string; pdfBlob: Blob; pdfFilename: string } | { success: false; error: any }> => {
         try {
             setSaving(true)
 
-            // \u2705 Verification logging for transport cost
-            console.log('\ud83d\udd0d PDF Generation - Deplacement data:', currentData.deplacement)
+            // ✅ Verification logging for transport cost
+            console.log('🔍 PDF Generation - Deplacement data:', currentData.deplacement)
             if (currentData.deplacement) {
                 console.log('  Distance:', currentData.deplacement.distance, 'km')
-                console.log('  Price per km:', currentData.deplacement.pricePerKm, '\u20ac')
-                console.log('  Total HT:', currentData.deplacement.totalHT, '\u20ac')
+                console.log('  Price per km:', currentData.deplacement.pricePerKm, '€')
+                console.log('  Total HT:', currentData.deplacement.totalHT, '€')
             } else {
-                console.log('  \u26a0\ufe0f No deplacement data present')
+                console.log('  ⚠️ No deplacement data present')
             }
 
             // Guardar primero
@@ -423,6 +423,7 @@ export function useBudgetData(budgetId: string) {
             // ✅ Blob Pattern Implementation
             // 1. Get metadata from headers
             const pdfUrl = response.headers.get('X-Pdf-Url')
+            const pdfFilename = response.headers.get('X-Pdf-Filename') || 'Devis.pdf'
             if (!pdfUrl) throw new Error('No PDF URL in response headers')
 
             // 2. Get binary data
@@ -436,7 +437,7 @@ export function useBudgetData(budgetId: string) {
             // 4. Invalidate List Query in Background (don't await/block)
             queryClient.invalidateQueries({ queryKey: ['budgets'] })
 
-            return { success: true, pdfUrl, pdfBlob: blob }
+            return { success: true, pdfUrl, pdfBlob: blob, pdfFilename }
         } catch (err) {
             console.error('Error generando PDF:', err)
             return { success: false, error: err }

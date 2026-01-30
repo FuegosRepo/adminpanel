@@ -18,7 +18,8 @@ import { TotalsSection } from './components/TotalsSection'
 import { BudgetActions } from './components/BudgetActions'
 import { MaterialSelectorModal } from './components/MaterialSelectorModal'
 import { AdminNotesSection } from './components/AdminNotesSection'
-import { InternalNoteSection } from './components/InternalNoteSection'  // ✅ New
+import { InternalNoteSection } from './components/InternalNoteSection'
+import { PDFPreviewModal } from './components/PDFPreviewModal'
 import ConfirmationModal from '@/components/common/ConfirmationModal'
 import { toast } from 'sonner'
 import { isEqual } from 'lodash'
@@ -36,7 +37,10 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         closeModal,
         promptDeleteSection,
         closeDeleteSection
-    } = useBudgetModals() // ✅ Replaces 5+ useState calls
+    } = useBudgetModals()
+
+    // ✅ Estado para PDF Preview Modal
+    const [pdfPreview, setPdfPreview] = useState<{ blobUrl: string; filename: string } | null>(null)
 
     const {
         budget,
@@ -155,31 +159,41 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
     const handleGeneratePDF = async () => {
         if (hasUnsavedChanges) {
-            toast.error('⚠️ Tienes cambios sin guardar. Por favor guarda antes de generar el PDF.')  // ✅ Toast
+            toast.error('⚠️ Tienes cambios sin guardar. Por favor guarda antes de generar el PDF.')
             return
         }
 
+        // ✅ Mostrar toast de carga mientras se genera
+        const loadingToast = toast.loading('Generando PDF... ⏳')
+
         const result = await generatePDF(editedData)
+
+        // Dismiss loading toast
+        toast.dismiss(loadingToast)
+
         if (result.success) {
             console.log('✅ PDF generado correctamente')
 
-            // ✅ BLOB Pattern: Open blob URL instantly (no waiting for remote fetch)
+            // ✅ Mostrar modal de preview con PDF
             if (result.pdfBlob) {
                 const blobUrl = URL.createObjectURL(result.pdfBlob)
-                // Open in new tab
-                window.open(blobUrl, '_blank')
-
-                // Cleanup memory after a delay
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+                const filename = result.pdfFilename || `Devis_${editedData.clientInfo.name.replace(/\s+/g, '_')}.pdf`
+                setPdfPreview({ blobUrl, filename })
             } else if ('pdfUrl' in result && result.pdfUrl) {
-                // Fallback to URL if no blob available
                 window.open(result.pdfUrl as string, '_blank')
             }
 
-            toast.success('PDF generado y abierto')
+            toast.success('PDF generado ✅')
         } else {
-            toast.error(`Error al generar PDF: ${result.error}`)  // ✅ Toast
+            toast.error(`Error al generar PDF: ${result.error}`)
         }
+    }
+
+    const closePdfPreview = () => {
+        if (pdfPreview?.blobUrl) {
+            URL.revokeObjectURL(pdfPreview.blobUrl)
+        }
+        setPdfPreview(null)
     }
 
     const handleMarkAsSent = async () => {
@@ -251,8 +265,16 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                 availableMaterials={availableMaterials}
                 selectedMaterialIds={selectedMaterialIds}
                 onToggleSelection={toggleMaterialSelection}
-                onAddSelected={() => addSelectedMaterials(editedData, setEditedData)}  // ✅ Fixed: onAddSelected + setEditedData
-                existingItemNames={editedData.material?.items.map(i => i.name) || []}  // ✅ Added missing prop
+                onAddSelected={() => addSelectedMaterials(editedData, setEditedData)}
+                existingItemNames={editedData.material?.items.map(i => i.name) || []}
+            />
+
+            {/* ✅ PDF Preview Modal */}
+            <PDFPreviewModal
+                isOpen={pdfPreview !== null}
+                onClose={closePdfPreview}
+                pdfBlobUrl={pdfPreview?.blobUrl || null}
+                filename={pdfPreview?.filename || 'Devis.pdf'}
             />
 
             {/* ✅ Delete Budget Confirmation Modal */}
