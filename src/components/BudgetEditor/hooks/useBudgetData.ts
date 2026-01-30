@@ -406,38 +406,37 @@ export function useBudgetData(budgetId: string) {
             // Guardar primero
             await saveBudget(currentData, 'Guardado automático antes de PDF')
 
-            const response = await fetch('/api/generate-budget-pdf', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    budgetId,
-                    budgetData: currentData
-                })
-            })
+            // ✅ CLIENT-SIDE PDF GENERATION (Fast! ~100-500ms)
+            // Import dynamically to avoid SSR issues
+            const { generateAndUploadPdf } = await import('@/lib/pdf/pdfClientService')
 
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || 'Error al generar PDF')
+            console.log('🚀 Starting client-side PDF generation...')
+            const startTime = performance.now()
+
+            const { blob, filename, pdfUrl } = await generateAndUploadPdf(currentData, budgetId)
+
+            const endTime = performance.now()
+            console.log(`✅ Total PDF generation + upload: ${(endTime - startTime).toFixed(0)}ms`)
+
+            // Update budget record with new PDF URL
+            const { error: updateError } = await supabase
+                .from('budgets')
+                .update({ pdf_url: pdfUrl })
+                .eq('id', budgetId)
+
+            if (updateError) {
+                console.warn('⚠️ Could not update pdf_url in database:', updateError)
             }
 
-            // ✅ Blob Pattern Implementation
-            // 1. Get metadata from headers
-            const pdfUrl = response.headers.get('X-Pdf-Url')
-            const pdfFilename = response.headers.get('X-Pdf-Filename') || 'Devis.pdf'
-            if (!pdfUrl) throw new Error('No PDF URL in response headers')
-
-            // 2. Get binary data
-            const blob = await response.blob()
-
-            // 3. Optimistic Update (Avoid full reload)
+            // Optimistic Update (Avoid full reload)
             if (budget) {
                 setBudget({ ...budget, pdf_url: pdfUrl })
             }
 
-            // 4. Invalidate List Query in Background (don't await/block)
+            // Invalidate List Query in Background (don't await/block)
             queryClient.invalidateQueries({ queryKey: ['budgets'] })
 
-            return { success: true, pdfUrl, pdfBlob: blob, pdfFilename }
+            return { success: true, pdfUrl, pdfBlob: blob, pdfFilename: filename }
         } catch (err) {
             console.error('Error generando PDF:', err)
             return { success: false, error: err }
