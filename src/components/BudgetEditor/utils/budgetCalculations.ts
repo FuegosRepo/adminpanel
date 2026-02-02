@@ -161,7 +161,12 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
 
     let totalTTC = totalHT + totalTVA
 
-    // Aplicar descuento si existe
+    // Aplicar descuento del menú (déjeuner) si existe
+    if (updated.menu.discount && updated.menu.discount.amount > 0) {
+        totalTTC -= updated.menu.discount.amount
+    }
+
+    // Aplicar descuento adicional de totales si existe
     if (updated.totals.discount && updated.totals.discount.amount > 0) {
         totalTTC -= updated.totals.discount.amount
     }
