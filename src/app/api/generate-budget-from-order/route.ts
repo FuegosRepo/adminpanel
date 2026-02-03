@@ -86,13 +86,14 @@ export async function POST(request: NextRequest) {
         let discount = null
         let menuTotalTTCWithDiscount = menuTotalTTC
         if (menuType === 'dejeuner') {
-            const discountAmount = menuTotalTTC * 0.1
+            // ✅ Descuento sobre HT (sin TVA) - consistente con budgetCalculations.ts
+            const discountAmount = menuTotalHT * 0.1
             discount = {
                 percentage: 10,
                 amount: discountAmount,
                 reason: 'Événement à midi - 10%'
             }
-            // Aplicar descuento solo al menú
+            // Aplicar descuento al TTC
             menuTotalTTCWithDiscount = menuTotalTTC - discountAmount
         }
 

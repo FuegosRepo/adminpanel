@@ -17,7 +17,8 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         updated.menu.tva = menuHT * (updated.menu.tvaPct / 100)
         let menuTTC = menuHT + updated.menu.tva
 
-        // Descuento para Déjeuner (solo al menú)
+        // Descuento para Déjeuner: aplicar al TTC del menú
+        // El descuento se muestra Y se aplica en la sección del menú
         if (updated.clientInfo.menuType === 'dejeuner') {
             const discountAmount = menuHT * (DEJEUNER_DISCOUNT_PERCENTAGE / 100)
             updated.menu.discount = {
@@ -25,6 +26,7 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
                 amount: discountAmount,
                 reason: DEJEUNER_DISCOUNT_REASON
             }
+            // ✅ Aplicar descuento aquí - el menu.totalTTC YA incluye el descuento
             menuTTC -= discountAmount
         } else {
             updated.menu.discount = undefined
@@ -161,12 +163,25 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
 
     let totalTTC = totalHT + totalTVA
 
-    // Aplicar descuento del menú (déjeuner) si existe
+    // ⚠️ IMPORTANTE: El descuento del menú YA está aplicado en menu.totalTTC (línea 30)
+    // Pero aquí sumamos HT + TVA (sin descuento), así que debemos restar el descuento UNA vez
     if (updated.menu.discount && updated.menu.discount.amount > 0) {
         totalTTC -= updated.menu.discount.amount
     }
 
-    // Aplicar descuento adicional de totales si existe
+    // ✅ LIMPIAR descuentos legacy de totals que eran duplicados del menu discount
+    // El sistema antiguo guardaba el descuento en totals.discount, pero ahora solo va en menu.discount
+    // Si totals.discount tiene el mismo reason que menu.discount, es un duplicado legacy
+    if (updated.totals.discount && updated.menu.discount) {
+        // Si es el mismo descuento (mismo porcentaje o reason similar), limpiarlo
+        if (updated.totals.discount.percentage === updated.menu.discount.percentage ||
+            updated.totals.discount.reason?.toLowerCase().includes('déjeuner') ||
+            updated.totals.discount.reason?.toLowerCase().includes('midi')) {
+            updated.totals.discount = undefined
+        }
+    }
+
+    // Solo aplicar descuento adicional de totals si existe y NO es legacy (descuentos manuales del admin)
     if (updated.totals.discount && updated.totals.discount.amount > 0) {
         totalTTC -= updated.totals.discount.amount
     }
