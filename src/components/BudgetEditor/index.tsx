@@ -464,6 +464,7 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
             <TotalsSection
                 data={editedData.totals}
+                menuDiscount={editedData.menu.discount}
                 onUpdate={updateField}
             />
 

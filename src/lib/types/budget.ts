@@ -25,6 +25,7 @@ export interface BudgetMenuSection {
     desserts: string[]
   }
   totalHT: number
+  totalHTApresRemise?: number  // HT après la remise (pour calcul TVA correct)
   tva: number
   tvaPct: number
   totalTTC: number

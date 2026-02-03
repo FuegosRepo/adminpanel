@@ -80,22 +80,24 @@ export async function POST(request: NextRequest) {
         } : null
 
         const menuTotalHT = basePrice * guestCount
-        const menuTVA = menuTotalHT * 0.1
-        const menuTotalTTC = menuTotalHT + menuTVA
 
+        // ✅ NUEVA LÓGICA: Descuento se aplica al HT ANTES de calcular el TVA
         let discount = null
-        let menuTotalTTCWithDiscount = menuTotalTTC
+        let menuHTApresRemise = menuTotalHT
+
         if (menuType === 'dejeuner') {
-            // ✅ Descuento sobre HT (sin TVA) - consistente con budgetCalculations.ts
             const discountAmount = menuTotalHT * 0.1
             discount = {
                 percentage: 10,
                 amount: discountAmount,
                 reason: 'Événement à midi - 10%'
             }
-            // Aplicar descuento al TTC
-            menuTotalTTCWithDiscount = menuTotalTTC - discountAmount
+            menuHTApresRemise = menuTotalHT - discountAmount
         }
+
+        // TVA se calcula sobre el HT DESPUÉS del descuento
+        const menuTVA = menuHTApresRemise * 0.1
+        const menuTotalTTC = menuHTApresRemise + menuTVA
 
         // Extras / Material
         let material = null
@@ -122,10 +124,10 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const totalHT = menuTotalHT + (material?.totalHT || 0)
+        // Totales globales usan el HT avec remise del menú
+        const totalHT = menuHTApresRemise + (material?.totalHT || 0)
         const totalTVA = menuTVA + (material?.tva || 0)
-        // El total TTC usa el menú con descuento + material sin descuento
-        const totalTTC = menuTotalTTCWithDiscount + (material?.totalTTC || 0)
+        const totalTTC = menuTotalTTC + (material?.totalTTC || 0)
 
         const budgetData = {
             generatedAt: new Date().toISOString(),
@@ -148,10 +150,11 @@ export async function POST(request: NextRequest) {
                 dessert: dessertItem,
                 accompagnements: ['Salade', 'Pain', 'Sauces maison'],
                 totalHT: menuTotalHT,
+                totalHTApresRemise: menuHTApresRemise,  // ✅ Nuevo campo
                 tva: menuTVA,
                 tvaPct: 10,
-                totalTTC: menuTotalTTCWithDiscount,  // ✅ Now uses the discounted value
-                discount: discount,  // ✅ Discount now in menu section
+                totalTTC: menuTotalTTC,
+                discount: discount,
                 selectedItems: {
                     entrees: (order.entrees || []).map(getName),
                     viandes: (order.viandes || []).map(getName),
@@ -163,7 +166,6 @@ export async function POST(request: NextRequest) {
                 totalHT,
                 totalTVA,
                 totalTTC
-                // Removed: discount is now in menu section
             }
         }
 

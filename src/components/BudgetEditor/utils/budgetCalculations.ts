@@ -14,11 +14,10 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
     if (updated.menu) {
         const menuHT = updated.menu.pricePerPerson * updated.menu.totalPersons
         updated.menu.totalHT = menuHT
-        updated.menu.tva = menuHT * (updated.menu.tvaPct / 100)
-        let menuTTC = menuHT + updated.menu.tva
 
-        // Descuento para Déjeuner: aplicar al TTC del menú
-        // El descuento se muestra Y se aplica en la sección del menú
+        // ✅ NUEVA LÓGICA: Descuento se aplica al HT ANTES del TVA
+        let menuHTApresRemise = menuHT
+
         if (updated.clientInfo.menuType === 'dejeuner') {
             const discountAmount = menuHT * (DEJEUNER_DISCOUNT_PERCENTAGE / 100)
             updated.menu.discount = {
@@ -26,12 +25,17 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
                 amount: discountAmount,
                 reason: DEJEUNER_DISCOUNT_REASON
             }
-            // ✅ Aplicar descuento aquí - el menu.totalTTC YA incluye el descuento
-            menuTTC -= discountAmount
+            // Guardar HT après remise para cálculos posteriores
+            menuHTApresRemise = menuHT - discountAmount
+            updated.menu.totalHTApresRemise = menuHTApresRemise
         } else {
             updated.menu.discount = undefined
+            updated.menu.totalHTApresRemise = menuHT
         }
-        updated.menu.totalTTC = menuTTC
+
+        // TVA se calcula sobre el HT DESPUÉS del descuento
+        updated.menu.tva = menuHTApresRemise * (updated.menu.tvaPct / 100)
+        updated.menu.totalTTC = menuHTApresRemise + updated.menu.tva
     }
 
     // Recalcular servicio (usando constantes)
@@ -125,8 +129,10 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         updated.deplacement.totalTTC = deplacementHT + updated.deplacement.tva
     }
 
-    // Recalcular totales generales
-    let totalHT = updated.menu.totalHT
+    // ✅ NUEVA LÓGICA: Recalcular totales generales
+    // Usar totalHTApresRemise del menú (ya tiene el descuento incluido)
+    const menuHTParaTotales = updated.menu.totalHTApresRemise ?? updated.menu.totalHT
+    let totalHT = menuHTParaTotales
     let totalTVA = updated.menu.tva
 
     if (updated.material) {
@@ -134,11 +140,7 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         totalTVA += updated.material.tva
     }
 
-    // ⚠️ Livraison ya está incluido en Material, NO sumar aquí para evitar duplicación
-    // if (updated.deliveryReprise) {
-    //     totalHT += updated.deliveryReprise.totalHT
-    //     totalTVA += updated.deliveryReprise.tva
-    // }
+    // Livraison ya está incluido en Material, NO sumar aquí
 
     if (updated.boissonsSoft) {
         totalHT += updated.boissonsSoft.totalHT
@@ -161,19 +163,11 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         totalTVA += updated.service.tva
     }
 
+    // ✅ Total TTC es simplemente HT + TVA (el descuento ya está en el HT)
     let totalTTC = totalHT + totalTVA
 
-    // ⚠️ IMPORTANTE: El descuento del menú YA está aplicado en menu.totalTTC (línea 30)
-    // Pero aquí sumamos HT + TVA (sin descuento), así que debemos restar el descuento UNA vez
-    if (updated.menu.discount && updated.menu.discount.amount > 0) {
-        totalTTC -= updated.menu.discount.amount
-    }
-
-    // ✅ LIMPIAR descuentos legacy de totals que eran duplicados del menu discount
-    // El sistema antiguo guardaba el descuento en totals.discount, pero ahora solo va en menu.discount
-    // Si totals.discount tiene el mismo reason que menu.discount, es un duplicado legacy
+    // Limpiar descuentos legacy de totals
     if (updated.totals.discount && updated.menu.discount) {
-        // Si es el mismo descuento (mismo porcentaje o reason similar), limpiarlo
         if (updated.totals.discount.percentage === updated.menu.discount.percentage ||
             updated.totals.discount.reason?.toLowerCase().includes('déjeuner') ||
             updated.totals.discount.reason?.toLowerCase().includes('midi')) {
@@ -181,7 +175,7 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         }
     }
 
-    // Solo aplicar descuento adicional de totals si existe y NO es legacy (descuentos manuales del admin)
+    // Solo aplicar descuento adicional de totals si existe (descuentos manuales del admin)
     if (updated.totals.discount && updated.totals.discount.amount > 0) {
         totalTTC -= updated.totals.discount.amount
     }
