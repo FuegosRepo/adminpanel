@@ -152,7 +152,17 @@ export default function OrderDetails({ isOpen, order, onClose }: OrderDetailsPro
                         )}
                     </section>
 
-                    {/* Additional Notes */}
+                    {/* Client Special Request / Notes */}
+                    {order.extras?.specialRequest && (
+                        <section className={styles.section}>
+                            <h3 className={styles.sectionTitle}>Notes du Client (Demande Spéciale)</h3>
+                            <p className={styles.additionalInfo} style={{ borderLeft: '4px solid #f59e0b', paddingLeft: '1rem', fontStyle: 'italic' }}>
+                                {order.extras.specialRequest}
+                            </p>
+                        </section>
+                    )}
+
+                    {/* Additional Notes (Internal) */}
                     {order.notes && (
                         <section className={styles.section}>
                             <h3 className={styles.sectionTitle}>Informations Supplémentaires</h3>

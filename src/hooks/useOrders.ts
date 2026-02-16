@@ -42,10 +42,27 @@ export const useOrders = (initialFilters?: OrdersFilters) => {
                 .single()
 
             if (error) throw error
+            if (newStatus === 'rejected') {
+                const { error: budgetError } = await supabase
+                    .from('budgets')
+                    .update({ status: 'rejected', updated_at: new Date().toISOString() })
+                    .eq('order_id', orderId)
+
+                if (budgetError) console.error('Error syncing budget status:', budgetError)
+            } else if (newStatus === 'pending') {
+                const { error: budgetError } = await supabase
+                    .from('budgets')
+                    .update({ status: 'pending_review', updated_at: new Date().toISOString() })
+                    .eq('order_id', orderId)
+
+                if (budgetError) console.error('Error syncing budget status:', budgetError)
+            }
+
             return data
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orders'] })
+            queryClient.invalidateQueries({ queryKey: ['budgets'] }) // ✅ Ensure budgets are refreshed
             toast.success('Estado actualizado correctamente')
         },
         onError: (err: any) => {

@@ -20,12 +20,22 @@ export const fetchBudgets = async ({
     // Select only essential fields for the list to save data
     let query = supabase
         .from('budgets')
-        .select('id, order_id, version, status, budget_data, pdf_url, created_at, updated_at', { count: 'exact' })
+        .select('id, order_id, version, status, budget_data, pdf_url, created_at, updated_at, relance_count', { count: 'exact' })
 
     // Apply filters
     if (filters?.status && filters.status !== 'all') {
         if (filters.status === 'sent') {
             query = query.or('status.eq.sent,status.eq.ENVIADO')
+        } else if (filters.status.startsWith('relance_')) {
+            // Filter by number of relances
+            const count = parseInt(filters.status.split('_')[1])
+            if (!isNaN(count)) {
+                if (count >= 3) {
+                    query = query.gte('relance_count', 3)
+                } else {
+                    query = query.eq('relance_count', count)
+                }
+            }
         } else {
             query = query.eq('status', filters.status)
         }

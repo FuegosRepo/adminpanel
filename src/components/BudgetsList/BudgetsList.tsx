@@ -16,6 +16,7 @@ interface Budget {
   pdf_url?: string
   created_at: string
   updated_at: string
+  relance_count?: number
 }
 
 interface BudgetsListProps {
@@ -202,6 +203,30 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
         >
           Enviados
         </button>
+        <button
+          className={`filter-btn relance-btn ${filters.status === 'relance_1' ? 'active' : ''}`}
+          onClick={() => handleFilterChange({ ...filters, status: 'relance_1' })}
+        >
+          Relanzado x1
+        </button>
+        <button
+          className={`filter-btn relance-btn ${filters.status === 'relance_2' ? 'active' : ''}`}
+          onClick={() => handleFilterChange({ ...filters, status: 'relance_2' })}
+        >
+          Relanzado x2
+        </button>
+        <button
+          className={`filter-btn relance-btn ${filters.status === 'relance_3' ? 'active' : ''}`}
+          onClick={() => handleFilterChange({ ...filters, status: 'relance_3' })}
+        >
+          Relanzado x3+
+        </button>
+        <button
+          className={`filter-btn ${filters.status === 'rejected' ? 'active' : ''}`}
+          onClick={() => handleFilterChange({ ...filters, status: 'rejected' })}
+        >
+          Rechazados
+        </button>
 
         <div className="budget-search">
           <input
@@ -245,6 +270,11 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
                         <span className={`budget-status status-${budget.status === 'ENVIADO' ? 'sent' : budget.status}`}>
                           {getStatusText(budget.status)}
                         </span>
+                        {budget.relance_count && budget.relance_count > 0 && (
+                          <span className="budget-status status-pending" style={{ marginLeft: '8px', background: '#e0e7ff', color: '#4338ca' }}>
+                            {budget.relance_count}x Relance
+                          </span>
+                        )}
                         <button
                           onClick={() => toggleCard(budget.id)}
                           className="budget-expand-button"

@@ -82,6 +82,25 @@
   border-color: #e2943a;
 }
 
+/* Relance Buttons */
+.relance-btn {
+  border-color: #e0e7ff;
+  color: #4338ca;
+  background-color: #eef2ff;
+}
+
+.relance-btn:hover {
+  border-color: #4338ca;
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.relance-btn.active {
+  background-color: #4338ca;
+  color: white;
+  border-color: #4338ca;
+}
+
 /* Grid */
 .budgets-list-grid {
   display: grid;

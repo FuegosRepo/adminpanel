@@ -231,6 +231,27 @@ const OrderCard = ({
             </div>
           )}
 
+          {/* Client Special Request / Notes */}
+          {order.extras?.specialRequest && (
+            <div className={styles.notes} style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>
+              <h4 style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Notas del Cliente
+              </h4>
+              <p style={{
+                borderLeft: '4px solid #f59e0b',
+                paddingLeft: '0.75rem',
+                fontStyle: 'italic',
+                color: '#374151',
+                background: '#fffbeb',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '0 4px 4px 0',
+                margin: 0
+              }}>
+                {order.extras.specialRequest}
+              </p>
+            </div>
+          )}
+
           {order.notes && (
             <div className={styles.notes}>
               <p>{order.notes}</p>
