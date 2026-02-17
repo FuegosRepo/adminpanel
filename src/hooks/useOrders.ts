@@ -56,6 +56,13 @@ export const useOrders = (initialFilters?: OrdersFilters) => {
                     .eq('order_id', orderId)
 
                 if (budgetError) console.error('Error syncing budget status:', budgetError)
+            } else if (newStatus === 'approved') {
+                const { error: budgetError } = await supabase
+                    .from('budgets')
+                    .update({ status: 'approved', updated_at: new Date().toISOString() })
+                    .eq('order_id', orderId)
+
+                if (budgetError) console.error('Error syncing budget status:', budgetError)
             }
 
             return data
