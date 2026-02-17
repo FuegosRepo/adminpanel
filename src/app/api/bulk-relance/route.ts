@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        const { filters } = body
+        const { filters, budgetIds } = body
 
         if (!filters || !filters.status || !filters.status.startsWith('relance_')) {
             return NextResponse.json(
@@ -27,29 +27,29 @@ export async function POST(request: Request) {
             )
         }
 
-        // 1. Fetch budgets matching the filter
+        // 1. Fetch budgets matching the filter OR specific IDs
         let query = supabase
             .from('budgets')
             .select('id, order_id, relance_count')
 
-        const countStr = filters.status.split('_')[1];
-        const count = parseInt(countStr);
-
-        if (isNaN(count)) {
-            return NextResponse.json({ error: 'Formato de filtro inválido' }, { status: 400 })
-        }
-
-        if (count >= 3) {
-            query = query.gte('relance_count', 3);
+        // If specific IDs provided, prioritize them
+        if (budgetIds && Array.isArray(budgetIds) && budgetIds.length > 0) {
+            query = query.in('id', budgetIds)
         } else {
-            query = query.eq('relance_count', count);
-        }
+            // Fallback to filter logic
+            const countStr = filters.status.split('_')[1];
+            const count = parseInt(countStr);
 
-        // Optional: Add search term filtering if provided, to match UI
-        // But searching budgets by client name requires joining orders or budget_data json.
-        // For simplicity/safety, let's ignore text search for bulk action unless explicitly requested.
-        // User said "Dentro de cada uno individualmente haya una opcion de 'Relanzar a todos juntos'".
-        // This implies "All in this filter category".
+            if (isNaN(count)) {
+                return NextResponse.json({ error: 'Formato de filtro inválido' }, { status: 400 })
+            }
+
+            if (count >= 3) {
+                query = query.gte('relance_count', 3);
+            } else {
+                query = query.eq('relance_count', count);
+            }
+        }
 
         const { data: budgets, error: budgetsError } = await query
 

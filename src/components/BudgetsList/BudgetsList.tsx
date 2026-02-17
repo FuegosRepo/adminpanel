@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'  // ✅ Add for cache invalidation
 import { FileText, Eye, Clock, CheckCircle, Send, XCircle, Trash2, Mail, Calendar, Users, ChevronDown, ChevronUp, MailCheck } from 'lucide-react'
 import './BudgetsList.css'
@@ -130,16 +130,46 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
   // ✅ Bulk Relance State & Handler
   const [bulkRelanceModalOpen, setBulkRelanceModalOpen] = useState(false)
   const [isBulkRelancing, setIsBulkRelancing] = useState(false)
+  const [selectedBudgets, setSelectedBudgets] = useState<Set<string>>(new Set())
+
+  // Toggle individual selection
+  const toggleBudgetSelection = (id: string, e?: React.SyntheticEvent) => {
+    if (e) e.stopPropagation();
+    setSelectedBudgets(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
+  }
+
+  // Toggle select all
+  const toggleSelectAll = () => {
+    if (selectedBudgets.size === budgets.length && budgets.length > 0) {
+      setSelectedBudgets(new Set())
+    } else {
+      setSelectedBudgets(new Set(budgets.map(b => b.id)))
+    }
+  }
 
   const handleConfirmBulkRelance = async () => {
     if (!filters.status || !filters.status.startsWith('relance_')) return
 
     setIsBulkRelancing(true)
     try {
+      const body: any = { filters }
+      // Include selected IDs if any
+      if (selectedBudgets.size > 0) {
+        body.budgetIds = Array.from(selectedBudgets)
+      }
+
       const response = await fetch('/api/bulk-relance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filters })
+        body: JSON.stringify(body)
       })
 
       const result = await response.json()
@@ -147,6 +177,7 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
 
       toast.success(`✅ ${result.message}`)
       setBulkRelanceModalOpen(false)
+      setSelectedBudgets(new Set()) // Clear selection
       // Invalidate queries to refresh list and move items to next status level
       queryClient.invalidateQueries({ queryKey: ['budgets'] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
@@ -203,11 +234,13 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
           </span>
           {filters.status && filters.status.startsWith('relance_') && (
             <button
-              className="create-manual-btn"
-              style={{ backgroundColor: '#4338ca', marginLeft: '10px' }}
+              className={`relance-action-btn ${selectedBudgets.size > 0 ? 'has-selection' : ''}`}
               onClick={() => setBulkRelanceModalOpen(true)}
             >
-              🚀 Relanzar a todos ({filters.status === 'relance_3' ? '3+' : filters.status.split('_')[1]})
+              {selectedBudgets.size > 0
+                ? `🚀 Relanzar seleccionados (${selectedBudgets.size})`
+                : `🚀 Relanzar a todos (${filters.status === 'relance_3' ? '3+' : filters.status.split('_')[1]})`
+              }
             </button>
           )}
           <button
@@ -280,153 +313,199 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
         </div>
       </div>
 
-      {budgets.length === 0 ? (
-        <div className="budgets-list-empty">
-          <FileText size={48} />
-          <h3>No hay presupuestos</h3>
-          <p>Los presupuestos generados aparecerán aquí automáticamente</p>
+      {/* Select All Checkbox - Only for Relance Filters */}
+      {filters.status && filters.status.startsWith('relance_') && (
+        <div className="selection-bar">
+          <label>
+            <input
+              type="checkbox"
+              className="selection-checkbox"
+              checked={budgets.length > 0 && selectedBudgets.size === budgets.length}
+              onChange={toggleSelectAll}
+            />
+            <span>
+              Seleccionar todos ({budgets.length})
+            </span>
+          </label>
+          {selectedBudgets.size > 0 && (
+            <span style={{ fontSize: '0.875rem', color: '#4338ca', fontWeight: 600 }}>
+              {selectedBudgets.size} seleccionados
+            </span>
+          )}
         </div>
-      ) : (
-        <>
-          <div className="budgets-list-grid">
-            {budgets.map((budget: any) => {
-              const clientInfo = budget.budget_data?.clientInfo || {}
-              const totals = budget.budget_data?.totals || {}
-              const isExpanded = expandedCards.has(budget.id)
+      )}
 
-              return (
-                <div key={budget.id} className={`budget-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
-                  {/* Compact Header - Always Visible */}
-                  <div className="budget-compact-view">
-                    <div className="budget-compact-header">
-                      <div className="budget-client-info">
-                        <h3>{clientInfo.name || 'Cliente'}</h3>
-                        <p className="budget-email">{clientInfo.email}</p>
-                        <p className="budget-phone">{clientInfo.phone}</p>
-                        <p className="budget-event-date">
-                          📅 {clientInfo.eventDate ? new Date(clientInfo.eventDate).toLocaleDateString('fr-FR') : '-'}
-                        </p>
+      {
+        budgets.length === 0 ? (
+          <div className="budgets-list-empty">
+            <FileText size={48} />
+            <h3>No hay presupuestos</h3>
+            <p>Los presupuestos generados aparecerán aquí automáticamente</p>
+          </div>
+        ) : (
+          <>
+            <div className="budgets-list-grid">
+              {budgets?.map((budget: any) => {
+                const clientInfo = budget.budget_data?.clientInfo || {}
+                const totals = budget.budget_data?.totals || {}
+                const isExpanded = expandedCards.has(budget.id)
+
+                return (
+                  <div key={budget.id} className="budget-card-wrapper">
+                    {/* Checkbox overlay for Relance filters */}
+                    <div
+                      className={`budget-card ${isExpanded ? 'expanded' : 'collapsed'} ${selectedBudgets.has(budget.id) ? 'selected' : ''}`}
+                    >
+                      {/* Compact Header - Always Visible */}
+                      <div className="budget-compact-view">
+                        <div className="budget-compact-header">
+
+                          {/* Checkbox for Relance filters - Now inside flex flow */}
+                          {filters.status && filters.status.startsWith('relance_') && (
+                            <div className="budget-checkbox-inline">
+                              <input
+                                type="checkbox"
+                                checked={selectedBudgets.has(budget.id)}
+                                onChange={(e) => toggleBudgetSelection(budget.id, e)}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          )}
+
+                          <div className="budget-client-info">
+                            <h3>{clientInfo.name || 'Cliente'}</h3>
+                            <p className="budget-email">{clientInfo.email}</p>
+                            <p className="budget-phone">{clientInfo.phone}</p>
+                            <p className="budget-event-date">
+                              📅 {clientInfo.eventDate ? new Date(clientInfo.eventDate).toLocaleDateString('fr-FR') : '-'}
+                            </p>
+                          </div>
+                          <div className="budget-compact-right">
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                              <span className={`budget-status status-${budget.status === 'ENVIADO' ? 'sent' : budget.status}`}>
+                                {getStatusText(budget.status)}
+                              </span>
+                              {budget.relance_count && budget.relance_count > 0 && (
+                                <span className="budget-status status-pending" style={{ background: '#e0e7ff', color: '#4338ca', fontSize: '0.75rem', fontWeight: 600, padding: '2px 6px' }}>
+                                  {budget.relance_count}x
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => toggleCard(budget.id)}
+                              className="budget-expand-button"
+                              aria-label={isExpanded ? 'Contraer tarjeta' : 'Expandir tarjeta'}
+                            >
+                              {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="budget-compact-right">
-                        <span className={`budget-status status-${budget.status === 'ENVIADO' ? 'sent' : budget.status}`}>
-                          {getStatusText(budget.status)}
-                        </span>
-                        {budget.relance_count && budget.relance_count > 0 && (
-                          <span className="budget-status status-pending" style={{ marginLeft: '8px', background: '#e0e7ff', color: '#4338ca' }}>
-                            {budget.relance_count}x Relance
-                          </span>
-                        )}
-                        <button
-                          onClick={() => toggleCard(budget.id)}
-                          className="budget-expand-button"
-                          aria-label={isExpanded ? 'Contraer tarjeta' : 'Expandir tarjeta'}
-                        >
-                          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                        </button>
-                      </div>
+
+                      {/* Expanded Content - Only When Expanded */}
+                      {isExpanded && (
+                        <div className="budget-expanded-content">
+                          <div className="budget-details">
+                            <div className="budget-detail-row">
+                              <span className="budget-detail-label">
+                                <Users size={14} /> Invitados:
+                              </span>
+                              <span className="budget-detail-value">{clientInfo.guestCount || 0}</span>
+                            </div>
+                            <div className="budget-detail-row">
+                              <span className="budget-detail-label">
+                                <Calendar size={14} /> Tipo de evento:
+                              </span>
+                              <span className="budget-detail-value">{clientInfo.eventType || '-'}</span>
+                            </div>
+                            <div className="budget-detail-row">
+                              <span className="budget-detail-label">
+                                💰 Total TTC:
+                              </span>
+                              <span className="budget-detail-value budget-price">
+                                {totals.totalTTC ? `${totals.totalTTC.toFixed(2)} €` : '-'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="budget-actions">
+                            <div className="budget-action-buttons">
+                              <button
+                                className="budget-action-button budget-view-button"
+                                onClick={() => onSelectBudget(budget.id)}
+                              >
+                                <Eye size={16} />
+                                Ver y Editar
+                              </button>
+                              {budget.pdf_url && (
+                                <a
+                                  href={budget.pdf_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="budget-action-button budget-pdf-button"
+                                >
+                                  <FileText size={16} />
+                                  Ver PDF
+                                </a>
+                              )}
+                              {budget.pdf_url && budget.status !== 'approved' && budget.status !== 'sent' && budget.status !== 'ENVIADO' && (
+                                <button
+                                  className="budget-action-button budget-mark-sent-button"
+                                  onClick={(e) => handleMarkAsSentClick(e, budget.id)}
+                                  title="Marcar como enviado sin enviar email"
+                                >
+                                  <MailCheck size={16} />
+                                  Marcar como Enviado
+                                </button>
+                              )}
+                              <button
+                                className="budget-action-button budget-delete-button"
+                                onClick={(e) => handleDeleteClick(e, budget.id)}
+                              >
+                                <Trash2 size={16} />
+                                Eliminar
+                              </button>
+                            </div>
+                            <div className="budget-meta">
+                              <span>Versión: v{budget.version}</span>
+                              <span>Creado: {new Date(budget.created_at).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
+                )
+              })}
+            </div>
 
-                  {/* Expanded Content - Only When Expanded */}
-                  {isExpanded && (
-                    <div className="budget-expanded-content">
-                      <div className="budget-details">
-                        <div className="budget-detail-row">
-                          <span className="budget-detail-label">
-                            <Users size={14} /> Invitados:
-                          </span>
-                          <span className="budget-detail-value">{clientInfo.guestCount || 0}</span>
-                        </div>
-                        <div className="budget-detail-row">
-                          <span className="budget-detail-label">
-                            <Calendar size={14} /> Tipo de evento:
-                          </span>
-                          <span className="budget-detail-value">{clientInfo.eventType || '-'}</span>
-                        </div>
-                        <div className="budget-detail-row">
-                          <span className="budget-detail-label">
-                            💰 Total TTC:
-                          </span>
-                          <span className="budget-detail-value budget-price">
-                            {totals.totalTTC ? `${totals.totalTTC.toFixed(2)} €` : '-'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="budget-actions">
-                        <div className="budget-action-buttons">
-                          <button
-                            className="budget-action-button budget-view-button"
-                            onClick={() => onSelectBudget(budget.id)}
-                          >
-                            <Eye size={16} />
-                            Ver y Editar
-                          </button>
-                          {budget.pdf_url && (
-                            <a
-                              href={budget.pdf_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="budget-action-button budget-pdf-button"
-                            >
-                              <FileText size={16} />
-                              Ver PDF
-                            </a>
-                          )}
-                          {budget.pdf_url && budget.status !== 'approved' && budget.status !== 'sent' && budget.status !== 'ENVIADO' && (
-                            <button
-                              className="budget-action-button budget-mark-sent-button"
-                              onClick={(e) => handleMarkAsSentClick(e, budget.id)}
-                              title="Marcar como enviado sin enviar email"
-                            >
-                              <MailCheck size={16} />
-                              Marcar como Enviado
-                            </button>
-                          )}
-                          <button
-                            className="budget-action-button budget-delete-button"
-                            onClick={(e) => handleDeleteClick(e, budget.id)}
-                          >
-                            <Trash2 size={16} />
-                            Eliminar
-                          </button>
-                        </div>
-                        <div className="budget-meta">
-                          <span>Versión: v{budget.version}</span>
-                          <span>Creado: {new Date(budget.created_at).toLocaleDateString('fr-FR')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+            {/* Pagination Controls */}
+            {
+              totalCount > pageSize && (
+                <div className="pagination">
+                  <button
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                    className="page-button"
+                  >
+                    Anterior
+                  </button>
+                  <span className="page-info">
+                    Página {page} de {Math.ceil(totalCount / pageSize)}
+                  </span>
+                  <button
+                    disabled={page >= Math.ceil(totalCount / pageSize)}
+                    onClick={() => setPage(page + 1)}
+                    className="page-button"
+                  >
+                    Siguiente
+                  </button>
                 </div>
               )
-            })}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalCount > pageSize && (
-            <div className="pagination">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-                className="page-button"
-              >
-                Anterior
-              </button>
-              <span className="page-info">
-                Página {page} de {Math.ceil(totalCount / pageSize)}
-              </span>
-              <button
-                disabled={page >= Math.ceil(totalCount / pageSize)}
-                onClick={() => setPage(page + 1)}
-                className="page-button"
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
-        </>
-      )}
+            }
+          </>
+        )
+      }
       <ConfirmationModal
         isOpen={deleteModalOpen}
         onClose={() => {
@@ -455,11 +534,12 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
         isOpen={bulkRelanceModalOpen}
         onClose={() => setBulkRelanceModalOpen(false)}
         onConfirm={handleConfirmBulkRelance}
-        title=" Confirmar Relanzamiento Masivo"
-        message={`¿Estás seguro de que deseas enviar el email de relance a TODOS los presupuestos en la lista "${filters.status === 'relance_3' ? 'Relanzado 3+ veces' : `Relanzado ${filters.status?.split('_')[1]} ve(ces)`}"? 
-        
-Esta acción enviará correos reales a los clientes filtrados.`}
-        confirmLabel={isBulkRelancing ? "Enviando..." : "Sí, Relanzar a Todos"}
+        title={selectedBudgets.size > 0 ? "Confirmar Relanzamiento Seleccionado" : "Confirmar Relanzamiento Masivo"}
+        message={selectedBudgets.size > 0
+          ? `¿Estás seguro de que deseas enviar el email de relance a los ${selectedBudgets.size} presupuestos SELECCIONADOS?`
+          : `¿Estás seguro de que deseas enviar el email de relance a TODOS los presupuestos en la lista "${filters.status === 'relance_3' ? 'Relanzado 3+ veces' : `Relanzado ${filters.status?.split('_')[1]} ve(ces)`}"?`
+        }
+        confirmLabel={isBulkRelancing ? "Enviando..." : (selectedBudgets.size > 0 ? "Sí, Relanzar Seleccionados" : "Sí, Relanzar a Todos")}
         variant="warning"
       />
     </div>
