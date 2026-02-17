@@ -11,7 +11,7 @@ interface Budget {
   id: string
   order_id: string
   version: number
-  status: 'draft' | 'pending_review' | 'approved' | 'sent' | 'rejected' | 'ENVIADO'
+  status: 'draft' | 'pending_review' | 'approved' | 'APPROVED' | 'sent' | 'rejected' | 'ENVIADO'
   budget_data: any
   pdf_url?: string
   created_at: string
@@ -40,6 +40,7 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
       case 'pending_review':
         return 'Pendiente'
       case 'approved':
+      case 'APPROVED':  // ✅ Handle uppercase
         return 'Aprobado'
       case 'sent':
         return 'Enviado'
@@ -126,6 +127,37 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
     }
   }
 
+  // ✅ Bulk Relance State & Handler
+  const [bulkRelanceModalOpen, setBulkRelanceModalOpen] = useState(false)
+  const [isBulkRelancing, setIsBulkRelancing] = useState(false)
+
+  const handleConfirmBulkRelance = async () => {
+    if (!filters.status || !filters.status.startsWith('relance_')) return
+
+    setIsBulkRelancing(true)
+    try {
+      const response = await fetch('/api/bulk-relance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters })
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
+
+      toast.success(`✅ ${result.message}`)
+      setBulkRelanceModalOpen(false)
+      // Invalidate queries to refresh list and move items to next status level
+      queryClient.invalidateQueries({ queryKey: ['budgets'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    } catch (error: any) {
+      console.error('Error en relance masivo:', error)
+      toast.error(error.message || 'Error al procesar el envío masivo')
+    } finally {
+      setIsBulkRelancing(false)
+    }
+  }
+
   const handleCreateManual = async () => {
     try {
       const newBudget = await createManualBudget({
@@ -169,6 +201,15 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
           <span className="stat">
             Total: <strong>{totalCount}</strong>
           </span>
+          {filters.status && filters.status.startsWith('relance_') && (
+            <button
+              className="create-manual-btn"
+              style={{ backgroundColor: '#4338ca', marginLeft: '10px' }}
+              onClick={() => setBulkRelanceModalOpen(true)}
+            >
+              🚀 Relanzar a todos ({filters.status === 'relance_3' ? '3+' : filters.status.split('_')[1]})
+            </button>
+          )}
           <button
             className="create-manual-btn"
             onClick={handleCreateManual}
@@ -409,6 +450,17 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
         message="¿Marcar este presupuesto como enviado? Esto actualizará el estado sin enviar email al cliente."
         confirmLabel="Marcar como Enviado"
         variant="info"
+      />
+      <ConfirmationModal
+        isOpen={bulkRelanceModalOpen}
+        onClose={() => setBulkRelanceModalOpen(false)}
+        onConfirm={handleConfirmBulkRelance}
+        title=" Confirmar Relanzamiento Masivo"
+        message={`¿Estás seguro de que deseas enviar el email de relance a TODOS los presupuestos en la lista "${filters.status === 'relance_3' ? 'Relanzado 3+ veces' : `Relanzado ${filters.status?.split('_')[1]} ve(ces)`}"? 
+        
+Esta acción enviará correos reales a los clientes filtrados.`}
+        confirmLabel={isBulkRelancing ? "Enviando..." : "Sí, Relanzar a Todos"}
+        variant="warning"
       />
     </div>
   )

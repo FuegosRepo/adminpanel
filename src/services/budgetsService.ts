@@ -26,6 +26,9 @@ export const fetchBudgets = async ({
     if (filters?.status && filters.status !== 'all') {
         if (filters.status === 'sent') {
             query = query.or('status.eq.sent,status.eq.ENVIADO')
+        } else if (filters.status === 'approved') {
+            // ✅ Handle case sensitivity for approved status
+            query = query.or('status.eq.approved,status.eq.APPROVED')
         } else if (filters.status.startsWith('relance_')) {
             // Filter by number of relances
             const count = parseInt(filters.status.split('_')[1])
