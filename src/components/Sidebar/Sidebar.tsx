@@ -2,10 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { List, DollarSign, BarChart3, Calendar, Bell, Euro, FileText, Calculator } from 'lucide-react'
+import { List, DollarSign, BarChart3, Calendar, Bell, Euro, FileText, Calculator, ChevronLeft, ChevronRight } from 'lucide-react'
 import styles from './Sidebar.module.css'
 
-export default function Sidebar() {
+interface SidebarProps {
+    isCollapsed: boolean
+    onToggle: () => void
+}
+
+export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     const pathname = usePathname()
 
     const links = [
@@ -20,10 +25,22 @@ export default function Sidebar() {
     ]
 
     return (
-        <aside className={styles.sidebar}>
-            <div className={styles.logo}>
-                <h2>Fuegos Admin</h2>
+        <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
+            <div className={styles.sidebarHeader}>
+                {!isCollapsed && (
+                    <div className={styles.logo}>
+                        <h2>Fuegos Admin</h2>
+                    </div>
+                )}
+                <button
+                    onClick={onToggle}
+                    className={styles.toggleBtn}
+                    title={isCollapsed ? "Expandir" : "Colapsar"}
+                >
+                    {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                </button>
             </div>
+
             <nav className={styles.nav}>
                 {links.map(link => {
                     const IconComponent = link.icon
@@ -34,9 +51,10 @@ export default function Sidebar() {
                             key={link.href}
                             href={link.href}
                             className={`${styles.link} ${isActive ? styles.active : ''}`}
+                            title={isCollapsed ? link.label : undefined}
                         >
                             <IconComponent size={20} />
-                            <span>{link.label}</span>
+                            {!isCollapsed && <span>{link.label}</span>}
                         </Link>
                     )
                 })}

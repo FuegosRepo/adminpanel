@@ -6,20 +6,56 @@
     left: 0;
     top: 0;
     border-right: 1px solid #e5e7eb;
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
     display: flex;
     flex-direction: column;
+    transition: width 0.3s ease;
+    z-index: 100;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+    padding: 1.5rem 0.75rem;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    min-height: 40px;
+}
+
+.collapsed .sidebarHeader {
+    justify-content: center;
 }
 
 .logo {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 0.5rem;
 }
 
 .logo h2 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+}
+
+.toggleBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.toggleBtn:hover {
+    background-color: #f3f4f6;
     color: #111827;
 }
 
@@ -41,6 +77,11 @@
     transition: all 0.2s ease;
 }
 
+.collapsed .link {
+    justify-content: center;
+    padding: 0.75rem;
+}
+
 .link:hover {
     background-color: #f9fafb;
     color: #111827;
@@ -58,6 +99,14 @@
         height: auto;
         position: relative;
         padding: 1rem;
+    }
+
+    .sidebarHeader {
+        margin-bottom: 1rem;
+    }
+
+    .toggleBtn {
+        display: none;
     }
 
     .nav {

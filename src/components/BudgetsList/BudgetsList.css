@@ -1,12 +1,21 @@
 /* Container and Header */
 .budgets-list-container {
   padding: 20px;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  /* Prevent horizontal scroll on the container level */
 }
 
 .budgets-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  /* Allow header content to wrap */
+  gap: 20px;
+  /* Add gap for when it wraps */
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 3px solid #e2943a;
@@ -22,6 +31,9 @@
 .budgets-list-stats {
   display: flex;
   gap: 20px;
+  flex-wrap: wrap;
+  /* Allow stats/buttons to wrap */
+  align-items: center;
 }
 
 .create-manual-btn {
@@ -90,6 +102,9 @@
   display: flex;
   gap: 10px;
   margin-bottom: 30px;
+  flex-wrap: wrap;
+  /* Essential for responsiveness */
+  align-items: center;
 }
 
 .filter-btn {
@@ -138,8 +153,11 @@
 /* Grid */
 .budgets-list-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* Reduced from 350px to 300px to fit better on smaller screens */
+  gap: 16px;
+  /* Reduced gap slightly */
+  width: 100%;
 }
 
 /* Cards - Matching OrderCard Design */
@@ -475,12 +493,27 @@
   }
 
   .budgets-list-filters {
-    flex-wrap: wrap;
+    flex-direction: column;
+    /* Stack filters on very small screens */
+    align-items: stretch;
+    /* Full width buttons */
+  }
+
+  .filter-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .budget-search {
+    margin-left: 0;
+    margin-top: 10px;
+    max-width: 100%;
   }
 
   .budgets-list-grid {
     grid-template-columns: 1fr;
   }
+
 
   .budget-card.collapsed {
     padding: 0.75rem;
@@ -526,8 +559,13 @@
 /* Pagination & Search */
 .budget-search {
   margin-left: auto;
+  /* Pushes to right on desktop */
   display: flex;
   align-items: center;
+  width: 100%;
+  /* Full width on mobile if wrapped */
+  max-width: 400px;
+  /* Limit width on desktop */
 }
 
 .search-input {
@@ -535,7 +573,8 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
-  width: 250px;
+  width: 100%;
+  /* Fluid width */
   transition: all 0.2s;
 }
 
