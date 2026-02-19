@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
                 name: order.name,
                 email: order.email,
                 phone: order.phone,
-                eventDate: order.event_date,
+                eventDate: order.event_date ? order.event_date.split('T')[0] : order.event_date,
                 eventType: order.event_type,
                 address: order.address,
                 guestCount: order.guest_count,

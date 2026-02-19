@@ -7,6 +7,7 @@ import { es } from 'date-fns/locale'
 import { Mail, Eye, Edit, ChevronDown, ChevronUp, Clock, Trash2, FileText, StickyNote } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { emailTemplates } from '@/data/mockData'
+import { formatLocalDate } from '@/utils/dateUtils'
 import { ProductListResolver } from '@/components/admin/ProductListResolver'
 import ConfirmationModal from '@/components/common/ConfirmationModal'
 import InternalNoteModal from '@/components/InternalNoteModal/InternalNoteModal'
@@ -113,13 +114,7 @@ const OrderCard = ({
     if (!lastRelanceDate) return null
     return differenceInDays(new Date(), new Date(lastRelanceDate))
   }
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy', { locale: es })
-    } catch {
-      return dateString
-    }
-  }
+  const formatDate = (dateString: string) => formatLocalDate(dateString)
 
   const getStatusText = (status: CateringOrder['status']) => {
     switch (status) {
