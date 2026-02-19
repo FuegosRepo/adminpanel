@@ -6,6 +6,7 @@ import { useBudgets } from '@/hooks/useBudgets'
 import { toast } from 'sonner'
 import ConfirmationModal from '@/components/common/ConfirmationModal'
 import type { BudgetsFilters } from '@/services/budgetsService'
+import { formatLocalDate } from '@/utils/dateUtils'
 
 interface Budget {
   id: string
@@ -377,7 +378,7 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
                             <p className="budget-email">{clientInfo.email}</p>
                             <p className="budget-phone">{clientInfo.phone}</p>
                             <p className="budget-event-date">
-                              📅 {clientInfo.eventDate ? new Date(clientInfo.eventDate).toLocaleDateString('fr-FR') : '-'}
+                              📅 {formatLocalDate(clientInfo.eventDate)}
                             </p>
                           </div>
                           <div className="budget-compact-right">
