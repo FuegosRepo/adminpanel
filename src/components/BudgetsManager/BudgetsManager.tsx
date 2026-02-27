@@ -2,13 +2,11 @@ import React, { useState } from 'react'
 import BudgetsList from '../BudgetsList/BudgetsList'
 import { BudgetEditor } from '../BudgetEditor'
 import { ArrowLeft } from 'lucide-react'
-import './BudgetsManager.css'
+import { Button } from '@/components/ui/button'
 import type { BudgetsFilters } from '@/services/budgetsService'
 
 export default function BudgetsManager() {
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null)
-
-  // ✅ Estado de paginación persistido en el padre para no perderlo al navegar
   const [page, setPage] = useState(1)
   const [filters, setFilters] = useState<BudgetsFilters>({})
 
@@ -18,11 +16,11 @@ export default function BudgetsManager() {
 
   if (selectedBudgetId) {
     return (
-      <div className="budgets-manager">
-        <button className="back-button" onClick={handleBack}>
-          <ArrowLeft size={20} />
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={handleBack} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
           Volver a la lista
-        </button>
+        </Button>
         <BudgetEditor
           budgetId={selectedBudgetId}
           onBudgetDeleted={() => setSelectedBudgetId(null)}
@@ -32,7 +30,7 @@ export default function BudgetsManager() {
   }
 
   return (
-    <div className="budgets-manager">
+    <div>
       <BudgetsList
         onSelectBudget={setSelectedBudgetId}
         page={page}
@@ -43,4 +41,3 @@ export default function BudgetsManager() {
     </div>
   )
 }
-

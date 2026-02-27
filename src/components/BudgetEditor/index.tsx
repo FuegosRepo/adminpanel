@@ -23,10 +23,12 @@ import { PDFPreviewModal } from './components/PDFPreviewModal'
 import ConfirmationModal from '@/components/common/ConfirmationModal'
 import { toast } from 'sonner'
 import { isEqual } from 'lodash'
-import { recalculateTotals } from './utils/budgetCalculations' // ✅ Import moved to top
-import styles from './BudgetEditor.module.css'
+import { recalculateTotals } from './utils/budgetCalculations'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Trash2, AlertTriangle, Link as LinkIcon } from 'lucide-react'
 
-import { useBudgetModals } from './hooks/useBudgetModals' // ✅ Import hook
+import { useBudgetModals } from './hooks/useBudgetModals'
 
 export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     // ✅ Use custom hook for modals
@@ -90,15 +92,15 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
     } = useMaterialSelector()
 
     if (loading) {
-        return <div className={styles.loading}>Cargando presupuesto...</div>
+        return <div className="text-center p-10 text-lg text-muted-foreground">Cargando presupuesto...</div>
     }
 
     if (error) {
-        return <div className={styles.error}>{error}</div>
+        return <div className="text-center p-10 text-lg text-destructive">{error}</div>
     }
 
     if (!editedData) {
-        return <div className={styles.error}>No se pudo cargar el presupuesto</div>
+        return <div className="text-center p-10 text-lg text-destructive">No se pudo cargar el presupuesto</div>
     }
 
     const handleSave = async () => {
@@ -240,22 +242,36 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
         closeDeleteSection()
     }
 
+    const getStatusVariant = (status: string) => {
+        switch (status.toLowerCase()) {
+            case 'aprobado': return 'success';
+            case 'enviado': return 'default';
+            case 'rechazado': return 'destructive';
+            case 'pendiente_revision': return 'warning';
+            default: return 'secondary';
+        }
+    };
+
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <h1>Editor de Presupuesto</h1>
-                <div className={styles.statusContainer}>
-                    <span className={`${styles.statusBadge} ${styles[`status${(budget?.status || 'draft').charAt(0).toUpperCase() + (budget?.status || 'draft').slice(1)}`]}`}>
+        <div className="w-full max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b-2 border-primary gap-4">
+                <h1 className="text-2xl font-semibold text-foreground m-0">Editor de Presupuesto</h1>
+                <div className="flex items-center gap-3">
+                    <Badge variant={getStatusVariant(budget?.status || 'draft')} className="uppercase">
                         {budget?.status || 'Borrador'}
-                    </span>
-                    <span className={styles.versionBadge}>v{budget?.version}</span>
-                    <button
+                    </Badge>
+                    <Badge variant="outline" className="text-muted-foreground bg-muted">
+                        v{budget?.version}
+                    </Badge>
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={handleDeleteBudget}
-                        className={styles.deleteBudgetBtn}
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                         title="Eliminar presupuesto"
                     >
-                        🗑️
-                    </button>
+                        <Trash2 className="h-5 w-5" />
+                    </Button>
                 </div>
             </div>
 
@@ -338,10 +354,9 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                     onDelete={() => removeSection('service')}
                 />
             ) : (
-                <div className={`${styles.section} ${styles.addSectionContainer}`}>
-                    <p>No hay servicio configurado</p>
-                    <button
-                        className={styles.addSectionBtn}
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-8 text-center flex flex-col items-center justify-center gap-4">
+                    <p className="text-muted-foreground">No hay servicio configurado</p>
+                    <Button
                         onClick={() => addSection('service', {
                             mozos: 1,
                             hours: 1,
@@ -352,8 +367,8 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                             totalTTC: 48
                         })}
                     >
-                        ➕ Agregar Servicio
-                    </button>
+                        + Agregar Servicio
+                    </Button>
                 </div>
             )}
 
@@ -366,16 +381,15 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                     onOpenSelector={() => setShowMaterialSelector(true)}
                 />
             ) : (
-                <div className={`${styles.section} ${styles.addSectionContainer}`}>
-                    <p>No hay materiales configurados</p>
-                    <button
-                        className={styles.addSectionBtn}
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-8 text-center flex flex-col items-center justify-center gap-4">
+                    <p className="text-muted-foreground">No hay materiales configurados</p>
+                    <Button
                         onClick={() => addSection('material', {
                             items: [], tvaPct: 20, totalHT: 0, tva: 0, totalTTC: 0, insurancePct: 6, insuranceAmount: 0
                         })}
                     >
-                        ➕ Agregar Material
-                    </button>
+                        + Agregar Material
+                    </Button>
                 </div>
             )}
 
@@ -406,16 +420,15 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                     onDelete={() => removeSection('boissonsSoft')}
                 />
             ) : (
-                <div className={`${styles.section} ${styles.addSectionContainer}`}>
-                    <p>No hay bebidas soft configuradas</p>
-                    <button
-                        className={styles.addSectionBtn}
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-8 text-center flex flex-col items-center justify-center gap-4">
+                    <p className="text-muted-foreground">No hay bebidas soft configuradas</p>
+                    <Button
                         onClick={() => addSection('boissonsSoft', {
                             pricePerPerson: 0, totalPersons: 0, totalHT: 0, tva: 0, tvaPct: 20, totalTTC: 0
                         })}
                     >
-                        ➕ Agregar Boissons Soft
-                    </button>
+                        + Agregar Boissons Soft
+                    </Button>
                 </div>
             )}
 
@@ -426,16 +439,15 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                     onDelete={() => removeSection('deplacement')}
                 />
             ) : (
-                <div className={`${styles.section} ${styles.addSectionContainer}`}>
-                    <p>No hay desplazamiento configurado</p>
-                    <button
-                        className={styles.addSectionBtn}
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-8 text-center flex flex-col items-center justify-center gap-4">
+                    <p className="text-muted-foreground">No hay desplazamiento configurado</p>
+                    <Button
                         onClick={() => addSection('deplacement', {
                             distance: 0, pricePerKm: 0, totalHT: 0, tva: 0, tvaPct: 20, totalTTC: 0
                         })}
                     >
-                        ➕ Agregar Desplazamiento
-                    </button>
+                        + Agregar Desplazamiento
+                    </Button>
                 </div>
             )}
 
@@ -446,10 +458,9 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                     onUpdate={updateField}
                 />
             ) : (
-                <div className={`${styles.section} ${styles.addSectionContainer}`}>
-                    <p>No hay extras configurados</p>
-                    <button
-                        className={styles.addSectionBtn}
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-8 text-center flex flex-col items-center justify-center gap-4">
+                    <p className="text-muted-foreground">No hay extras configurados</p>
+                    <Button
                         onClick={() => addSection('extras', {
                             items: [],
                             totalHT: 0,
@@ -457,8 +468,8 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                             totalTTC: 0
                         })}
                     >
-                        ➕ Agregar Extra
-                    </button>
+                        + Agregar Extra
+                    </Button>
                 </div>
             )}
 
@@ -470,27 +481,17 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
 
             {/* Banner para migrar presupuestos antiguos sin order_id */}
             {!orderId && !loading && (
-                <div style={{
-                    background: 'rgba(234, 179, 8, 0.1)',
-                    border: '1px solid rgba(234, 179, 8, 0.3)',
-                    borderRadius: '8px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    color: '#fbbf24'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-amber-500">
+                    <div className="flex items-center gap-3">
+                        <AlertTriangle className="h-6 w-6 shrink-0" />
                         <div>
-                            <strong>Presupuesto sin pedido vinculado</strong>
-                            <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.8 }}>
+                            <strong className="block text-amber-600">Presupuesto sin pedido vinculado</strong>
+                            <p className="m-0 text-sm opacity-80 text-amber-600/80">
                                 Este presupuesto no aparece en la lista de Pedidos. Migralo para corregirlo.
                             </p>
                         </div>
                     </div>
-                    <button
+                    <Button
                         onClick={async () => {
                             const toastId = toast.loading('Creando pedido vinculado...')
                             const result = await createLinkedOrder(editedData)
@@ -501,19 +502,11 @@ export function BudgetEditor({ budgetId, onBudgetDeleted }: BudgetEditorProps) {
                             }
                         }}
                         disabled={saving}
-                        style={{
-                            background: '#fbbf24',
-                            color: '#000',
-                            border: 'none',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '6px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            opacity: saving ? 0.5 : 1
-                        }}
+                        className="bg-amber-500 hover:bg-amber-600 text-black shrink-0"
                     >
-                        {saving ? 'Migrando...' : '🔗 Vincular a nuevo Pedido'}
-                    </button>
+                        <LinkIcon className="w-4 h-4 mr-2" />
+                        {saving ? 'Migrando...' : 'Vincular a nuevo Pedido'}
+                    </Button>
                 </div>
             )}
 

@@ -1,0 +1,70 @@
+import React from 'react'
+import { Save, CheckCircle2, FileText, Mail } from 'lucide-react'
+import styles from './BudgetActions.module.css'
+
+interface BudgetActionsProps {
+    onSave: () => void
+    onApproveAndSend: () => void
+    onMarkAsSent: () => void
+    onGeneratePDF: () => void
+    saving: boolean
+    hasPdf: boolean
+    hasUnsavedChanges: boolean
+}
+
+export function BudgetActions({ onSave, onApproveAndSend, onMarkAsSent, onGeneratePDF, saving, hasPdf, hasUnsavedChanges }: BudgetActionsProps) {
+    return (
+        <div className={styles.budgetActions}>
+            {hasUnsavedChanges ? (
+                <button
+                    onClick={onSave}
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    disabled={saving}
+                >
+                    <Save size={18} />
+                    {saving ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
+            ) : (
+                <>
+                    <button
+                        onClick={onSave}
+                        className={`${styles.btn} ${styles.btnSecondary}`}
+                        disabled={true}
+                    >
+                        <Save size={18} />
+                        Guardado
+                    </button>
+
+                    <button
+                        onClick={onGeneratePDF}
+                        className={`${styles.btn} ${styles.btnPrimary}`}
+                        disabled={saving}
+                    >
+                        <FileText size={18} />
+                        {saving ? 'Generando PDF...' : 'Generar PDF'}
+                    </button>
+
+                    <button
+                        onClick={onMarkAsSent}
+                        className={`${styles.btn} ${styles.btnInfo}`}
+                        disabled={saving || hasUnsavedChanges || !hasPdf}
+                        title={hasUnsavedChanges ? 'Primero guarda los cambios' : (!hasPdf ? 'Primero debes generar el PDF' : 'Marcar como enviado sin enviar email')}
+                    >
+                        <Mail size={18} />
+                        Marcar como Enviado
+                    </button>
+                </>
+            )}
+
+            <button
+                onClick={onApproveAndSend}
+                className={`${styles.btn} ${styles.btnSuccess}`}
+                disabled={saving || hasUnsavedChanges || !hasPdf}
+                title={hasUnsavedChanges ? 'Primero guarda los cambios' : (!hasPdf ? 'Primero debes generar el PDF' : '')}
+            >
+                <CheckCircle2 size={18} />
+                Enviar Presupuesto
+            </button>
+        </div>
+    )
+}

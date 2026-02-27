@@ -20,7 +20,7 @@ export async function POST(request: Request) {
         const body = await request.json()
         const { filters, budgetIds } = body
 
-        if (!filters || !filters.status || !filters.status.startsWith('relance_')) {
+        if (!filters || !filters.status || (!filters.status.startsWith('relance_') && filters.status !== 'sent')) {
             return NextResponse.json(
                 { error: 'Filtro de relance no válido o no proporcionado.' },
                 { status: 400 }
@@ -37,17 +37,21 @@ export async function POST(request: Request) {
             query = query.in('id', budgetIds)
         } else {
             // Fallback to filter logic
-            const countStr = filters.status.split('_')[1];
-            const count = parseInt(countStr);
-
-            if (isNaN(count)) {
-                return NextResponse.json({ error: 'Formato de filtro inválido' }, { status: 400 })
-            }
-
-            if (count >= 3) {
-                query = query.gte('relance_count', 3);
+            if (filters.status === 'sent') {
+                query = query.in('status', ['sent', 'ENVIADO']).or('relance_count.eq.0,relance_count.is.null')
             } else {
-                query = query.eq('relance_count', count);
+                const countStr = filters.status.split('_')[1];
+                const count = parseInt(countStr);
+
+                if (isNaN(count)) {
+                    return NextResponse.json({ error: 'Formato de filtro inválido' }, { status: 400 })
+                }
+
+                if (count >= 3) {
+                    query = query.gte('relance_count', 3);
+                } else {
+                    query = query.eq('relance_count', count);
+                }
             }
         }
 

@@ -5,7 +5,12 @@ import { formatItemName } from '../utils/formatItemName'
 import { simplifyString } from '@/utils/stringUtils'
 import { getProductDisplayName } from '@/utils/productDisplay'
 import { MenuSelectorModal } from './MenuSelectorModal'
-import styles from './MenuSection.module.css'
+
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { ChevronDown, ChevronRight, UtensilsCrossed, Trash2, Plus } from 'lucide-react'
 
 interface MenuSectionProps {
     data: BudgetData['menu']
@@ -82,13 +87,12 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
     const ManualAdder = ({ category, placeholder }: { category: string, placeholder: string }) => {
         const [val, setVal] = useState('')
         return (
-            <div className={styles.manualAdder}>
-                <input
+            <div className="flex items-center gap-2 mt-3">
+                <Input
                     type="text"
                     value={val}
                     onChange={e => setVal(e.target.value)}
                     placeholder={placeholder}
-                    className={styles.manualInput}
                     onKeyDown={e => {
                         if (e.key === 'Enter') {
                             addManualItem(category, val)
@@ -96,39 +100,46 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                         }
                     }}
                 />
-                <button
+                <Button
+                    size="icon"
                     onClick={() => {
                         addManualItem(category, val)
                         setVal('')
                     }}
-                    className={styles.addBtn}
+                    className="shrink-0"
                 >
-                    +
-                </button>
+                    <Plus className="h-4 w-4" />
+                </Button>
             </div>
         )
     }
 
     return (
-        <section className={`${styles.section} ${styles.editable}`}>
-            <div className={styles.header}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                    <button
+        <Card className="border-l-4 border-l-primary shadow-sm mt-6">
+            <CardHeader className="py-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <UtensilsCrossed className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg font-semibold text-primary m-0">
+                            Menú
+                        </CardTitle>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setExpanded(!expanded)}
-                        className={styles.toggleBtn}
-                        title={expanded ? 'Colapsar' : 'Expandir'}
+                        className="h-8 w-8 text-muted-foreground hover:bg-muted"
                     >
-                        {expanded ? '▼' : '▶'}
-                    </button>
-                    <h2 className={styles.title}>🍽️ Menú</h2>
+                        {expanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                    </Button>
                 </div>
-            </div>
+            </CardHeader>
             {expanded && (
-                <>
-                    <div className={styles.editGrid}>
-                        <div className={styles.editField}>
-                            <label>Precio por Persona (€)</label>
-                            <input
+                <CardContent className="pt-0 pb-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <Label>Precio por Persona (€)</Label>
+                            <Input
                                 type="number"
                                 value={data.pricePerPerson}
                                 onChange={(e) => onUpdate('menu.pricePerPerson', parseFloat(e.target.value) || 0)}
@@ -136,18 +147,18 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                                 min="0"
                             />
                         </div>
-                        <div className={styles.editField}>
-                            <label>Total Personas</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>Total Personas</Label>
+                            <Input
                                 type="number"
                                 value={data.totalPersons}
                                 onChange={(e) => onUpdate('menu.totalPersons', parseInt(e.target.value) || 0)}
                                 min="0"
                             />
                         </div>
-                        <div className={styles.editField}>
-                            <label>TVA (%)</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>TVA (%)</Label>
+                            <Input
                                 type="number"
                                 value={data.tvaPct}
                                 onChange={(e) => onUpdate('menu.tvaPct', parseFloat(e.target.value) || 0)}
@@ -158,32 +169,32 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                         </div>
                     </div>
 
-                    <div className={styles.menuSelection}>
-                        <div className={styles.menuSelectionHeader}>
-                            <h3>Selección de Platos</h3>
-                            <button
-                                className={styles.modifyBtn}
-                                onClick={() => setShowModal(true)}
-                            >
+                    <div className="py-6 border-y border-border">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-medium">Selección de Platos</h3>
+                            <Button onClick={() => setShowModal(true)}>
                                 Abrir Catálogo
-                            </button>
+                            </Button>
                         </div>
 
-                        <div className={styles.selectionGrid}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {/* Entradas */}
-                            <div className={styles.selectionGroup}>
-                                <h4>Entradas</h4>
-                                <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
+                            <div className="space-y-3">
+                                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Entradas</h4>
+                                <ul className="space-y-2">
                                     {data.entrees?.map((item, i) => (
-                                        <li key={i} className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                                            <span style={{ flex: 1 }}>• {resolveProductName(item.name)}</span>
-                                            <button
+                                        <li key={i} className="flex items-start justify-between gap-2 p-2 rounded-md bg-muted/50 border border-border/50">
+                                            <span className="text-sm font-medium leading-tight">
+                                                • {resolveProductName(item.name)}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
                                                 onClick={() => removeManualItem('entrees', i)}
-                                                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
-                                                title="Eliminar"
+                                                className="h-6 w-6 text-destructive hover:bg-destructive/10 shrink-0"
                                             >
-                                                🗑️
-                                            </button>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </li>
                                     ))}
                                 </ul>
@@ -191,19 +202,22 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                             </div>
 
                             {/* Carnes */}
-                            <div className={styles.selectionGroup}>
-                                <h4>Carnes</h4>
-                                <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
+                            <div className="space-y-3">
+                                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Carnes</h4>
+                                <ul className="space-y-2">
                                     {data.viandes?.map((item, i) => (
-                                        <li key={i} className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                                            <span style={{ flex: 1 }}>• {resolveProductName(item.name)}</span>
-                                            <button
+                                        <li key={i} className="flex items-start justify-between gap-2 p-2 rounded-md bg-muted/50 border border-border/50">
+                                            <span className="text-sm font-medium leading-tight">
+                                                • {resolveProductName(item.name)}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
                                                 onClick={() => removeManualItem('viandes', i)}
-                                                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
-                                                title="Eliminar"
+                                                className="h-6 w-6 text-destructive hover:bg-destructive/10 shrink-0"
                                             >
-                                                🗑️
-                                            </button>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </li>
                                     ))}
                                 </ul>
@@ -211,21 +225,24 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                             </div>
 
                             {/* Postres */}
-                            <div className={styles.selectionGroup}>
-                                <h4>Postres</h4>
-                                <ul className={styles.selectionList} style={{ listStyle: 'none', padding: 0 }}>
-                                    {data.dessert ? (
-                                        <li className={styles.editableItem} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                                            <span style={{ flex: 1 }}>• {resolveProductName(data.dessert.name)}</span>
-                                            <button
+                            <div className="space-y-3">
+                                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Postres</h4>
+                                <ul className="space-y-2">
+                                    {data.dessert && (
+                                        <li className="flex items-start justify-between gap-2 p-2 rounded-md bg-muted/50 border border-border/50">
+                                            <span className="text-sm font-medium leading-tight">
+                                                • {resolveProductName(data.dessert.name)}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
                                                 onClick={() => removeManualItem('dessert', 0)}
-                                                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}
-                                                title="Eliminar"
+                                                className="h-6 w-6 text-destructive hover:bg-destructive/10 shrink-0"
                                             >
-                                                🗑️
-                                            </button>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </li>
-                                    ) : null}
+                                    )}
                                 </ul>
                                 {!data.dessert && (
                                     <ManualAdder category="dessert" placeholder="Agregar postre manual..." />
@@ -234,38 +251,36 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                         </div>
                     </div>
 
-                    <div className={styles.totalsBox}>
-                        <div className={styles.totalRow}>
-                            <span>Total HT:</span>
-                            <strong>{data.totalHT.toFixed(2)} €</strong>
+                    <div className="bg-muted p-4 rounded-lg space-y-2 max-w-sm ml-auto">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="font-medium text-muted-foreground">Total HT:</span>
+                            <strong className="text-foreground">{data.totalHT.toFixed(2)} €</strong>
                         </div>
                         {data.discount && data.discount.amount > 0 && (
                             <>
-                                <div className={styles.totalRow} style={{ color: '#22c55e' }}>
-                                    <span>Remise ({data.discount.percentage}%):</span>
+                                <div className="flex justify-between items-center text-sm text-green-600">
+                                    <span className="font-medium">Remise ({data.discount.percentage}%):</span>
                                     <strong>- {data.discount.amount.toFixed(2)} €</strong>
                                 </div>
-                                <div className={styles.totalRow}>
-                                    <span>Total HT Avec Remise:</span>
-                                    <strong>{(data.totalHTApresRemise ?? data.totalHT).toFixed(2)} €</strong>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="font-medium text-muted-foreground">Total HT Avec Remise:</span>
+                                    <strong className="text-foreground">{(data.totalHTApresRemise ?? data.totalHT).toFixed(2)} €</strong>
                                 </div>
                             </>
                         )}
-                        <div className={styles.totalRow}>
-                            <span>TVA ({data.tvaPct}%):</span>
-                            <strong>{data.tva.toFixed(2)} €</strong>
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="font-medium text-muted-foreground">TVA ({data.tvaPct}%):</span>
+                            <strong className="text-foreground">{data.tva.toFixed(2)} €</strong>
                         </div>
-                        <div className={`${styles.totalRow} ${styles.highlight}`}>
-                            <span>Total TTC:</span>
-                            <strong>{data.totalTTC.toFixed(2)} €</strong>
+                        <div className="flex justify-between items-center pt-2 mt-2 border-t border-border bg-amber-100 dark:bg-amber-900/30 p-2 rounded text-base">
+                            <span className="font-semibold text-amber-900 dark:text-amber-400">Total TTC:</span>
+                            <strong className="text-amber-900 dark:text-amber-400">{data.totalTTC.toFixed(2)} €</strong>
                         </div>
                     </div>
 
                     <MenuSelectorModal
                         isOpen={showModal}
                         onClose={() => setShowModal(false)}
-                        // Legacy Fallback: If full objects are missing, try to use legacy selectedItems IDs
-                        // This allows opening an old budget and having the modal pre-filled with the correct checks.
                         selectedItems={{
                             entrees: (data.entrees && data.entrees.length > 0)
                                 ? data.entrees.map(e => e.name)
@@ -278,36 +293,16 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                                 : (data.selectedItems?.desserts || [])
                         }}
                         onSave={(selection) => {
-                            // Merge Strategy:
-                            // The modal returns IDs. We convert them to full items.
-                            // We REPLACE the current list with the new selection from the modal?
-                            // NO, that destroys manual items.
-                            // Better: The modal is an "Add to list" or "Sync list" tool.
-
-                            // Let's adopt this strategy:
-                            // The Modal returns the FULL desired set of "Catalog Items".
-                            // Usage: If user uses modal, they are setting the "standard" items.
-                            // Manual items might be lost if we are not careful.
-                            // BUT, the user's main complaint was "I selected empanadas and can't remove them".
-                            // This implies they want the Modal to be the Authority for Catalog items.
-
                             const hydrateItems = (ids: string[]) => {
-                                // STEP 1: Deduplicate IDs first
                                 const uniqueIds = Array.from(new Set(ids))
-
                                 return uniqueIds.map(id => {
-                                    // Try to find product by ID first, then by EXACT Name
-                                    // Robust matching using simplifyString
                                     const idSimple = simplifyString(id)
                                     const product = products.find(p => {
                                         if (p.id === id || p.name === id) return true
                                         const pNameSimple = simplifyString(p.name)
                                         return pNameSimple === idSimple
                                     })
-
-                                    // Always use the Product Name if found, otherwise fallback to the ID/Input
                                     const finalName = product ? product.name : formatItemName(id)
-
                                     return {
                                         name: finalName,
                                         quantity: 0,
@@ -316,44 +311,35 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
                                     }
                                 })
                             }
-
-                            // Update Entrees and Viandes
                             onUpdate('menu.entrees', hydrateItems(selection.entrees))
                             onUpdate('menu.viandes', hydrateItems(selection.viandes))
 
-                            // Update Dessert
                             if (selection.desserts.length > 0) {
-                                // Take the first selected dessert
                                 const dId = selection.desserts[0]
                                 const dIdSimple = simplifyString(dId)
                                 const product = products.find(p => {
                                     if (p.id === dId || p.name === dId) return true
                                     return simplifyString(p.name) === dIdSimple
                                 })
-                                // Crucial: Use product.name if available to avoid "Dessert" or generic IDs
                                 const finalName = product ? product.name : formatItemName(dId)
 
                                 onUpdate('menu.dessert', {
                                     name: finalName,
-                                    description: product?.description || undefined, // Pass description for special desserts
+                                    description: product?.description || undefined,
                                     quantity: 0,
                                     pricePerUnit: 0,
                                     total: 0
                                 })
                             } else {
-                                // Clear dessert if none selected
                                 onUpdate('menu.dessert', null)
                             }
 
-                            // Update the "selectedItems" IDs just in case legacy logic needs them, 
-                            // though we are trying to move away from it.
                             onUpdate('menu.selectedItems', selection)
-
                             setShowModal(false)
                         }}
                     />
-                </>
+                </CardContent>
             )}
-        </section>
+        </Card>
     )
 }

@@ -1,26 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import Sidebar from '@/components/Sidebar/Sidebar'
+import AppSidebar from '@/components/Sidebar/Sidebar'
 import Header from '@/components/Header/Header'
-import styles from './layout.module.css'
+import { SidebarProvider } from '@/components/ui/sidebar'
 
 export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    const [isCollapsed, setIsCollapsed] = useState(false)
-
     return (
-        <div className={styles.layout}>
-            <Sidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-            <div className={`${styles.mainContent} ${isCollapsed ? styles.collapsed : ''}`}>
+        <SidebarProvider>
+            <AppSidebar />
+            <div className="flex flex-col flex-1 w-full min-w-0 max-w-full min-h-screen bg-background text-foreground">
                 <Header />
-                <main className={styles.pageContent}>
+                <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
                     {children}
                 </main>
             </div>
-        </div>
+        </SidebarProvider>
     )
 }

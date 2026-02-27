@@ -1,8 +1,19 @@
 import React from 'react'
 import { CateringOrder } from '@/types'
-import { X, Calendar, Users, MapPin, Clock, Mail, Phone, User, CreditCard } from 'lucide-react'
-import styles from './OrderDetails.module.css'
+import { Calendar, Users, MapPin, Clock, Mail, Phone, User, CreditCard } from 'lucide-react'
 import { ProductListResolver } from '../admin/ProductListResolver'
+
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface OrderDetailsProps {
     isOpen: boolean
@@ -11,181 +22,222 @@ interface OrderDetailsProps {
 }
 
 export default function OrderDetails({ isOpen, order, onClose }: OrderDetailsProps) {
-    if (!isOpen) return null
-
     const formatDate = (dateStr: string | null | undefined) => {
-        if (!dateStr) return 'Non spécifié'
+        if (!dateStr) return 'No especificado'
         try {
-            return new Date(dateStr).toLocaleDateString('fr-FR', {
+            return new Date(dateStr).toLocaleDateString('es-ES', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
             })
         } catch (error) {
-            return 'Date invalide'
+            return 'Fecha inválida'
         }
     }
 
     const formatEventType = (type: string) => {
         const types: { [key: string]: string } = {
-            wedding: 'Mariage',
-            birthday: 'Anniversaire',
-            corporate: 'Événement Professionnel',
-            other: 'Autre'
+            wedding: 'Boda',
+            birthday: 'Cumpleaños',
+            corporate: 'Evento Corporativo',
+            other: 'Otro'
         }
         return types[type] || type
     }
 
     return (
-        <div className={styles.overlay} onClick={onClose}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.header}>
-                    <h2>Détails de la Commande</h2>
-                    <button onClick={onClose} className={styles.closeBtn} title="Fermer">
-                        <X size={24} />
-                    </button>
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden flex flex-col gap-0 border-none shadow-2xl">
+                {/* Header Section (sticky) */}
+                <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white shrink-0">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                            Detalles del Pedido
+                        </DialogTitle>
+                        <DialogDescription className="text-slate-300 mt-1">
+                            Información completa del evento y selección de menú para {order.contact.name}.
+                        </DialogDescription>
+                    </DialogHeader>
                 </div>
 
-                <div className={styles.content}>
-                    {/* Client Information */}
-                    <section className={styles.section}>
-                        <h3 className={styles.sectionTitle}>
-                            <User size={20} />
-                            Informations Client
-                        </h3>
-                        <div className={styles.infoGrid}>
-                            <div className={styles.infoItem}>
-                                <User size={16} className={styles.icon} />
-                                <div>
-                                    <span className={styles.label}>Nom</span>
-                                    <span className={styles.value}>{order.contact.name}</span>
-                                </div>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <Mail size={16} className={styles.icon} />
-                                <div>
-                                    <span className={styles.label}>Email</span>
-                                    <span className={styles.value}>{order.contact.email}</span>
-                                </div>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <Phone size={16} className={styles.icon} />
-                                <div>
-                                    <span className={styles.label}>Téléphone</span>
-                                    <span className={styles.value}>{order.contact.phone || 'Non fourni'}</span>
-                                </div>
-                            </div>
+                <ScrollArea className="flex-1 p-6 bg-slate-50/50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
+
+                        {/* Column 1: Info (Client & Event) */}
+                        <div className="space-y-6">
+                            {/* Client Info Card */}
+                            <Card className="shadow-sm border-slate-200/60 overflow-hidden">
+                                <CardHeader className="bg-slate-100/50 pb-3 border-b border-slate-100">
+                                    <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                                        <User className="h-5 w-5 text-fuegos-orange" />
+                                        Información del Cliente
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-4 space-y-3">
+                                    <div className="flex gap-3 items-center">
+                                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                                            <User className="h-4 w-4 text-fuegos-orange" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900">{order.contact.name}</p>
+                                            <p className="text-xs text-slate-500">Nombre completo</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3 items-center">
+                                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                                            <Mail className="h-4 w-4 text-fuegos-orange" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900">{order.contact.email}</p>
+                                            <p className="text-xs text-slate-500">Correo electrónico</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3 items-center">
+                                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                                            <Phone className="h-4 w-4 text-fuegos-orange" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900">{order.contact.phone || 'No proporcionado'}</p>
+                                            <p className="text-xs text-slate-500">Teléfono</p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Event Info Card */}
+                            <Card className="shadow-sm border-slate-200/60 overflow-hidden">
+                                <CardHeader className="bg-slate-100/50 pb-3 border-b border-slate-100">
+                                    <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                                        <Calendar className="h-5 w-5 text-fuegos-orange" />
+                                        Información del Evento
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-4 grid grid-cols-2 gap-y-4 gap-x-2">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs text-slate-500 flex items-center gap-1 mb-1">
+                                            <Calendar className="h-3 w-3" /> Fecha
+                                        </span>
+                                        <span className="font-medium text-sm text-slate-900">{formatDate(order.contact.eventDate)}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs text-slate-500 flex items-center gap-1 mb-1">
+                                            <CreditCard className="h-3 w-3" /> Tipo
+                                        </span>
+                                        <Badge variant="secondary" className="w-fit text-xs font-normal">
+                                            {formatEventType(order.contact.eventType)}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs text-slate-500 flex items-center gap-1 mb-1">
+                                            <Users className="h-3 w-3" /> Invitados
+                                        </span>
+                                        <span className="font-medium text-sm text-slate-900">{order.contact.guestCount} pax</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs text-slate-500 flex items-center gap-1 mb-1">
+                                            <Clock className="h-3 w-3" /> Momento
+                                        </span>
+                                        <Badge variant="outline" className="w-fit text-xs font-normal border-slate-300">
+                                            {order.menu.type === 'dejeuner' ? 'Almuerzo' : 'Cena'}
+                                        </Badge>
+                                    </div>
+                                    <div className="col-span-2 pt-1">
+                                        <span className="text-xs text-slate-500 flex items-center gap-1 mb-1">
+                                            <MapPin className="h-3 w-3" /> Lugar
+                                        </span>
+                                        <p className="text-sm font-medium text-slate-900 bg-white border border-slate-100 rounded-md p-2">
+                                            {order.contact.address || 'No especificado'}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Additional Notes */}
+                            {order.extras?.specialRequest && (
+                                <Card className="shadow-sm border-amber-200 overflow-hidden bg-amber-50/30">
+                                    <CardHeader className="bg-amber-100/50 pb-2 border-b border-amber-100/50">
+                                        <CardTitle className="text-sm flex items-center gap-2 text-amber-800">
+                                            Notas del Cliente (Petición Especial)
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pt-3">
+                                        <p className="text-sm text-amber-900 italic">"{order.extras.specialRequest}"</p>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {order.notes && (
+                                <Card className="shadow-sm border-slate-200/60 overflow-hidden">
+                                    <CardHeader className="bg-slate-100/50 pb-2 border-b border-slate-100">
+                                        <CardTitle className="text-sm flex items-center gap-2 text-slate-700">
+                                            Información Adicional (Interna)
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pt-3">
+                                        <p className="text-sm text-slate-800">{order.notes}</p>
+                                    </CardContent>
+                                </Card>
+                            )}
                         </div>
-                    </section>
 
-                    {/* Event Information */}
-                    <section className={styles.section}>
-                        <h3 className={styles.sectionTitle}>
-                            <Calendar size={20} />
-                            Informations Événement
-                        </h3>
-                        <div className={styles.infoGrid}>
-                            <div className={styles.infoItem}>
-                                <Calendar size={16} className={styles.icon} />
-                                <div>
-                                    <span className={styles.label}>Date</span>
-                                    <span className={styles.value}>{formatDate(order.contact.eventDate)}</span>
-                                </div>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <CreditCard size={16} className={styles.icon} />
-                                <div>
-                                    <span className={styles.label}>Type</span>
-                                    <span className={styles.value}>{formatEventType(order.contact.eventType)}</span>
-                                </div>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <Users size={16} className={styles.icon} />
-                                <div>
-                                    <span className={styles.label}>Invités</span>
-                                    <span className={styles.value}>{order.contact.guestCount} personnes</span>
-                                </div>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <MapPin size={16} className={styles.icon} />
-                                <div>
-                                    <span className={styles.label}>Lieu</span>
-                                    <span className={styles.value}>{order.contact.address || 'Non spécifié'}</span>
-                                </div>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <Clock size={16} className={styles.icon} />
-                                <div>
-                                    <span className={styles.label}>Moment</span>
-                                    <span className={styles.value}>{order.menu.type === 'dejeuner' ? 'Déjeuner' : 'Dîner'}</span>
-                                </div>
-                            </div>
+                        {/* Column 2: Menu Selection */}
+                        <div className="h-full">
+                            <Card className="shadow-sm border-slate-200/60 h-full flex flex-col">
+                                <CardHeader className="bg-slate-100/50 pb-3 border-b border-slate-100 shrink-0">
+                                    <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                                        🍽️ Selección de Menú
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-4 flex-1 space-y-6">
+                                    {(!order.entrees?.length && !order.viandes?.length && !order.dessert?.length) ? (
+                                        <div className="text-center py-10 text-slate-500 italic">
+                                            No hay selección de menú registrada en este pedido.
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {order.entrees && order.entrees.length > 0 && (
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Entradas</h4>
+                                                    <div className="pl-2 border-l-2 border-slate-200">
+                                                        <ProductListResolver ids={order.entrees} category="entrees" />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {order.viandes && order.viandes.length > 0 && (
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 mt-4">Carnes principales</h4>
+                                                    <div className="pl-2 border-l-2 border-slate-200">
+                                                        <ProductListResolver ids={order.viandes} category="viandes" />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {order.dessert && order.dessert.length > 0 && (
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 mt-4">Postres</h4>
+                                                    <div className="pl-2 border-l-2 border-slate-200">
+                                                        <ProductListResolver ids={order.dessert} category="desserts" />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
                         </div>
-                    </section>
+                    </div>
+                </ScrollArea>
 
-                    {/* Menu Selection */}
-                    <section className={styles.section}>
-                        <h3 className={styles.sectionTitle}>Sélection Menu</h3>
-
-                        {/* Entrees */}
-                        {order.entrees && order.entrees.length > 0 && (
-                            <div className={styles.menuCategory}>
-                                <h4 className={styles.categoryTitle}>Entrées</h4>
-                                <ProductListResolver ids={order.entrees} category="entrees" />
-                            </div>
-                        )}
-
-                        {/* Viandes */}
-                        {order.viandes && order.viandes.length > 0 && (
-                            <div className={styles.menuCategory}>
-                                <h4 className={styles.categoryTitle}>Viandes</h4>
-                                <ProductListResolver ids={order.viandes} category="viandes" />
-                            </div>
-                        )}
-
-                        {/* Desserts */}
-                        {order.dessert && order.dessert.length > 0 && (
-                            <div className={styles.menuCategory}>
-                                <h4 className={styles.categoryTitle}>Desserts</h4>
-                                <ProductListResolver ids={order.dessert} category="desserts" />
-                            </div>
-                        )}
-                    </section>
-
-                    {/* Client Special Request / Notes */}
-                    {order.extras?.specialRequest && (
-                        <section className={styles.section}>
-                            <h3 className={styles.sectionTitle}>Notes du Client (Demande Spéciale)</h3>
-                            <p className={styles.additionalInfo} style={{ borderLeft: '4px solid #f59e0b', paddingLeft: '1rem', fontStyle: 'italic' }}>
-                                {order.extras.specialRequest}
-                            </p>
-                        </section>
-                    )}
-
-                    {/* Additional Notes (Internal) */}
-                    {order.notes && (
-                        <section className={styles.section}>
-                            <h3 className={styles.sectionTitle}>Informations Supplémentaires</h3>
-                            <p className={styles.additionalInfo}>{order.notes}</p>
-                        </section>
-                    )}
-
-                    {/* Order Metadata */}
-                    <section className={styles.section}>
-                        <h3 className={styles.sectionTitle}>Informations Commande</h3>
-                        <div className={styles.metadata}>
-                            <div>
-                                <span className={styles.label}>Reçu le:</span>
-                                <span className={styles.value}>{formatDate(order.createdAt)}</span>
-                            </div>
-                            <div>
-                                <span className={styles.label}>Dernière modification:</span>
-                                <span className={styles.value}>{formatDate(order.updatedAt)}</span>
-                            </div>
-                        </div>
-                    </section>
+                {/* Footer Section */}
+                <div className="bg-slate-100/80 p-4 border-t border-slate-200 flex flex-row items-center justify-between shrink-0 text-xs text-slate-500">
+                    <div className="flex items-center gap-4">
+                        <span>Recibido: <strong className="text-slate-700">{formatDate(order.createdAt)}</strong></span>
+                        <Separator orientation="vertical" className="h-4 bg-slate-300" />
+                        <span>Modificado: <strong className="text-slate-700">{formatDate(order.updatedAt)}</strong></span>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     )
 }
