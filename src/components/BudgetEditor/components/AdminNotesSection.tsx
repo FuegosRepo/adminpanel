@@ -1,7 +1,10 @@
 'use client'
 
 import React from 'react'
-import styles from '../BudgetEditor.module.css'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { FileEdit } from 'lucide-react'
 
 interface AdminNotesSectionProps {
     adminNotes?: string
@@ -10,23 +13,30 @@ interface AdminNotesSectionProps {
 
 export function AdminNotesSection({ adminNotes, onUpdate }: AdminNotesSectionProps) {
     return (
-        <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>📝 Notas del administrador (Aparecen en el PDF)</h3>
-            <div className={styles.formGrid}>
-                <div className={styles.fullWidth}>
-                    <label className={styles.label}>
-                        Notas personalizadas para el presupuesto
-                        <span className={styles.labelHint}> (Estas notas aparecerán en el PDF para el cliente)</span>
-                    </label>
-                    <textarea
-                        className={styles.textarea}
-                        value={adminNotes || ''}
-                        onChange={(e) => onUpdate('adminNotes', e.target.value)}
-                        placeholder="Ej: Ofrecemos un descuento especial del 10% si confirma antes del 31 de enero..."
-                        rows={4}
-                    />
+        <Card className="mt-8 shadow-sm">
+            <CardHeader className="bg-muted/30 py-4 border-b">
+                <CardTitle className="text-xl flex items-center gap-2">
+                    <FileEdit className="h-5 w-5 text-primary" /> Notas del administrador
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+                <div className="space-y-4">
+                    <div>
+                        <Label className="text-base font-medium">
+                            Notas personalizadas para el presupuesto
+                            <span className="text-sm font-normal text-muted-foreground ml-2">
+                                (Estas notas aparecerán en el PDF para el cliente)
+                            </span>
+                        </Label>
+                        <Textarea
+                            className="mt-2 min-h-[120px]"
+                            value={adminNotes || ''}
+                            onChange={(e) => onUpdate('adminNotes', e.target.value)}
+                            placeholder="Ej: Ofrecemos un descuento especial del 10% si confirma antes del 31 de enero..."
+                        />
+                    </div>
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     )
 }

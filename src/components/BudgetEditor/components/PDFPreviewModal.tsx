@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import styles from './PDFPreviewModal.module.css'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Download, FileText } from 'lucide-react'
 
 interface PDFPreviewModalProps {
     isOpen: boolean
@@ -11,17 +13,7 @@ interface PDFPreviewModalProps {
 }
 
 export function PDFPreviewModal({ isOpen, onClose, pdfBlobUrl, filename }: PDFPreviewModalProps) {
-    // ✅ Bloquear scroll del body cuando el modal está abierto
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden'
-        }
-        return () => {
-            document.body.style.overflow = ''
-        }
-    }, [isOpen])
-
-    if (!isOpen || !pdfBlobUrl) return null
+    if (!pdfBlobUrl) return null
 
     const handleDownload = () => {
         const link = document.createElement('a')
@@ -32,34 +24,28 @@ export function PDFPreviewModal({ isOpen, onClose, pdfBlobUrl, filename }: PDFPr
         document.body.removeChild(link)
     }
 
-    const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
-            onClose()
-        }
-    }
-
     return (
-        <div className={styles.overlay} onClick={handleBackdropClick}>
-            <div className={styles.modal}>
-                <div className={styles.header}>
-                    <h2 className={styles.title}>📄 {filename}</h2>
-                    <div className={styles.actions}>
-                        <button onClick={handleDownload} className={styles.downloadBtn}>
-                            ⬇️ Descargar
-                        </button>
-                        <button onClick={onClose} className={styles.closeBtn}>
-                            ✕
-                        </button>
-                    </div>
-                </div>
-                <div className={styles.content}>
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="max-w-6xl w-[95vw] h-[95vh] flex flex-col p-0 overflow-hidden">
+                <DialogHeader className="p-4 border-b bg-muted/10 flex flex-row items-center justify-between space-y-0">
+                    <DialogTitle className="flex items-center gap-2 text-xl truncate pr-4">
+                        <FileText className="h-5 w-5 text-primary flex-shrink-0" />
+                        <span className="truncate" title={filename}>{filename}</span>
+                    </DialogTitle>
+                    <Button onClick={handleDownload} className="shrink-0">
+                        <Download className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Descargar</span>
+                    </Button>
+                </DialogHeader>
+
+                <div className="flex-1 w-full bg-black/5 p-4 sm:p-6 pb-6">
                     <iframe
                         src={pdfBlobUrl}
-                        className={styles.pdfViewer}
+                        className="w-full h-full rounded-md shadow-md bg-white"
                         title="PDF Preview"
                     />
                 </div>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     )
 }

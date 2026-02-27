@@ -1,6 +1,6 @@
 import React from 'react'
 import { Save, CheckCircle2, FileText, Mail } from 'lucide-react'
-import styles from './BudgetActions.module.css'
+import { Button } from '@/components/ui/button'
 
 interface BudgetActionsProps {
     onSave: () => void
@@ -14,57 +14,59 @@ interface BudgetActionsProps {
 
 export function BudgetActions({ onSave, onApproveAndSend, onMarkAsSent, onGeneratePDF, saving, hasPdf, hasUnsavedChanges }: BudgetActionsProps) {
     return (
-        <div className={styles.budgetActions}>
+        <div className="mt-8 flex flex-wrap justify-end gap-3 pb-12">
             {hasUnsavedChanges ? (
-                <button
+                <Button
                     onClick={onSave}
-                    className={`${styles.btn} ${styles.btnPrimary}`}
                     disabled={saving}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                    <Save size={18} />
+                    <Save className="mr-2 h-4 w-4" />
                     {saving ? 'Guardando...' : 'Guardar Cambios'}
-                </button>
+                </Button>
             ) : (
                 <>
-                    <button
-                        onClick={onSave}
-                        className={`${styles.btn} ${styles.btnSecondary}`}
+                    <Button
+                        variant="secondary"
                         disabled={true}
+                        className="bg-muted text-muted-foreground"
                     >
-                        <Save size={18} />
+                        <Save className="mr-2 h-4 w-4" />
                         Guardado
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                         onClick={onGeneratePDF}
-                        className={`${styles.btn} ${styles.btnPrimary}`}
                         disabled={saving}
+                        variant="outline"
+                        className="border-primary text-primary hover:bg-primary/10"
                     >
-                        <FileText size={18} />
+                        <FileText className="mr-2 h-4 w-4" />
                         {saving ? 'Generando PDF...' : 'Generar PDF'}
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                         onClick={onMarkAsSent}
-                        className={`${styles.btn} ${styles.btnInfo}`}
                         disabled={saving || hasUnsavedChanges || !hasPdf}
+                        variant="outline"
+                        className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-blue-950/30"
                         title={hasUnsavedChanges ? 'Primero guarda los cambios' : (!hasPdf ? 'Primero debes generar el PDF' : 'Marcar como enviado sin enviar email')}
                     >
-                        <Mail size={18} />
+                        <Mail className="mr-2 h-4 w-4" />
                         Marcar como Enviado
-                    </button>
+                    </Button>
                 </>
             )}
 
-            <button
+            <Button
                 onClick={onApproveAndSend}
-                className={`${styles.btn} ${styles.btnSuccess}`}
                 disabled={saving || hasUnsavedChanges || !hasPdf}
+                className="bg-green-600 text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                 title={hasUnsavedChanges ? 'Primero guarda los cambios' : (!hasPdf ? 'Primero debes generar el PDF' : '')}
             >
-                <CheckCircle2 size={18} />
+                <CheckCircle2 className="mr-2 h-4 w-4" />
                 Enviar Presupuesto
-            </button>
+            </Button>
         </div>
     )
 }

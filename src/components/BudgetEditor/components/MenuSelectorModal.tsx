@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { useProducts } from '@/hooks/useProducts'
 import { simplifyString } from '@/utils/stringUtils'
 import { getProductDisplayName } from '@/utils/productDisplay'
-import styles from './MenuSelectorModal.module.css'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Utensils, CheckSquare } from 'lucide-react'
 
 interface MenuSelectorModalProps {
     isOpen: boolean
@@ -54,8 +57,6 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
         }
     }, [isOpen, selectedItems, products])
 
-    if (!isOpen) return null
-
     const handleToggle = (category: 'entrees' | 'viandes' | 'desserts', id: string) => {
         const currentList = tempSelection[category] || []
         const exists = currentList.includes(id)
@@ -78,13 +79,8 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
         setTempSelection({ ...tempSelection, [category]: newList })
     }
 
-    // Helper to normalize strings for comparison is now imported
-
     const isSelected = (categoryList: string[] | undefined, product: any) => {
         if (!categoryList) return false
-
-        // ULTRA STRICT: Only match by exact ID
-        // No name matching at all to prevent any false positives
         return categoryList.includes(product.id)
     }
 
@@ -101,10 +97,6 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
         entrees: ['brochet', 'burg', 'choripan', 'empanada', 'secreto'],
         desserts: ['panqueque', 'fruits grill'] // Solo estos 2
     }
-
-    // Helper to get display name is now imported from @/utils/productDisplay
-
-    // ... filtering code ...
 
     const isMainDish = (product: any, keywords: string[]) => {
         const name = product.name.toLowerCase()
@@ -134,7 +126,7 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
         })
     }
 
-    // Update filtering - STRICT whitelist for desserts
+    // Update filtering
     const entreesList = deduplicateByName(products.filter(p => {
         if (p.category !== 'entrees') return false
         const name = p.name.toLowerCase()
@@ -146,72 +138,82 @@ export function MenuSelectorModal({ isOpen, onClose, selectedItems, onSave }: Me
         return !EXCLUDED_KEYWORDS.some(k => name.includes(k))
     }))
 
-
     // DESSERTS: Mostrar TODOS los desserts activos (filtrado se hace en BD)
     const dessertsList = deduplicateByName(products.filter(p => {
         if (p.category !== 'desserts') return false
-        // Ya no filtramos por keywords - confiamos en que solo los correctos están activos
         return true
     }))
 
-
-    return (
-        <div className={styles.overlay}>
-            <div className={styles.modal}>
-                <div className={styles.header}>
-                    <h2>Seleccionar Menú</h2>
-                    <button className={styles.closeBtn} onClick={onClose} title="Cerrar">×</button>
-                </div>
-                {loading ? (
-                    <p>Cargando productos...</p>
-                ) : (
-                    <div className={styles.grid}>
-                        <div className={styles.column}>
-                            <h3>Entradas</h3>
-                            {entreesList.map(p => (
-                                <div key={p.id} className={styles.item} onClick={() => handleToggle('entrees', p.id)}>
-                                    <input
-                                        type="checkbox"
-                                        checked={isSelected(tempSelection.entrees, p)}
-                                        readOnly
-                                    />
-                                    <span>{getProductDisplayName(p.name)}</span>
-                                </div>
-                            ))}
+    const renderColumn = (title: string, list: any[], category: 'entrees' | 'viandes' | 'desserts') => (
+        <div className="flex flex-col gap-3">
+            <h3 className="font-semibold text-lg text-amber-800 dark:text-amber-500 border-b border-amber-200 dark:border-amber-900 pb-2 mb-1">
+                {title}
+            </h3>
+            <div className="flex flex-col gap-2">
+                {list.map(p => {
+                    const selected = isSelected(tempSelection[category], p)
+                    return (
+                        <div
+                            key={p.id}
+                            onClick={() => handleToggle(category, p.id)}
+                            className={`
+                                p-3 rounded-md border flex items-center gap-3 cursor-pointer transition-colors
+                                ${selected
+                                    ? 'border-primary bg-primary/5 text-primary-foreground'
+                                    : 'border-border hover:border-primary/30 hover:bg-muted/50 text-foreground'
+                                }
+                            `}
+                        >
+                            <div className={`
+                                w-4 h-4 rounded-sm flex-shrink-0 border flex items-center justify-center transition-colors
+                                ${category === 'desserts' ? 'rounded-full' : ''}
+                                ${selected ? 'bg-primary border-primary' : 'border-input bg-background'}
+                            `}>
+                                {selected && <CheckSquare className="h-3 w-3 text-white" />}
+                            </div>
+                            <span className={`text-sm font-medium ${selected ? 'font-semibold text-primary' : ''}`}>
+                                {getProductDisplayName(p.name)}
+                            </span>
                         </div>
-                        <div className={styles.column}>
-                            <h3>Carnes</h3>
-                            {viandesList.map(p => (
-                                <div key={p.id} className={styles.item} onClick={() => handleToggle('viandes', p.id)}>
-                                    <input
-                                        type="checkbox"
-                                        checked={isSelected(tempSelection.viandes, p)}
-                                        readOnly
-                                    />
-                                    <span>{getProductDisplayName(p.name)}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className={styles.column}>
-                            <h3>Postres</h3>
-                            {dessertsList.map(p => (
-                                <div key={p.id} className={styles.item} onClick={() => handleToggle('desserts', p.id)}>
-                                    <input
-                                        type="checkbox"
-                                        checked={isSelected(tempSelection.desserts, p)}
-                                        readOnly
-                                    />
-                                    <span>{getProductDisplayName(p.name)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                <div className={styles.actions}>
-                    <button className={`${styles.button} ${styles.cancelBtn}`} onClick={onClose}>Cancelar</button>
-                    <button className={`${styles.button} ${styles.saveBtn}`} onClick={() => onSave(tempSelection)}>Guardar Selección</button>
-                </div>
+                    )
+                })}
             </div>
         </div>
+    )
+
+    return (
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+                <DialogHeader className="p-6 pb-4 border-b">
+                    <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
+                        <Utensils className="h-6 w-6 text-primary" /> Seleccionar Menú
+                    </DialogTitle>
+                </DialogHeader>
+
+                {loading ? (
+                    <div className="p-12 text-center text-muted-foreground flex items-center justify-center">
+                        <div className="animate-spin h-6 w-6 border-b-2 border-primary rounded-full mr-3"></div>
+                        Cargando productos...
+                    </div>
+                ) : (
+                    <ScrollArea className="flex-1 px-6 py-4 h-[60vh]">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {renderColumn('Entradas', entreesList, 'entrees')}
+                            {renderColumn('Carnes', viandesList, 'viandes')}
+                            {renderColumn('Postres', dessertsList, 'desserts')}
+                        </div>
+                    </ScrollArea>
+                )}
+
+                <div className="p-6 border-t bg-muted/20 flex justify-end gap-3 rounded-b-lg">
+                    <Button variant="outline" onClick={onClose}>
+                        Cancelar
+                    </Button>
+                    <Button onClick={() => onSave(tempSelection)} disabled={loading}>
+                        Guardar Selección
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
     )
 }
