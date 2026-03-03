@@ -27,7 +27,7 @@ export function PDFPreviewModal({ isOpen, onClose, pdfBlobUrl, filename }: PDFPr
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="max-w-6xl w-[95vw] h-[95vh] flex flex-col p-0 overflow-hidden">
-                <DialogHeader className="p-4 border-b bg-muted/10 flex flex-row items-center justify-between space-y-0">
+                <DialogHeader className="p-4 pr-16 border-b bg-muted/10 flex flex-row items-center justify-between space-y-0">
                     <DialogTitle className="flex items-center gap-2 text-xl truncate pr-4">
                         <FileText className="h-5 w-5 text-primary flex-shrink-0" />
                         <span className="truncate" title={filename}>{filename}</span>
