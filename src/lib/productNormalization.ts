@@ -140,6 +140,11 @@ export const PRODUCT_ID_NORMALIZATION: ProductNormalizationMap[] = [
     }
 ]
 
+// Pre-built Map for O(1) lookups by frontendId
+const FRONTEND_ID_MAP = new Map(
+    PRODUCT_ID_NORMALIZATION.map(m => [m.frontendId.toLowerCase(), m])
+)
+
 /**
  * Normalize a frontend ID to its database product name
  * 
@@ -147,12 +152,7 @@ export const PRODUCT_ID_NORMALIZATION: ProductNormalizationMap[] = [
  * @returns Database product name or null if not found
  */
 export function normalizeFrontendIdToProductName(frontendId: string): string | null {
-    const normalized = frontendId.toLowerCase().trim()
-
-    const mapping = PRODUCT_ID_NORMALIZATION.find(
-        m => m.frontendId.toLowerCase() === normalized
-    )
-
+    const mapping = FRONTEND_ID_MAP.get(frontendId.toLowerCase().trim())
     return mapping ? mapping.dbProductName : null
 }
 
@@ -170,10 +170,8 @@ export function smartNormalizeProductName(input: string): string {
 
     const normalized = input.toLowerCase().trim()
 
-    // Try exact ID match first
-    const idMatch = PRODUCT_ID_NORMALIZATION.find(
-        m => m.frontendId.toLowerCase() === normalized
-    )
+    // Try exact ID match first (O(1) Map lookup)
+    const idMatch = FRONTEND_ID_MAP.get(normalized)
     if (idMatch) return idMatch.dbProductName
 
     // Try alias matching
@@ -206,10 +204,7 @@ export function normalizeFrontendIdsToProductNames(frontendIds: string[]): strin
  * Get category for a frontend ID
  */
 export function getCategoryForFrontendId(frontendId: string): string | null {
-    const normalized = frontendId.toLowerCase().trim()
-    const mapping = PRODUCT_ID_NORMALIZATION.find(
-        m => m.frontendId.toLowerCase() === normalized
-    )
+    const mapping = FRONTEND_ID_MAP.get(frontendId.toLowerCase().trim())
     return mapping ? mapping.category : null
 }
 
@@ -217,10 +212,7 @@ export function getCategoryForFrontendId(frontendId: string): string | null {
  * Validate if a frontend ID exists in our mapping
  */
 export function isKnownFrontendId(frontendId: string): boolean {
-    const normalized = frontendId.toLowerCase().trim()
-    return PRODUCT_ID_NORMALIZATION.some(
-        m => m.frontendId.toLowerCase() === normalized
-    )
+    return FRONTEND_ID_MAP.has(frontendId.toLowerCase().trim())
 }
 
 /**

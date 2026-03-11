@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, memo, Fragment } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { CateringOrder, EmailTemplate } from '@/types'
 import { differenceInDays } from 'date-fns'
 import { Mail, Eye, ChevronDown, ChevronUp, Clock, Trash2, FileText, StickyNote } from 'lucide-react'
@@ -58,6 +59,7 @@ const OrderCard = ({
   isAddingNote = false,
   isDeletingNote = false
 }: OrderCardProps) => {
+  const queryClient = useQueryClient()
   const [mounted, setMounted] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [relanceModalOpen, setRelanceModalOpen] = useState(false)
@@ -69,6 +71,7 @@ const OrderCard = ({
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
+    let cancelled = false
     const fetchRelanceData = async () => {
       const { data, count } = await supabase
         .from('email_logs')
@@ -76,10 +79,12 @@ const OrderCard = ({
         .eq('order_id', order.id)
         .eq('subject', 'Relance - Votre devis Fuegos d\'Azur')
         .order('sent_at', { ascending: false })
+      if (cancelled) return
       if (data && data.length > 0) setLastRelanceDate(data[0].sent_at)
       setRelanceCount(count || 0)
     }
     fetchRelanceData()
+    return () => { cancelled = true }
   }, [order.id])
 
   const handleRelanceClick = (e: React.MouseEvent) => {
@@ -324,7 +329,8 @@ const OrderCard = ({
                               })
                               if (response.ok) {
                                 toast.success('Presupuesto generado')
-                                window.location.reload()
+                                queryClient.invalidateQueries({ queryKey: ['orders'] })
+                                queryClient.invalidateQueries({ queryKey: ['budgets'] })
                               } else throw new Error('Error')
                             } catch { toast.error('No se pudo generar') }
                           }}

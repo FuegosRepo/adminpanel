@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabaseClient'
 // PUT - Actualizar producto por ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { name, category, price, active } = body
 
@@ -59,10 +59,10 @@ export async function PUT(
 // DELETE - Eliminar producto por ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const { error } = await supabase
       .from('products')

@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { BudgetData } from '@/lib/types/budget'
 
 export async function POST(request: NextRequest) {
     try {
         // ✅ Use authenticated server client
-        const supabase = createClient()
+        const supabase = await createClient()
 
         // ✅ Verify user session
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
             return NextResponse.json(
                 { error: 'No autorizado. Por favor inicie sesión.' },
                 { status: 401 }
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
 
         // ✅ 3. Sync order status and estimated_price
         if (budget.order_id) {
-            const budgetData = budget.budget_data as any
+            const budgetData = budget.budget_data as BudgetData
             const { error: orderUpdateError } = await supabase
                 .from('catering_orders')
                 .update({

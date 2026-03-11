@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import FilterBar from '@/components/FilterBar/FilterBar'
 import OrderCard from '@/components/OrderCard/OrderCard'
@@ -20,6 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Table, TableBody, TableHeader, TableRow, TableHead } from '@/components/ui/table'
 
 export default function OrdersPage() {
+    const queryClient = useQueryClient()
     const [activeTab, setActiveTab] = useState<'orders' | 'external'>('orders')
 
     const {
@@ -122,7 +124,8 @@ export default function OrdersPage() {
                 }
             }
             toast.success('Pedido eliminado correctamente')
-            window.location.reload()
+            queryClient.invalidateQueries({ queryKey: ['orders'] })
+            queryClient.invalidateQueries({ queryKey: ['budgets'] })
         } catch (error) {
             console.error('Error deleting order:', error)
             toast.error('Error al eliminar el pedido')

@@ -6,11 +6,11 @@ import { BudgetData } from '@/lib/types/budget'
 export async function POST(request: NextRequest) {
   try {
     // ✅ Use authenticated server client
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // ✅ Verify user session
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return NextResponse.json(
         { error: 'No autorizado. Por favor inicie sesión.' },
         { status: 401 }
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       {
         error: errorMessage,
         details: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined
+        ...(process.env.NODE_ENV === 'development' && { stack: error instanceof Error ? error.stack : undefined })
       },
       { status: 500 }
     )

@@ -35,8 +35,14 @@ export function useBudgetData(budgetId: string) {
                 // Procesamiento inicial de datos (similar al original)
                 const budgetData = { ...data.budget_data } as BudgetData
 
+                // Start material products fetch early (runs in parallel with order fetch)
+                const materialProductsPromise = supabase
+                    .from('products')
+                    .select('name, price_per_portion')
+                    .eq('category', 'material')
+
                 // Safe Client Info Backfill Strategy
-                // - Only fills NULL/empty fields  
+                // - Only fills NULL/empty fields
                 // - Preserves manual edits
                 // - Always fetch selectedItems from orders
                 if (data.order_id) {
@@ -164,11 +170,14 @@ export function useBudgetData(budgetId: string) {
                     budgetData.service.totalTTC = serviceHT + budgetData.service.tva
                 }
 
-                // Cargamos todos los productos de material para buscar precios correctos
-                const { data: materialProducts } = await supabase
-                    .from('products')
-                    .select('name, price_per_portion')
-                    .eq('category', 'material')
+                // Await material products (started early, ran in parallel with order fetch)
+                let materialProducts: { name: string; price_per_portion: number }[] | null = null
+                try {
+                    const result = await materialProductsPromise
+                    materialProducts = result.data
+                } catch {
+                    // Silently fail - material price correction is optional
+                }
 
                 // Formatear nombres y corregir precios de items de material
                 if (budgetData.material && budgetData.material.items) {
@@ -377,7 +386,7 @@ export function useBudgetData(budgetId: string) {
             })
 
             const result = await response.json()
-            if (!response.ok) throw new Error(result.error || 'Error al aprobar y enviar')
+            if (!response.ok) throw new Error(result.details || result.error || 'Error al aprobar y enviar')
 
             await loadBudget()
             return { success: true, result }

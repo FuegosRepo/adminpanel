@@ -77,17 +77,19 @@ export const MEAT_CATEGORIES: { [key: string]: string } = {
   classique: 'Morceaux Classiques (Morceaux traditionnels)'
 }
 
+// Pre-built Map for O(1) lookups by normalized dbName
+const MEAT_NAME_MAP = new Map(
+  MEAT_MAPPINGS.map(m => [m.dbName.toLowerCase().replace(/[''`]/g, "'"), m])
+)
+
 /**
  * Get display name for a meat item from database name
  * @param dbName - Name as stored in database
  * @returns Formatted display name with origin, or original name if not found
  */
 export function getMeatDisplayName(dbName: string): string {
-  // Normalize: trim, lowercase, and replace all apostrophe variations with standard '
   const normalized = dbName.trim().toLowerCase().replace(/[''`]/g, "'")
-  const mapping = MEAT_MAPPINGS.find(
-    m => m.dbName.toLowerCase().replace(/[''`]/g, "'") === normalized
-  )
+  const mapping = MEAT_NAME_MAP.get(normalized)
   return mapping ? mapping.displayName : dbName
 }
 
@@ -109,20 +111,15 @@ export function groupMeatsByCategory(meatItems: Array<{ name: string; subcategor
     // Normalize apostrophes for better matching
     const normalized = item.name.trim().toLowerCase().replace(/[''`]/g, "'")
 
-    // Try to find mapping - prefer exact match with subcategory if available
-    let mapping = MEAT_MAPPINGS.find(
-      m => {
-        const mappingName = m.dbName.toLowerCase().replace(/[''`]/g, "'")
-        const nameMatches = mappingName === normalized
+    // Try exact match first via Map (O(1))
+    let mapping = MEAT_NAME_MAP.get(normalized)
 
-        // If item has subcategory, match it too for disambiguation
-        if (item.subcategory && nameMatches) {
-          return m.category === item.subcategory
-        }
-
-        return nameMatches
-      }
-    )
+    // If subcategory specified and mapping doesn't match, search for correct one
+    if (mapping && item.subcategory && mapping.category !== item.subcategory) {
+      mapping = MEAT_MAPPINGS.find(
+        m => m.dbName.toLowerCase().replace(/[''`]/g, "'") === normalized && m.category === item.subcategory
+      )
+    }
 
     // Fallback: partial match if no exact match found
     if (!mapping) {

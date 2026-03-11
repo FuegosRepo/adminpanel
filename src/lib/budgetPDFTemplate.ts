@@ -127,18 +127,25 @@ function formatText(text: string): string {
   return formatted
 }
 
-export function generateBudgetHTML(budgetData: BudgetData): string {
-  // Cargar imágenes
-  const overlayPath = getImagePath('ground-overlay-01.png')
-
-  // Try PNG logo first
-  let miniLogoPath = getImagePath('minilogo.png')
-  if (!fs.existsSync(miniLogoPath)) {
-    miniLogoPath = getImagePath('minilogo.webp')
+// Lazy-cached static images (read from disk once, reused across PDF generations)
+let _cachedImages: { overlay: string; miniLogo: string } | null = null
+function getCachedImages() {
+  if (!_cachedImages) {
+    const overlayPath = getImagePath('ground-overlay-01.png')
+    let miniLogoPath = getImagePath('minilogo.png')
+    if (!fs.existsSync(miniLogoPath)) {
+      miniLogoPath = getImagePath('minilogo.webp')
+    }
+    _cachedImages = {
+      overlay: imageToBase64(overlayPath),
+      miniLogo: imageToBase64(miniLogoPath)
+    }
   }
+  return _cachedImages
+}
 
-  const overlayBase64 = imageToBase64(overlayPath)
-  const miniLogoBase64 = imageToBase64(miniLogoPath)
+export function generateBudgetHTML(budgetData: BudgetData): string {
+  const { overlay: overlayBase64, miniLogo: miniLogoBase64 } = getCachedImages()
 
   // Fix date off-by-one error by handling YYYY-MM-DD manually
   // CRITICAL DEBUG: Log eventDate value received

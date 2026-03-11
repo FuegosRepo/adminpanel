@@ -2,14 +2,18 @@
 import { Resend } from 'resend'
 import { EmailParams, EmailResult } from './types'
 
-// Inicializar Resend con la API Key
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+// Lazy initialization to ensure env vars are available at runtime (Turbopack)
+function getResendClient() {
+    if (!process.env.RESEND_API_KEY) return null
+    return new Resend(process.env.RESEND_API_KEY)
+}
 
 export async function sendEmail(params: EmailParams): Promise<EmailResult> {
     const { to, subject, html, from, fromName, attachments, tags } = params
 
     try {
-        if (!resend || !process.env.RESEND_API_KEY) {
+        const resend = getResendClient()
+        if (!resend) {
             console.warn('⚠️ RESEND_API_KEY no configurada. Email simulado.')
             return {
                 success: false,
@@ -95,8 +99,7 @@ export function processEmailTemplate(
     let processed = template
 
     Object.entries(variables).forEach(([key, value]) => {
-        const placeholder = `{${key}}`
-        processed = processed.replace(new RegExp(placeholder, 'g'), String(value))
+        processed = processed.replaceAll(`{${key}}`, String(value))
     })
 
     return processed

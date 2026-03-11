@@ -30,9 +30,10 @@ export const fetchBudgets = async ({
             // ✅ Handle case sensitivity for approved status
             query = query.or('status.eq.approved,status.eq.APPROVED')
         } else if (filters.status.startsWith('relance_')) {
-            // Filter by number of relances
+            // Filter by number of relances, excluding approved/rejected budgets
             const count = parseInt(filters.status.split('_')[1])
             if (!isNaN(count)) {
+                query = query.not('status', 'in', '(approved,APPROVED,rejected)')
                 if (count >= 3) {
                     query = query.gte('relance_count', 3)
                 } else {

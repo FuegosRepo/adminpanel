@@ -6,11 +6,11 @@ import { BudgetData } from '@/lib/types/budget'
 export async function GET(request: NextRequest) {
   try {
     // ✅ Use authenticated server client
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // ✅ Verify user session
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return NextResponse.json(
         { error: 'No autorizado. Por favor inicie sesión.' },
         { status: 401 }
