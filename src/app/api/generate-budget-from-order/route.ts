@@ -4,11 +4,11 @@ import { createClient } from '@/utils/supabase/server'
 export async function POST(request: NextRequest) {
     try {
         // ✅ Use authenticated server client
-        const supabase = createClient()
+        const supabase = await createClient()
 
         // ✅ Verify user session
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
             return NextResponse.json(
                 { error: 'No autorizado. Por favor inicie sesión.' },
                 { status: 401 }
@@ -192,8 +192,8 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, budgetId: budget.id })
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Error generating budget from order:', error)
-        return NextResponse.json({ error: error.message }, { status: 500 })
+        return NextResponse.json({ error: error instanceof Error ? error.message : 'Error desconocido' }, { status: 500 })
     }
 }

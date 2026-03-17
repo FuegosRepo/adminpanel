@@ -6,11 +6,11 @@ import { budgetLogger } from '@/utils/logger'
 export async function POST(request: NextRequest) {
   try {
     // ✅ Use authenticated server client
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // ✅ Verify user session
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       budgetLogger.warn('Unauthorized access attempt to update-budget')
       return NextResponse.json(
         { error: 'No autorizado. Por favor inicie sesión.' },
@@ -142,8 +142,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateChanges(oldData: any, newData: any): Array<{ field: string, oldValue: any, newValue: any }> {
-  const changes: Array<{ field: string, oldValue: any, newValue: any }> = []
+function calculateChanges(oldData: BudgetData, newData: BudgetData): Array<{ field: string, oldValue: unknown, newValue: unknown }> {
+  const changes: Array<{ field: string, oldValue: unknown, newValue: unknown }> = []
 
   if (oldData?.totals?.totalTTC !== newData?.totals?.totalTTC) {
     changes.push({ field: 'Total TTC', oldValue: oldData?.totals?.totalTTC, newValue: newData?.totals?.totalTTC })

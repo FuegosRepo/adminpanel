@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import fs from 'fs'
-import path from 'path'
 import { sendEmail, validateEmailConfig } from '@/lib/emails/service'
 import { BudgetApprovedTemplate } from '@/lib/emails/templates/BudgetApproved'
 import { BaseLayout } from '@/lib/emails/templates/BaseLayout'
+import { BudgetData } from '@/lib/types/budget'
 
 export async function POST(request: NextRequest) {
   try {
     // ✅ Use authenticated server client
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // ✅ Verify user session
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return NextResponse.json(
         { error: 'No autorizado. Por favor inicie sesión.' },
         { status: 401 }
@@ -128,15 +127,15 @@ export async function POST(request: NextRequest) {
 
     // 5. Enviar email al cliente con el PDF adjunto
     try {
-      const budgetData = budget.budget_data as any
-      const totalTTC = budgetData?.totals?.totalTTC || 0
+      const budgetData = budget.budget_data as BudgetData
+      const totalTTC = String(budgetData?.totals?.totalTTC || 0)
       const eventDate = budgetData?.clientInfo?.eventDate
         ? new Date(budgetData.clientInfo.eventDate).toLocaleDateString('fr-FR')
         : ''
 
       // URLs públicas de imágenes
-      const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
-      const logoUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png'
+      const headerUrl = process.env.EMAIL_HEADER_IMAGE_URL || 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
+      const logoUrl = process.env.EMAIL_LOGO_IMAGE_URL || 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png'
 
       // Preparar contenido HTML usando plantillas
       const innerContent = BudgetApprovedTemplate({
@@ -156,7 +155,7 @@ export async function POST(request: NextRequest) {
         attachments.push({
           filename: filename,
           content: pdfBuffer.toString('base64'),
-          type: 'application/pdf'
+          contentType: 'application/pdf'
         })
         console.log(`📎 Adjuntando PDF: ${filename} (${pdfBuffer.length} bytes)`)
       }
@@ -185,12 +184,13 @@ export async function POST(request: NextRequest) {
         emailId: result.messageId
       })
 
-    } catch (emailError: any) {
+    } catch (emailError: unknown) {
       console.error('❌ Error enviando email:', emailError)
 
       // Rollback del estado si falla el envío
       // NOTA: Para errores de dominio (modo testing), no hacemos rollback
-      const isDomainError = emailError.message?.includes('testing emails') || emailError.message?.includes('verify a domain')
+      const errorMsg = emailError instanceof Error ? emailError.message : String(emailError)
+      const isDomainError = errorMsg.includes('testing emails') || errorMsg.includes('verify a domain')
 
       if (!isDomainError) {
         await supabase
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
           .eq('id', budgetId)
       }
 
-      const errorMessage = emailError instanceof Error ? emailError.message : String(emailError)
+      const errorMessage = errorMsg
 
       if (isDomainError) {
         return NextResponse.json({

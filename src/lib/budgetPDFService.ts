@@ -5,6 +5,7 @@ import { generateBudgetHTML } from './budgetPDFTemplate'
 // Nueva función que usa HTML + Puppeteer (más fácil de maquetar)
 export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise<Blob> {
   const html = generateBudgetHTML(budgetData)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Puppeteer types differ between core/full packages
   let browser: any = null
 
   try {
@@ -80,7 +81,7 @@ export async function generateBudgetPDFFromHTML(budgetData: BudgetData): Promise
     } finally {
       if (browser) await browser.close()
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error crítico en Puppeteer:', error)
     throw error
   }

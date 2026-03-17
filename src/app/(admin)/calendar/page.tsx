@@ -1,11 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import EventsCalendar from '@/components/EventsCalendar/EventsCalendar'
+import dynamic from 'next/dynamic'
 import { useOrders } from '@/hooks/useOrders'
 import { CalendarEvent } from '@/types'
-import { useProducts } from '@/hooks/useProducts' // Not used here directly but consistent with page.tsx hook usage
-// We might need to fetch products if AddEventModal uses it, but EventsCalendar props are just orders and manualEvents
+
+const EventsCalendar = dynamic(
+  () => import('@/components/EventsCalendar/EventsCalendar'),
+  { loading: () => <div className="p-8 text-center text-muted-foreground">Cargando calendario...</div> }
+)
 
 export default function CalendarPage() {
     const { orders, handleStatusChange } = useOrders()

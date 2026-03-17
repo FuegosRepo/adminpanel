@@ -7,10 +7,10 @@ import { emailTemplates } from '@/data/mockData' // Fallback or source of templa
 
 export async function POST(request: Request) {
     try {
-        const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
 
-        if (!session) {
+        if (!user) {
             return NextResponse.json(
                 { error: 'No autorizado. Por favor inicie sesión.' },
                 { status: 401 }
@@ -39,6 +39,7 @@ export async function POST(request: Request) {
             // Fallback to filter logic
             if (filters.status === 'sent') {
                 query = query.in('status', ['sent', 'ENVIADO']).or('relance_count.eq.0,relance_count.is.null')
+                    .not('status', 'in', '(approved,APPROVED,rejected)')
             } else {
                 const countStr = filters.status.split('_')[1];
                 const count = parseInt(countStr);
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
                     return NextResponse.json({ error: 'Formato de filtro inválido' }, { status: 400 })
                 }
 
+                query = query.not('status', 'in', '(approved,APPROVED,rejected)')
                 if (count >= 3) {
                     query = query.gte('relance_count', 3);
                 } else {
@@ -93,85 +95,95 @@ export async function POST(request: Request) {
             }
         }
 
-        const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
-        const logoUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png'
+        const headerUrl = process.env.EMAIL_HEADER_IMAGE_URL || 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
+        const logoUrl = process.env.EMAIL_LOGO_IMAGE_URL || 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png'
 
         let successCount = 0
         let failureCount = 0
 
-        // 3. Loop and Send
-        for (const budget of budgets) {
-            // Get order details for email
-            const { data: order } = await supabase
-                .from('catering_orders')
-                .select('*')
-                .eq('id', budget.order_id)
-                .single()
+        // 3. Pre-fetch all orders in a single query (avoids N+1)
+        const orderIds = [...new Set(budgets.map(b => b.order_id).filter(Boolean))]
+        const { data: allOrders } = await supabase
+            .from('catering_orders')
+            .select('*')
+            .in('id', orderIds)
 
-            if (!order || !order.email) {
-                failureCount++
-                continue
-            }
+        const ordersMap = new Map(
+            (allOrders || []).map(order => [order.id, order])
+        )
 
-            const variables = {
-                name: order.name || order.contact?.name || 'Client',
-                eventDate: order.event_date ? new Date(order.event_date).toLocaleDateString('fr-FR') : 'Date à définir',
-                guestCount: order.guest_count || 0,
-                eventType: order.event_type || 'Evento'
-            }
+        // 4. Send in batches of 5 for better throughput
+        const BATCH_SIZE = 5
+        for (let i = 0; i < budgets.length; i += BATCH_SIZE) {
+            const batch = budgets.slice(i, i + BATCH_SIZE)
+            const results = await Promise.allSettled(batch.map(async (budget) => {
+                const order = ordersMap.get(budget.order_id)
 
-            const processedSubject = processEmailTemplate(subject, variables)
-            const processedContent = processEmailTemplate(content, variables)
-
-            const htmlBody = QuoteFollowUpTemplate(processedContent, {
-                clientName: variables.name,
-                logoUrl
-            })
-            const finalHtml = BaseLayout(htmlBody, { headerUrl })
-
-            const result = await sendEmail({
-                to: order.email,
-                subject: processedSubject,
-                html: finalHtml,
-                tags: [
-                    { name: 'category', value: 'catering' },
-                    { name: 'order_id', value: order.id },
-                    { name: 'bulk_relance', value: 'true' }
-                ]
-            })
-
-            if (result.success) {
-                successCount++
-                // Log it
-                await supabase
-                    .from('email_logs')
-                    .insert([{
-                        order_id: order.id,
-                        template_id: templateId,
-                        recipient_email: order.email,
-                        recipient_name: variables.name,
-                        subject: processedSubject,
-                        content: processedContent,
-                        status: 'sent'
-                    }])
-
-                // Increment Count
-                // Try RPC first
-                const { error: rpcError } = await supabase.rpc('increment_budget_relance', {
-                    order_id_param: order.id
-                })
-                if (rpcError) {
-                    // Fallback manual update
-                    await supabase
-                        .from('budgets')
-                        .update({ relance_count: (budget.relance_count || 0) + 1 })
-                        .eq('id', budget.id)
+                if (!order || !order.email) {
+                    return false
                 }
 
-            } else {
-                console.error(`Failed to send bulk email to ${order.email}:`, result.error)
-                failureCount++
-            }
+                const variables = {
+                    name: order.name || order.contact?.name || 'Client',
+                    eventDate: order.event_date ? new Date(order.event_date).toLocaleDateString('fr-FR') : 'Date à définir',
+                    guestCount: order.guest_count || 0,
+                    eventType: order.event_type || 'Evento'
+                }
+
+                const processedSubject = processEmailTemplate(subject, variables)
+                const processedContent = processEmailTemplate(content, variables)
+
+                const htmlBody = QuoteFollowUpTemplate(processedContent, {
+                    clientName: variables.name,
+                    logoUrl
+                })
+                const finalHtml = BaseLayout(htmlBody, { headerUrl })
+
+                const result = await sendEmail({
+                    to: order.email,
+                    subject: processedSubject,
+                    html: finalHtml,
+                    tags: [
+                        { name: 'category', value: 'catering' },
+                        { name: 'order_id', value: order.id },
+                        { name: 'bulk_relance', value: 'true' }
+                    ]
+                })
+
+                if (result.success) {
+                    await supabase
+                        .from('email_logs')
+                        .insert([{
+                            order_id: order.id,
+                            template_id: templateId,
+                            recipient_email: order.email,
+                            recipient_name: variables.name,
+                            subject: processedSubject,
+                            content: processedContent,
+                            status: 'sent'
+                        }])
+
+                    const { error: rpcError } = await supabase.rpc('increment_budget_relance', {
+                        order_id_param: order.id
+                    })
+                    if (rpcError) {
+                        await supabase
+                            .from('budgets')
+                            .update({ relance_count: (budget.relance_count || 0) + 1 })
+                            .eq('id', budget.id)
+                    }
+
+                    return true
+                } else {
+                    console.error(`Failed to send bulk email to ${order.email}:`, result.error)
+                    return false
+                }
+            }))
+
+            results.forEach(r => {
+                if (r.status === 'fulfilled' && r.value) successCount++
+                else failureCount++
+            })
         }
 
         return NextResponse.json({

@@ -3,15 +3,13 @@ import { sendEmail, processEmailTemplate } from '@/lib/emails/service'
 import { BaseLayout } from '@/lib/emails/templates/BaseLayout'
 import { QuoteFollowUpTemplate } from '@/lib/emails/templates/QuoteFollowUp'
 import { createClient } from '@/utils/supabase/server'
-import fs from 'fs'
-import path from 'path'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { error: 'No autorizado. Por favor inicie sesión.' },
         { status: 401 }
@@ -78,8 +76,8 @@ export async function POST(request: Request) {
     const processedContent = processEmailTemplate(content, variables)
 
     // URLs públicas de imágenes
-    const headerUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
-    const logoUrl = 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png'
+    const headerUrl = process.env.EMAIL_HEADER_IMAGE_URL || 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/headerblack.png'
+    const logoUrl = process.env.EMAIL_LOGO_IMAGE_URL || 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/minilogoblack.png'
 
     // Definir el contenido HTML base
     let htmlBody = processedContent
