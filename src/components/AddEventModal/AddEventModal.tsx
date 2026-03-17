@@ -19,7 +19,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     title: '',
-    date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+    date: selectedDate ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}` : '',
     time: '',
     type: 'Casamiento' as 'Casamiento' | 'Aniversario' | 'Bautismo' | 'Empresarial' | 'Otros',
     status: 'Pending' as 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled',
@@ -79,7 +79,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   const handleClose = () => {
     setFormData({
       title: '',
-      date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+      date: selectedDate ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}` : '',
       time: '',
       type: 'Casamiento',
       status: 'Pending',

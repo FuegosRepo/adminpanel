@@ -2,6 +2,13 @@ import { useMemo } from 'react'
 import { CateringOrder, CalendarEvent } from '@/types'
 import { isSameDay, isAfter, isBefore, addDays, differenceInDays } from 'date-fns'
 
+/** Parses a date string (YYYY-MM-DD or ISO) as local timezone to avoid UTC offset issues */
+function parseDateString(dateStr: string): Date {
+  const clean = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr
+  const [y, m, d] = clean.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
 export interface UpcomingEvent extends CalendarEvent {
   daysUntil: number
   urgency: 'urgent' | 'soon' | 'normal'
@@ -44,7 +51,7 @@ export function useCalendarEvents(orders: CateringOrder[], manualEvents: Calenda
   }, [orderEvents, manualEvents])
 
   const selectedDateEvents = calendarEvents.filter(event =>
-    isSameDay(new Date(event.date), selectedDate)
+    isSameDay(parseDateString(event.date), selectedDate)
   )
 
   const upcomingEvents = useMemo((): UpcomingEvent[] => {
@@ -53,12 +60,12 @@ export function useCalendarEvents(orders: CateringOrder[], manualEvents: Calenda
 
     return calendarEvents
       .filter(event => {
-        const eventDate = new Date(event.date)
+        const eventDate = parseDateString(event.date)
         return isAfter(eventDate, now) && isBefore(eventDate, thirtyDaysFromNow)
       })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .sort((a, b) => parseDateString(a.date).getTime() - parseDateString(b.date).getTime())
       .map(event => {
-        const eventDate = new Date(event.date)
+        const eventDate = parseDateString(event.date)
         const daysUntil = differenceInDays(eventDate, now)
 
         return {
@@ -70,7 +77,7 @@ export function useCalendarEvents(orders: CateringOrder[], manualEvents: Calenda
   }, [calendarEvents])
 
   const hasEvents = (date: Date) => {
-    return calendarEvents.some(event => isSameDay(new Date(event.date), date))
+    return calendarEvents.some(event => isSameDay(parseDateString(event.date), date))
   }
 
   return { calendarEvents, selectedDateEvents, upcomingEvents, hasEvents }
