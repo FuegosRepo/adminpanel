@@ -2,6 +2,7 @@ import React from 'react'
 import { CateringOrder } from '@/types'
 import { Calendar, Users, MapPin, Clock, Mail, Phone, User, CreditCard } from 'lucide-react'
 import { ProductListResolver } from '../admin/ProductListResolver'
+import { formatLocalDate } from '@/utils/dateUtils'
 
 import {
     Dialog,
@@ -24,15 +25,7 @@ interface OrderDetailsProps {
 export default function OrderDetails({ isOpen, order, onClose }: OrderDetailsProps) {
     const formatDate = (dateStr: string | null | undefined) => {
         if (!dateStr) return 'No especificado'
-        try {
-            return new Date(dateStr).toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            })
-        } catch (error) {
-            return 'Fecha inválida'
-        }
+        return formatLocalDate(dateStr)
     }
 
     const formatEventType = (type: string) => {
