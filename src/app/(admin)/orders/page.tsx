@@ -28,6 +28,8 @@ export default function OrdersPage() {
         orders,
         handleStatusChange,
         handleUpdateOrder,
+        handleUpdatePaymentMethod,
+        isUpdatingPaymentMethod,
         handleAddInternalNote,
         handleDeleteInternalNote,
         isAddingNote,
@@ -189,6 +191,8 @@ export default function OrdersPage() {
                                             onSelectionChange={() => { }}
                                             onUpdateOrder={handleUpdateOrder}
                                             onDelete={handleDelete}
+                                            onUpdatePaymentMethod={handleUpdatePaymentMethod}
+                                            isUpdatingPaymentMethod={isUpdatingPaymentMethod}
                                             onAddInternalNote={handleAddInternalNote}
                                             onDeleteInternalNote={handleDeleteInternalNote}
                                             isAddingNote={isAddingNote}

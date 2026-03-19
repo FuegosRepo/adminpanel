@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabaseClient'
-import { CateringOrder, PaymentInfo } from '@/types'
+import { CateringOrder, PaymentInfo, PaymentMethod } from '@/types'
 import { fetchOrders, OrdersFilters } from '@/services/ordersService'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -184,8 +184,33 @@ export const useOrders = (initialFilters?: OrdersFilters) => {
         }
     })
 
+    const updatePaymentMethodMutation = useMutation({
+        mutationFn: async ({ orderId, paymentMethod }: { orderId: string, paymentMethod: PaymentMethod | null }) => {
+            const { data, error } = await supabase
+                .from('catering_orders')
+                .update({ payment_method: paymentMethod, updated_at: new Date().toISOString() })
+                .eq('id', orderId)
+                .select()
+                .single()
+            if (error) throw error
+            return data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['orders'] })
+            queryClient.invalidateQueries({ queryKey: ['budgets'] })
+            toast.success('Medio de pago actualizado')
+        },
+        onError: (err: any) => {
+            toast.error(`Error al actualizar medio de pago: ${err.message}`)
+        }
+    })
+
     const handleStatusChange = async (orderId: string, newStatus: CateringOrder['status']) => {
         updateStatusMutation.mutate({ orderId, newStatus })
+    }
+
+    const handleUpdatePaymentMethod = (orderId: string, paymentMethod: PaymentMethod | null) => {
+        updatePaymentMethodMutation.mutate({ orderId, paymentMethod })
     }
 
     const handleUpdatePayment = (orderId: string, updatedPayment: PaymentInfo) => {
@@ -217,6 +242,8 @@ export const useOrders = (initialFilters?: OrdersFilters) => {
         filters,
         setFilters,
         handleStatusChange,
+        handleUpdatePaymentMethod,
+        isUpdatingPaymentMethod: updatePaymentMethodMutation.isPending,
         handleUpdatePayment,
         handleUpdateOrder,
         handleAddInternalNote,  // ✅ Add note to thread

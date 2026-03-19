@@ -7,6 +7,8 @@ import { TableRow, TableCell } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import { formatLocalDate } from '@/utils/dateUtils'
 import { getStatusVariant, getStatusText } from '../utils'
+import PaymentMethodSelector from '@/components/common/PaymentMethodSelector'
+import type { PaymentMethod } from '@/types'
 
 interface BudgetTableRowProps {
   budget: any
@@ -73,6 +75,14 @@ export default function BudgetTableRow({ budget, isExpanded, isSelected, showChe
             <Badge variant="info" className="text-[10px] px-1.5 py-0">
               {budget.relance_count}x relance
             </Badge>
+          )}
+          {(budget.status === 'approved' || budget.status === 'APPROVED') && budget.order_id && (
+            <PaymentMethodSelector
+              orderId={budget.order_id}
+              currentMethod={(budget.catering_orders?.payment_method as PaymentMethod) || null}
+              onUpdate={() => {}}
+              compact
+            />
           )}
         </div>
       </TableCell>

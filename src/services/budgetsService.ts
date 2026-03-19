@@ -20,7 +20,7 @@ export const fetchBudgets = async ({
     // Select only essential fields for the list to save data
     let query = supabase
         .from('budgets')
-        .select('id, order_id, version, status, budget_data, pdf_url, created_at, updated_at, relance_count', { count: 'exact' })
+        .select('id, order_id, version, status, budget_data, pdf_url, created_at, updated_at, relance_count, catering_orders!order_id(payment_method, status)', { count: 'exact' })
 
     // Apply filters
     if (filters?.status && filters.status !== 'all') {

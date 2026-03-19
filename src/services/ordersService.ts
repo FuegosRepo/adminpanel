@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
-import { CateringOrder } from '@/types'
+import { CateringOrder, PaymentMethod } from '@/types'
 import { sanitizeSearchTerm, getPaginationRange } from '@/utils/queryHelpers'
 
 export type OrdersFilters = {
@@ -128,6 +128,7 @@ export const fetchOrders = async ({
         notes?: string
         internal_note?: unknown
         payment?: CateringOrder['payment']
+        payment_method?: string | null
         budgets?: { id: string }[]
     }) => ({
         id: row.id,
@@ -157,6 +158,7 @@ export const fetchOrders = async ({
         notes: row.notes || undefined,
         internalNotes: parseInternalNotes(row.internal_note),
         payment: row.payment,
+        paymentMethod: (row.payment_method as PaymentMethod) || null,
         hasBudget: row.budgets && row.budgets.length > 0
     }))
 

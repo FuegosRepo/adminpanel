@@ -2,7 +2,7 @@
 
 import { useState, useEffect, memo, Fragment } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { CateringOrder, EmailTemplate } from '@/types'
+import { CateringOrder, EmailTemplate, PaymentMethod } from '@/types'
 import { differenceInDays } from 'date-fns'
 import { Mail, Eye, ChevronDown, ChevronUp, Clock, Trash2, FileText, StickyNote } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
@@ -10,6 +10,7 @@ import { emailTemplates } from '@/data/mockData'
 import { formatLocalDate } from '@/utils/dateUtils'
 import { ProductListResolver } from '@/components/admin/ProductListResolver'
 import ConfirmationModal from '@/components/common/ConfirmationModal'
+import PaymentMethodSelector from '@/components/common/PaymentMethodSelector'
 import InternalNoteModal from '@/components/InternalNoteModal/InternalNoteModal'
 import { toast } from 'sonner'
 
@@ -28,6 +29,8 @@ interface OrderCardProps {
   onSelectionChange: (orderId: string, isSelected: boolean) => void
   onUpdateOrder?: (orderId: string, updates: Partial<CateringOrder>) => void
   onDelete?: (orderId: string) => void
+  onUpdatePaymentMethod?: (orderId: string, method: PaymentMethod | null) => void
+  isUpdatingPaymentMethod?: boolean
   onAddInternalNote?: (orderId: string, note: string) => Promise<void>
   onDeleteInternalNote?: (orderId: string, noteIndex: number) => Promise<void>
   isAddingNote?: boolean
@@ -54,6 +57,8 @@ const OrderCard = ({
   onSelectionChange,
   onUpdateOrder,
   onDelete,
+  onUpdatePaymentMethod,
+  isUpdatingPaymentMethod = false,
   onAddInternalNote,
   onDeleteInternalNote,
   isAddingNote = false,
@@ -201,6 +206,14 @@ const OrderCard = ({
                 {relanceCount}x relance
               </Badge>
             )}
+            {order.status === 'approved' && (
+              <PaymentMethodSelector
+                orderId={order.id}
+                currentMethod={order.paymentMethod ?? null}
+                onUpdate={onUpdatePaymentMethod || (() => {})}
+                compact
+              />
+            )}
           </div>
         </TableCell>
 
@@ -300,6 +313,19 @@ const OrderCard = ({
                       <option value="rejected">Rechazado</option>
                     </select>
                   </div>
+
+                  {/* Payment Method - Only for approved orders */}
+                  {order.status === 'approved' && onUpdatePaymentMethod && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-muted-foreground">Medio de Pago:</span>
+                      <PaymentMethodSelector
+                        orderId={order.id}
+                        currentMethod={order.paymentMethod ?? null}
+                        onUpdate={onUpdatePaymentMethod}
+                        isUpdating={isUpdatingPaymentMethod}
+                      />
+                    </div>
+                  )}
 
                   {/* Actions */}
                   <div className="flex flex-col gap-2">

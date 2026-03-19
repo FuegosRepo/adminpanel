@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabaseClient'
 import type { BudgetsFilters } from '@/services/budgetsService'
+import type { PaymentMethod } from '@/types'
 
 interface UseBudgetListActionsParams {
   deleteBudget: (id: string) => Promise<void>
@@ -118,6 +120,28 @@ export function useBudgetListActions({ deleteBudget, createManualBudget, onSelec
     }
   }
 
+  const updatePaymentMethodMutation = useMutation({
+    mutationFn: async ({ orderId, paymentMethod }: { orderId: string, paymentMethod: PaymentMethod | null }) => {
+      const { error } = await supabase
+        .from('catering_orders')
+        .update({ payment_method: paymentMethod, updated_at: new Date().toISOString() })
+        .eq('id', orderId)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      toast.success('Medio de pago actualizado')
+    },
+    onError: (err: any) => {
+      toast.error(`Error al actualizar medio de pago: ${err.message}`)
+    }
+  })
+
+  const handleUpdatePaymentMethod = (orderId: string, paymentMethod: PaymentMethod | null) => {
+    updatePaymentMethodMutation.mutate({ orderId, paymentMethod })
+  }
+
   const handleCreateManual = async () => {
     try {
       const newBudget = await createManualBudget({
@@ -158,6 +182,9 @@ export function useBudgetListActions({ deleteBudget, createManualBudget, onSelec
     isBulkRelancing,
     selectedBudgets, toggleBudgetSelection, toggleSelectAll,
     handleConfirmBulkRelance,
+    // Payment method
+    handleUpdatePaymentMethod,
+    isUpdatingPaymentMethod: updatePaymentMethodMutation.isPending,
     // Create manual
     handleCreateManual
   }
