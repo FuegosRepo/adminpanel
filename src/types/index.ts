@@ -39,6 +39,8 @@ export interface PaymentRecord {
   notes?: string
 }
 
+export type PaymentMethod = 'transferencia' | 'efectivo_blanco' | 'efectivo_negro'
+
 export interface CateringOrder {
   id: string
   contact: ContactData
@@ -54,6 +56,7 @@ export interface CateringOrder {
   notes?: string
   internalNotes?: InternalNote[]  // ✅ Changed to array for thread/history
   payment?: PaymentInfo
+  paymentMethod?: PaymentMethod | null
   hasBudget?: boolean
 }
 

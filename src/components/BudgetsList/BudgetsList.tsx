@@ -107,6 +107,8 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
                           onSelectBudget={onSelectBudget}
                           onMarkAsSentClick={actions.handleMarkAsSentClick}
                           onDeleteClick={actions.handleDeleteClick}
+                          onUpdatePaymentMethod={actions.handleUpdatePaymentMethod}
+                          isUpdatingPaymentMethod={actions.isUpdatingPaymentMethod}
                         />
                       )}
                     </React.Fragment>

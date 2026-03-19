@@ -2,15 +2,21 @@ import React from 'react'
 import { FileText, Eye, MailCheck, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TableRow, TableCell } from '@/components/ui/table'
+import PaymentMethodSelector from '@/components/common/PaymentMethodSelector'
+import type { PaymentMethod } from '@/types'
 
 interface BudgetExpandedRowProps {
   budget: any
   onSelectBudget: (id: string) => void
   onMarkAsSentClick: (e: React.MouseEvent, id: string) => void
   onDeleteClick: (e: React.MouseEvent, id: string) => void
+  onUpdatePaymentMethod?: (orderId: string, method: PaymentMethod | null) => void
+  isUpdatingPaymentMethod?: boolean
 }
 
-export default function BudgetExpandedRow({ budget, onSelectBudget, onMarkAsSentClick, onDeleteClick }: BudgetExpandedRowProps) {
+export default function BudgetExpandedRow({ budget, onSelectBudget, onMarkAsSentClick, onDeleteClick, onUpdatePaymentMethod, isUpdatingPaymentMethod }: BudgetExpandedRowProps) {
+  const isApproved = budget.status === 'approved' || budget.status === 'APPROVED'
+
   return (
     <TableRow className="bg-muted/30 hover:bg-muted/30">
       <TableCell colSpan={6} className="p-0 border-b">
@@ -22,6 +28,17 @@ export default function BudgetExpandedRow({ budget, onSelectBudget, onMarkAsSent
               <span><strong className="font-medium">Creado:</strong> {new Date(budget.created_at).toLocaleDateString('fr-FR')}</span>
               {budget.updated_at && (
                 <span><strong className="font-medium">Actualizado:</strong> {new Date(budget.updated_at).toLocaleDateString('fr-FR')}</span>
+              )}
+              {isApproved && budget.order_id && onUpdatePaymentMethod && (
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Medio de Pago:</span>
+                  <PaymentMethodSelector
+                    orderId={budget.order_id}
+                    currentMethod={(budget.catering_orders?.payment_method as PaymentMethod) || null}
+                    onUpdate={onUpdatePaymentMethod}
+                    isUpdating={isUpdatingPaymentMethod}
+                  />
+                </div>
               )}
             </div>
 
