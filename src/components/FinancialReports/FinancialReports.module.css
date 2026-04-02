@@ -10,9 +10,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   padding-bottom: 16px;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .title {
@@ -22,32 +28,6 @@
   margin: 0;
 }
 
-.periodSelector {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.periodBtn {
-  background: white;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.periodBtn:hover {
-  background: #f9fafb;
-}
-
-.periodBtn.active {
-  background: #d97706;
-  color: white;
-  border-color: #d97706;
-}
 
 .exportBtn {
   background: #059669;
@@ -95,6 +75,11 @@
 .overviewCard.average {
   background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
   border-color: #10b981;
+}
+
+.overviewCard.conversion {
+  background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%);
+  border-color: #8b5cf6;
 }
 
 .overviewLabel {
@@ -344,6 +329,118 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Date Range Picker */
+.dateRangePicker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.presetBtn {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.presetBtn:hover {
+  background: #f9fafb;
+}
+
+.presetBtn.active {
+  background: #d97706;
+  color: white;
+  border-color: #d97706;
+}
+
+.dateInputs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dateInput {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+}
+
+.dateSeparator {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+/* Tabs */
+.tabs {
+  margin-top: 8px;
+}
+
+.tabsList {
+  width: 100%;
+  overflow-x: auto;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Export Dropdown */
+.exportWrapper {
+  position: relative;
+}
+
+.exportDropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  overflow: hidden;
+  min-width: 150px;
+}
+
+.exportDropdown button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.exportDropdown button:hover {
+  background: #f9fafb;
+}
+
+.exportDropdown button:not(:last-child) {
+  border-bottom: 1px solid #f3f4f6;
+}
+
 @media (max-width: 1024px) {
   .chartsGrid {
     grid-template-columns: 1fr;
@@ -366,8 +463,21 @@
     align-items: stretch;
   }
 
-  .periodSelector {
+  .dateRangePicker {
+    gap: 8px;
+  }
+
+  .presets {
     justify-content: center;
+  }
+
+  .dateInputs {
+    justify-content: center;
+  }
+
+  .tabsList {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .overview {

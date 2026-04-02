@@ -12,6 +12,29 @@ export type FetchBudgetsParams = {
     filters?: BudgetsFilters
 }
 
+export interface ReportBudget {
+    id: string
+    order_id: string
+    status: string
+    relance_count: number
+    created_at: string
+    updated_at: string
+}
+
+/**
+ * Fetch all budgets (no pagination) for reporting.
+ * Only selects fields needed for relance/conversion analysis.
+ */
+export const fetchBudgetsForReports = async (): Promise<ReportBudget[]> => {
+    const { data, error } = await supabase
+        .from('budgets')
+        .select('id, order_id, status, relance_count, created_at, updated_at')
+        .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return (data || []) as ReportBudget[]
+}
+
 export const fetchBudgets = async ({
     page = 1,
     pageSize = 10,

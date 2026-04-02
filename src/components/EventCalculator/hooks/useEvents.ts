@@ -186,8 +186,13 @@ export function useEvents(allProducts: Product[]) {
                     .eq('event_calculation_id', eventDbId)
             }
 
-            if (event.ingredients.length > 0) {
-                const ingredientsToInsert = event.ingredients.map((ing, index) => ({
+            // Filter out unmatched fallback products (no real DB ID) to avoid FK violations
+            const persistableIngredients = event.ingredients.filter(
+                ing => !ing.product.id.startsWith('unmatched-')
+            )
+
+            if (persistableIngredients.length > 0) {
+                const ingredientsToInsert = persistableIngredients.map((ing, index) => ({
                     event_calculation_id: eventDbId,
                     product_id: ing.product.id,
                     quantity_per_person: ing.quantityPerPerson,

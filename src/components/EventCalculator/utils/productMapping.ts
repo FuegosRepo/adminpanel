@@ -36,19 +36,21 @@ const NAME_MAPPING: { [key: string]: string[] } = {
 // Mapeo específico para materiales (Formulario [Francés/Slug] -> BD [Español])
 export const MATERIAL_MAPPINGS: { [key: string]: string[] } = {
     'assiettes-plates': ['platos grandes', 'platos principales', 'plato principal'],
+    'assiettes-plat': ['platos grandes', 'platos principales', 'plato principal'],
     'assiettes-creuses': ['platos hondos', 'plato hondo'],
     'assiettes-dessert': ['platos postres', 'plato postre'],
     'verres-eau': ['vasos agua', 'vaso agua'],
     'verres-vin': ['copas vino', 'copa vino'],
     'verres-champagne': ['copas champagne', 'copa champagne'],
     'verres-cocktail': ['vasos de tragos', 'vaso trago', 'trago'],
-    'couverts': ['juego de cubiertos', 'cubiertos'],
+    'couverts': ['tenedores', 'cuchillos', 'cucharas', 'cubiertos'],
     'fourchettes': ['tenedores', 'tenedor'],
     'couteaux': ['cuchillos', 'cuchillo'],
     'cuilleres': ['cucharas', 'cuchara'],
     'mange-debout': ['mange debout', 'mesa alta'],
     'nappes-mange-debout': ['mantel mange debout', 'housse mange debout'],
     'tables-rondes': ['mesas 10/12', 'mesa redonda'],
+    'tables': ['mesas 10/12', 'mesa redonda'],
     'nappes': ['mantel mesa 10/12', 'manteles', 'manteleria'],
     'serviettes': ['servilletas'],
     'chaises': ['sillas basicas', 'silla'],
@@ -86,8 +88,10 @@ export function findProductByName(itemName: string, allProducts: Product[]): Pro
     const normalizedInput = itemName.toLowerCase().trim()
     console.log(`🔎 Buscando producto: "${itemName}" (normalizado: "${normalizedInput}")`)
 
-    // Estrategia 1: Buscar en el mapeo directo
-    const mappedNames = NAME_MAPPING[normalizedInput] || [normalizedInput]
+    // Estrategia 1: Buscar en el mapeo directo (food + materials)
+    const materialAliases = MATERIAL_MAPPINGS[normalizedInput]
+    const foodAliases = NAME_MAPPING[normalizedInput]
+    const mappedNames = foodAliases || materialAliases || [normalizedInput]
 
     // Estrategia 2: Buscar coincidencia exacta o parcial
     for (const mappedName of mappedNames) {
