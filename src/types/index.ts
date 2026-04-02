@@ -109,6 +109,11 @@ export interface ServiceRevenue {
   percentage: number
 }
 
+export interface ReportDateRange {
+  from: string
+  to: string
+}
+
 export interface CalendarEvent {
   id: string
   orderId: string | null

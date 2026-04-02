@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useOrders } from '@/hooks/useOrders'
+import { useApprovedOrders } from '@/hooks/useApprovedOrders'
 import { useProducts } from '@/hooks/useProducts'
 
 const EventCalculator = dynamic(
@@ -10,7 +10,7 @@ const EventCalculator = dynamic(
 )
 
 export default function CalculatorPage() {
-    const { orders } = useOrders()
+    const { orders } = useApprovedOrders()
     const { products, loading: productsLoading } = useProducts()
 
     return (

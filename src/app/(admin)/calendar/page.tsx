@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useOrders } from '@/hooks/useOrders'
+import { useApprovedOrders } from '@/hooks/useApprovedOrders'
 import { CalendarEvent } from '@/types'
 
 const EventsCalendar = dynamic(
@@ -11,7 +12,8 @@ const EventsCalendar = dynamic(
 )
 
 export default function CalendarPage() {
-    const { orders, handleStatusChange } = useOrders()
+    const { orders } = useApprovedOrders()
+    const { handleStatusChange } = useOrders()
     const [manualEvents, setManualEvents] = useState<CalendarEvent[]>([])
 
     // Manejar adición de eventos manuales

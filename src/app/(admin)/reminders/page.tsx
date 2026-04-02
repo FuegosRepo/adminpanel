@@ -1,10 +1,10 @@
 'use client'
 
 import EventReminders from '@/components/EventReminders/EventReminders'
-import { useOrders } from '@/hooks/useOrders'
+import { useApprovedOrders } from '@/hooks/useApprovedOrders'
 
 export default function RemindersPage() {
-    const { orders } = useOrders()
+    const { orders } = useApprovedOrders()
 
     return (
         <EventReminders orders={orders} />

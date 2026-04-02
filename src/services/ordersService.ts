@@ -106,31 +106,18 @@ export const fetchOrders = async ({
         throw error
     }
 
-    // Map to internal type
-    const mapped: CateringOrder[] = (data || []).map((row: {
-        id: string
-        email: string
-        name: string
-        phone?: string
-        event_date?: string
-        event_type?: string
-        address?: string
-        guest_count?: number
-        menu_type?: string
-        entrees?: string[]
-        viandes?: string[]
-        dessert?: string | null
-        extras?: { wines?: boolean; equipment?: string[]; decoration?: boolean; specialRequest?: string }
-        status?: string
-        created_at: string
-        updated_at: string
-        estimated_price?: number
-        notes?: string
-        internal_note?: unknown
-        payment?: CateringOrder['payment']
-        payment_method?: string | null
-        budgets?: { id: string }[]
-    }) => ({
+    const mapped = (data || []).map(mapRowToOrder)
+
+    return {
+        data: mapped,
+        count: count || 0,
+        error: null
+    }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapRowToOrder(row: any): CateringOrder {
+    return {
         id: row.id,
         contact: {
             email: row.email,
@@ -160,11 +147,63 @@ export const fetchOrders = async ({
         payment: row.payment,
         paymentMethod: (row.payment_method as PaymentMethod) || null,
         hasBudget: row.budgets && row.budgets.length > 0
-    }))
-
-    return {
-        data: mapped,
-        count: count || 0,
-        error: null
     }
+}
+
+/**
+ * Fetch all approved orders (status = 'approved'), no pagination.
+ * Used by Calculator, Reminders, Reports, Payments.
+ */
+export const fetchApprovedOrders = async (): Promise<CateringOrder[]> => {
+    const { data, error } = await supabase
+        .from('catering_orders')
+        .select('*, budgets(id)')
+        .eq('status', 'approved')
+        .order('event_date', { ascending: true })
+
+    if (error) throw error
+    return (data || []).map(mapRowToOrder)
+}
+
+/**
+ * Fetch all orders (all statuses) for reporting, no pagination.
+ * Optionally filter by created_at date range.
+ * Used by Reports page for historical analysis.
+ */
+export const fetchAllOrdersForReports = async (
+    dateFrom?: string,
+    dateTo?: string
+): Promise<CateringOrder[]> => {
+    let query = supabase
+        .from('catering_orders')
+        .select('*, budgets(id)')
+
+    if (dateFrom) {
+        query = query.gte('created_at', dateFrom)
+    }
+    if (dateTo) {
+        query = query.lte('created_at', dateTo)
+    }
+
+    query = query.order('created_at', { ascending: true })
+
+    const { data, error } = await query
+
+    if (error) throw error
+    return (data || []).map(mapRowToOrder)
+}
+
+/**
+ * Fetch all orders that have an event_date (any status), no pagination.
+ * Used by Calendar to show all events.
+ */
+export const fetchOrdersWithEvents = async (): Promise<CateringOrder[]> => {
+    const { data, error } = await supabase
+        .from('catering_orders')
+        .select('*, budgets(id)')
+        .not('event_date', 'is', null)
+        .order('event_date', { ascending: true })
+
+    if (error) throw error
+    return (data || []).map(mapRowToOrder)
 }

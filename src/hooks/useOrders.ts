@@ -69,7 +69,9 @@ export const useOrders = (initialFilters?: OrdersFilters) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orders'] })
-            queryClient.invalidateQueries({ queryKey: ['budgets'] }) // ✅ Ensure budgets are refreshed
+            queryClient.invalidateQueries({ queryKey: ['budgets'] })
+            queryClient.invalidateQueries({ queryKey: ['approvedOrders'] })
+            queryClient.invalidateQueries({ queryKey: ['calendarOrders'] })
             toast.success('Estado actualizado correctamente')
         },
         onError: (err: any) => {
