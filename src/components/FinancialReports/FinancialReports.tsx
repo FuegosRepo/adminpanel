@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { CateringOrder } from '@/types'
+import { CateringOrder, PaymentMethod } from '@/types'
 import { ReportBudget } from '@/services/budgetsService'
 import { Download, ChevronDown } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -26,6 +26,7 @@ interface FinancialReportsProps {
     dateTo: string
     onDateFromChange: (value: string) => void
     onDateToChange: (value: string) => void
+    onUpdatePaymentMethod?: (orderId: string, method: PaymentMethod | null) => void
 }
 
 export default function FinancialReports({
@@ -36,6 +37,7 @@ export default function FinancialReports({
     dateTo,
     onDateFromChange,
     onDateToChange,
+    onUpdatePaymentMethod,
 }: FinancialReportsProps) {
     const [isMounted, setIsMounted] = useState(false)
     const [exportOpen, setExportOpen] = useState(false)
@@ -119,7 +121,7 @@ export default function FinancialReports({
                     <IncomeAnalysisTab orders={orders} allOrdersUnfiltered={allOrdersUnfiltered} isMounted={isMounted} />
                 </TabsContent>
                 <TabsContent value="pagos">
-                    <PaymentMethodTab orders={orders} isMounted={isMounted} />
+                    <PaymentMethodTab orders={orders} isMounted={isMounted} onUpdatePaymentMethod={onUpdatePaymentMethod} />
                 </TabsContent>
                 <TabsContent value="eventos">
                     <EventTypeTab orders={orders} isMounted={isMounted} />

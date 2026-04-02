@@ -215,8 +215,30 @@ export const useOrders = (initialFilters?: OrdersFilters) => {
         updatePaymentMethodMutation.mutate({ orderId, paymentMethod })
     }
 
+    const updatePaymentMutation = useMutation({
+        mutationFn: async ({ orderId, updatedPayment }: { orderId: string, updatedPayment: PaymentInfo }) => {
+            const { data, error } = await supabase
+                .from('catering_orders')
+                .update({ payment: updatedPayment, updated_at: new Date().toISOString() })
+                .eq('id', orderId)
+                .select()
+                .single()
+            if (error) throw error
+            return data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['orders'] })
+            queryClient.invalidateQueries({ queryKey: ['approvedOrders'] })
+            queryClient.invalidateQueries({ queryKey: ['reportOrders'] })
+            toast.success('Pago registrado correctamente')
+        },
+        onError: (err: any) => {
+            toast.error(`Error al registrar pago: ${err.message}`)
+        }
+    })
+
     const handleUpdatePayment = (orderId: string, updatedPayment: PaymentInfo) => {
-        queryClient.invalidateQueries({ queryKey: ['orders'] })
+        updatePaymentMutation.mutate({ orderId, updatedPayment })
     }
 
     const handleUpdateOrder = (orderId: string, updates: Partial<CateringOrder>) => {

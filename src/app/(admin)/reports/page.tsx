@@ -4,6 +4,7 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useReportOrders } from '@/hooks/useReportOrders'
 import { useReportBudgets } from '@/hooks/useReportBudgets'
+import { useOrders } from '@/hooks/useOrders'
 import { fetchAllOrdersForReports } from '@/services/ordersService'
 import { useQuery } from '@tanstack/react-query'
 
@@ -31,6 +32,9 @@ export default function ReportsPage() {
     // Budgets for relance effectiveness analysis
     const { budgets } = useReportBudgets()
 
+    // Payment method update handler
+    const { handleUpdatePaymentMethod } = useOrders()
+
     return (
         <FinancialReports
             orders={orders}
@@ -40,6 +44,7 @@ export default function ReportsPage() {
             dateTo={dateTo}
             onDateFromChange={setDateFrom}
             onDateToChange={setDateTo}
+            onUpdatePaymentMethod={handleUpdatePaymentMethod}
         />
     )
 }

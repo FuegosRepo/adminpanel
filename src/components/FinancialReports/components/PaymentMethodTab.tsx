@@ -1,7 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
-import { CateringOrder } from '@/types'
+import { useMemo, useState } from 'react'
+import { CateringOrder, PaymentMethod } from '@/types'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import PaymentMethodSelector from '@/components/common/PaymentMethodSelector'
 import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
     BarChart, Bar, XAxis, YAxis, CartesianGrid
@@ -15,9 +17,11 @@ import styles from '../FinancialReports.module.css'
 interface PaymentMethodTabProps {
     orders: CateringOrder[]
     isMounted: boolean
+    onUpdatePaymentMethod?: (orderId: string, method: PaymentMethod | null) => void
 }
 
-export default function PaymentMethodTab({ orders, isMounted }: PaymentMethodTabProps) {
+export default function PaymentMethodTab({ orders, isMounted, onUpdatePaymentMethod }: PaymentMethodTabProps) {
+    const [showUnspecified, setShowUnspecified] = useState(false)
     const data = useMemo(() => {
         const approved = orders.filter(o => normalizeStatus(o.status) === 'approved')
         if (approved.length === 0) return null
@@ -81,7 +85,9 @@ export default function PaymentMethodTab({ orders, isMounted }: PaymentMethodTab
             ].filter(d => d.value > 0),
         } : null
 
-        return { distribution, total, totalRevenue, blancoNegro }
+        const unspecifiedOrders = approved.filter(o => !o.paymentMethod)
+
+        return { distribution, total, totalRevenue, blancoNegro, unspecifiedOrders }
     }, [orders])
 
     if (!data || !isMounted) {
@@ -98,20 +104,78 @@ export default function PaymentMethodTab({ orders, isMounted }: PaymentMethodTab
         <>
             {/* Summary cards */}
             <div className={styles.overview}>
-                {data.distribution.map((item) => (
-                    <div key={item.method} className={styles.overviewCard}
-                        style={{
-                            background: `linear-gradient(135deg, ${item.color}15 0%, ${item.color}25 100%)`,
-                            borderColor: item.color
-                        }}>
-                        <div className={styles.overviewLabel}>{item.name}</div>
-                        <div className={styles.overviewValue}>{item.count}</div>
-                        <div className={styles.overviewChange}>
-                            {formatCurrency(item.revenue, isMounted)} — Prom: {formatCurrency(item.avgRevenue, isMounted)}
+                {data.distribution.map((item) => {
+                    const isUnspecified = item.method === 'sin_especificar' && data.unspecifiedOrders.length > 0
+                    return (
+                        <div key={item.method} className={styles.overviewCard}
+                            onClick={isUnspecified ? () => setShowUnspecified(!showUnspecified) : undefined}
+                            style={{
+                                background: `linear-gradient(135deg, ${item.color}15 0%, ${item.color}25 100%)`,
+                                borderColor: item.color,
+                                cursor: isUnspecified ? 'pointer' : undefined,
+                            }}>
+                            <div className={styles.overviewLabel}>
+                                {item.name}
+                                {isUnspecified && (
+                                    showUnspecified
+                                        ? <ChevronUp size={14} style={{ display: 'inline', marginLeft: 4 }} />
+                                        : <ChevronDown size={14} style={{ display: 'inline', marginLeft: 4 }} />
+                                )}
+                            </div>
+                            <div className={styles.overviewValue}>{item.count}</div>
+                            <div className={styles.overviewChange}>
+                                {formatCurrency(item.revenue, isMounted)} — Prom: {formatCurrency(item.avgRevenue, isMounted)}
+                                {isUnspecified && <span style={{ marginLeft: 8, fontSize: '0.7rem' }}>Click para ver</span>}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
+
+            {/* Unspecified orders expandable list */}
+            {showUnspecified && data.unspecifiedOrders.length > 0 && (
+                <div className={styles.monthlyTable} style={{ marginBottom: 24 }}>
+                    <div className={styles.tableHeader}>
+                        <h3 className={styles.tableTitle}>
+                            Pedidos sin Medio de Pago ({data.unspecifiedOrders.length})
+                        </h3>
+                    </div>
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Tipo Evento</th>
+                                <th>Fecha Evento</th>
+                                <th>Ingreso</th>
+                                <th>Asignar Medio de Pago</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.unspecifiedOrders.map((order) => (
+                                <tr key={order.id}>
+                                    <td>{order.contact.name}</td>
+                                    <td>{order.contact.eventType || '-'}</td>
+                                    <td>{order.contact.eventDate || '-'}</td>
+                                    <td>{formatCurrency(getOrderRevenue(order), isMounted)}</td>
+                                    <td>
+                                        {onUpdatePaymentMethod ? (
+                                            <PaymentMethodSelector
+                                                orderId={order.id}
+                                                currentMethod={order.paymentMethod || null}
+                                                onUpdate={onUpdatePaymentMethod}
+                                            />
+                                        ) : (
+                                            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
+                                                Asignar desde /orders
+                                            </span>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             <div className={styles.chartsSection}>
                 <div className={styles.chartsGrid}>
