@@ -424,13 +424,19 @@ export function BudgetPdfDocument({ budgetData }: BudgetPdfDocumentProps) {
                     {/* Menu Amount */}
                     <AmountBox title="Montant - Menu">
                         <AmountRow label="Montant HT :" value={`${menu.totalHT.toFixed(2)} €`} />
-                        <AmountRow label={`TVA (${menu.tvaPct}%) :`} value={`${menu.tva.toFixed(2)} €`} />
                         {menu.discount && menu.discount.amount > 0 && (
                             <AmountRow
-                                label={`Remise (${menu.discount.percentage}% - ${menu.discount.reason}):`}
-                                value={`-${menu.discount.amount.toFixed(2)} €`}
+                                label={`Remise (${menu.discount.percentage}% - ${menu.discount.reason}) :`}
+                                value={`- ${menu.discount.amount.toFixed(2)} €`}
                             />
                         )}
+                        {menu.discount && menu.discount.amount > 0 && (
+                            <AmountRow
+                                label="Montant HT Après Remise :"
+                                value={`${(menu.totalHTApresRemise ?? menu.totalHT).toFixed(2)} €`}
+                            />
+                        )}
+                        <AmountRow label={`TVA (${menu.tvaPct}%) :`} value={`${menu.tva.toFixed(2)} €`} />
                         <AmountRow label="Montant TTC :" value={`${menu.totalTTC.toFixed(2)} €`} isTotal />
                     </AmountBox>
 
