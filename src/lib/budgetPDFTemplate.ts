@@ -547,6 +547,16 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <span>Montant HT :</span>
             <span>${budgetData.menu.totalHT.toFixed(2)} €</span>
             </div>
+            ${budgetData.menu.discount && budgetData.menu.discount.amount > 0 ? `
+            <div class="amount-row" style="color: #000000; font-weight: bold;">
+            <span>Remise (${budgetData.menu.discount.percentage}% - ${budgetData.menu.discount.reason}) :</span>
+            <span>- ${budgetData.menu.discount.amount.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+            <span>Montant HT Après Remise :</span>
+            <span>${(budgetData.menu.totalHTApresRemise ?? budgetData.menu.totalHT).toFixed(2)} €</span>
+            </div>
+            ` : ''}
             <div class="amount-row">
             <span>TVA (${budgetData.menu.tvaPct}%) :</span>
             <span>${budgetData.menu.tva.toFixed(2)} €</span>
