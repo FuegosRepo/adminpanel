@@ -4,7 +4,16 @@ import {
     List, BarChart3, TrendingUp, Search, X, CheckCircle2, AlertCircle
 } from 'lucide-react'
 import { ViewMode } from '../types'
-import styles from './EventCalculatorHeader.module.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 
 interface EventCalculatorHeaderProps {
     eventsCount: number
@@ -26,6 +35,13 @@ interface EventCalculatorHeaderProps {
     onFiltersChange: (filters: { search: string; dateFrom: string; dateTo: string }) => void
 }
 
+const viewModes: { mode: ViewMode; icon: React.ElementType; label: string }[] = [
+    { mode: 'list', icon: List, label: 'Vista Lista' },
+    { mode: 'timeline', icon: BarChart3, label: 'Vista Timeline' },
+    { mode: 'comparison', icon: TrendingUp, label: 'Vista Comparar' },
+    { mode: 'stats', icon: Calculator, label: 'Vista Estadísticas' },
+]
+
 export function EventCalculatorHeader({
     eventsCount,
     regeneratingCosts,
@@ -42,156 +58,166 @@ export function EventCalculatorHeader({
     onFiltersChange
 }: EventCalculatorHeaderProps) {
     return (
-        <>
-            <div className={styles.header}>
-                <div className={styles.titleSection}>
-                    <h2 className={styles.title}>
-                        <Calculator size={28} />
-                        Calculadora de Ingredientes por Eventos
+        <div className="space-y-4">
+            {/* Header Row */}
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                {/* Title Section */}
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                        <Calculator className="h-7 w-7 text-primary" />
+                        Calculadora de Ingredientes
                     </h2>
-                    <p className={styles.subtitle}>
+                    <p className="text-sm text-muted-foreground">
                         Gestiona múltiples eventos y calcula las cantidades totales de ingredientes necesarios
                     </p>
                 </div>
 
-                <div className={styles.headerActions}>
-                    <div className={styles.buttonGroup}>
-                        <button
-                            className={styles.primaryBtn}
-                            onClick={onSelectOrders}
-                            title="Seleccionar Pedidos"
-                        >
-                            <CheckSquare size={18} />
-                            <span className={styles.btnText}>Seleccionar</span>
-                        </button>
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <TooltipProvider delayDuration={200}>
+                        <div className="flex items-center gap-1.5">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button onClick={onSelectOrders} size="sm">
+                                        <CheckSquare className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Seleccionar</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Seleccionar Pedidos Aprobados</TooltipContent>
+                            </Tooltip>
 
-                        <button
-                            className={styles.secondaryBtn}
-                            onClick={onAddManualEvent}
-                            title="Crear Evento Manual"
-                        >
-                            <Plus size={18} />
-                            <span className={styles.btnText}>Manual</span>
-                        </button>
-                    </div>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" onClick={onAddManualEvent} size="sm">
+                                        <Plus className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Manual</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Crear Evento Manual</TooltipContent>
+                            </Tooltip>
+                        </div>
 
-                    {eventsCount > 0 && (
-                        <>
-                            <button
-                                className={styles.regenerateBtn}
-                                onClick={onRegenerateCosts}
-                                disabled={regeneratingCosts}
-                                title="Regenerar costos desde productos actualizados"
-                            >
-                                <RefreshCw size={18} className={regeneratingCosts ? styles.spinning : ''} />
-                            </button>
+                        {eventsCount > 0 && (
+                            <>
+                                <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
 
-                            <div className={styles.exportGroup}>
-                                <button
-                                    className={styles.exportBtn}
-                                    onClick={onGeneratePDF}
-                                    title="Descargar PDF"
-                                >
-                                    <Download size={18} />
-                                </button>
-                                <button
-                                    className={styles.shareBtn}
-                                    onClick={onSharePDF}
-                                    title="Compartir PDF"
-                                >
-                                    <Share2 size={18} />
-                                </button>
-                            </div>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={onRegenerateCosts}
+                                            disabled={regeneratingCosts}
+                                        >
+                                            <RefreshCw className={cn("h-4 w-4", regeneratingCosts && "animate-spin")} />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Regenerar costos desde productos actualizados</TooltipContent>
+                                </Tooltip>
 
-                            <div className={styles.viewToggle}>
-                                <button
-                                    className={`${styles.toggleBtn} ${viewMode === 'list' ? styles.active : ''}`}
-                                    onClick={() => onViewModeChange('list')}
-                                    title="Vista Lista"
-                                >
-                                    <List size={18} />
-                                </button>
-                                <button
-                                    className={`${styles.toggleBtn} ${viewMode === 'timeline' ? styles.active : ''}`}
-                                    onClick={() => onViewModeChange('timeline')}
-                                    title="Vista Timeline"
-                                >
-                                    <BarChart3 size={18} />
-                                </button>
-                                <button
-                                    className={`${styles.toggleBtn} ${viewMode === 'comparison' ? styles.active : ''}`}
-                                    onClick={() => onViewModeChange('comparison')}
-                                    title="Vista Comparar"
-                                >
-                                    <TrendingUp size={18} />
-                                </button>
-                                <button
-                                    className={`${styles.toggleBtn} ${viewMode === 'stats' ? styles.active : ''}`}
-                                    onClick={() => onViewModeChange('stats')}
-                                    title="Vista Estadísticas"
-                                >
-                                    <Calculator size={18} />
-                                </button>
-                            </div>
-                        </>
-                    )}
+                                <div className="flex items-center gap-0.5">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="icon" onClick={onGeneratePDF}>
+                                                <Download className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Descargar PDF</TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="icon" onClick={onSharePDF}>
+                                                <Share2 className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Compartir PDF</TooltipContent>
+                                    </Tooltip>
+                                </div>
+
+                                <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+
+                                {/* View Mode Toggle */}
+                                <div className="flex items-center gap-0.5 bg-muted rounded-md p-0.5">
+                                    {viewModes.map(({ mode, icon: Icon, label }) => (
+                                        <Tooltip key={mode}>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant={viewMode === mode ? 'secondary' : 'ghost'}
+                                                    size="icon"
+                                                    className={cn(
+                                                        "h-7 w-7",
+                                                        viewMode === mode && "bg-background shadow-sm"
+                                                    )}
+                                                    onClick={() => onViewModeChange(mode)}
+                                                >
+                                                    <Icon className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>{label}</TooltipContent>
+                                        </Tooltip>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </TooltipProvider>
                 </div>
             </div>
 
-            {/* Mensajes de éxito/error */}
+            {/* Success / Error Messages */}
             {successMessage && (
-                <div className={styles.successMessage}>
-                    <CheckCircle2 size={18} />
+                <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 animate-in fade-in slide-in-from-top-1">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
                     {successMessage}
                 </div>
             )}
             {error && (
-                <div className={styles.errorMessage}>
-                    <AlertCircle size={18} />
+                <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
                     {error}
                 </div>
             )}
 
-            {/* Filtros */}
+            {/* Filters Bar */}
             {eventsCount > 0 && (
-                <div className={styles.filtersBar}>
-                    <div className={styles.searchBox}>
-                        <Search size={18} />
-                        <input
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
                             type="text"
                             placeholder="Buscar eventos..."
                             value={filters.search}
                             onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-                            className={styles.searchInput}
+                            className="pl-9 h-9"
                         />
                     </div>
-                    <div className={styles.dateFilters}>
-                        <input
+                    <div className="flex items-center gap-2">
+                        <Input
                             type="date"
-                            placeholder="Desde"
                             value={filters.dateFrom}
                             onChange={(e) => onFiltersChange({ ...filters, dateFrom: e.target.value })}
-                            className={styles.dateInput}
+                            className="h-9 w-auto"
                         />
-                        <input
+                        <span className="text-muted-foreground text-xs">—</span>
+                        <Input
                             type="date"
-                            placeholder="Hasta"
                             value={filters.dateTo}
                             onChange={(e) => onFiltersChange({ ...filters, dateTo: e.target.value })}
-                            className={styles.dateInput}
+                            className="h-9 w-auto"
                         />
                         {(filters.search || filters.dateFrom || filters.dateTo) && (
-                            <button
-                                className={styles.clearFiltersBtn}
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => onFiltersChange({ search: '', dateFrom: '', dateTo: '' })}
+                                className="text-muted-foreground"
                             >
-                                <X size={16} />
+                                <X className="h-4 w-4" />
                                 Limpiar
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
             )}
-        </>
+        </div>
     )
 }

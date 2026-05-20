@@ -2,7 +2,22 @@ import { useEventCalculator } from '../../../../context/EventCalculatorContext'
 import { useAvailableProducts } from '../hooks/useAvailableProducts'
 import { IngredientRow } from './IngredientRow'
 import { Package } from 'lucide-react'
-import styles from './IngredientsTable.module.css'
+import { Button } from '@/components/ui/button'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import type { Event } from '../../../../types'
 
 interface IngredientsTableProps {
@@ -22,23 +37,23 @@ export const IngredientsTable = ({ event, onOpenMaterialSelector }: IngredientsT
     const filteredProducts = useAvailableProducts(availableProducts, usedProductIds)
 
     return (
-        <div className={styles.ingredientsList}>
+        <div className="space-y-3">
             {/* Tabla o mensaje vacío */}
             {event.ingredients.length === 0 ? (
-                <div className={styles.noIngredients}>
+                <div className="text-center py-6 text-sm text-muted-foreground border rounded-md bg-muted/20">
                     No hay ingredientes agregados
                 </div>
             ) : (
-                <table className={styles.ingredientsTable}>
-                    <thead>
-                        <tr>
-                            <th>Ingrediente</th>
-                            <th>Cant./Persona</th>
-                            <th>Total</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Ingrediente</TableHead>
+                            <TableHead>Cant./Persona</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead className="w-10"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {event.ingredients.map(ingredient => (
                             <IngredientRow
                                 key={ingredient.id}
@@ -47,14 +62,14 @@ export const IngredientsTable = ({ event, onOpenMaterialSelector }: IngredientsT
                                 guestCount={event.guestCount}
                             />
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             )}
 
             {/* Selector de ingredientes */}
-            <div className={styles.addIngredientSection}>
+            <div className="flex items-center gap-2">
                 <select
-                    className={styles.productSelect}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     onChange={(e) => {
                         if (e.target.value) {
                             handleAddIngredient(event.id, e.target.value)
@@ -72,14 +87,15 @@ export const IngredientsTable = ({ event, onOpenMaterialSelector }: IngredientsT
                     ))}
                 </select>
 
-                <button
-                    className={styles.addMaterialsBtn}
+                <Button
+                    variant="outline"
+                    size="sm"
                     onClick={onOpenMaterialSelector}
-                    title="Seleccionar múltiples materiales"
+                    className="shrink-0"
                 >
-                    <Package size={18} />
+                    <Package className="h-4 w-4" />
                     Materiales
-                </button>
+                </Button>
             </div>
         </div>
     )

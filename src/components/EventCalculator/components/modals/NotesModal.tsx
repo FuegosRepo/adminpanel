@@ -1,7 +1,17 @@
 import React from 'react'
-import { StickyNote, X, Save } from 'lucide-react'
+import { StickyNote, Save } from 'lucide-react'
 import { Event } from '../../types'
-import styles from './NotesModal.module.css'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 
 interface NotesModalProps {
     isOpen: boolean
@@ -20,29 +30,26 @@ export function NotesModal({
     onObservationsChange,
     onSave
 }: NotesModalProps) {
-    if (!isOpen || !event) return null
+    if (!event) return null
 
     return (
-        <div className={styles.modalOverlay} onClick={onClose}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.modalHeader}>
-                    <h3 className={styles.modalTitle}>
-                        <StickyNote size={24} />
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <StickyNote className="h-5 w-5 text-primary" />
                         Notas y Observaciones
-                    </h3>
-                    <button
-                        className={styles.closeButton}
-                        onClick={onClose}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
+                    </DialogTitle>
+                    <DialogDescription>
+                        Edita las notas y observaciones del evento &quot;{event.name}&quot;.
+                    </DialogDescription>
+                </DialogHeader>
 
-                <div className={styles.modalBody}>
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Notas Generales</label>
-                        <textarea
-                            className={styles.textarea}
+                <div className="space-y-4 py-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="notes">Notas Generales</Label>
+                        <Textarea
+                            id="notes"
                             value={event.notes}
                             onChange={(e) => onNotesChange(e.target.value)}
                             placeholder="Notas generales sobre el evento..."
@@ -50,10 +57,10 @@ export function NotesModal({
                         />
                     </div>
 
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Observaciones</label>
-                        <textarea
-                            className={styles.textarea}
+                    <div className="space-y-2">
+                        <Label htmlFor="observations">Observaciones</Label>
+                        <Textarea
+                            id="observations"
                             value={event.observations}
                             onChange={(e) => onObservationsChange(e.target.value)}
                             placeholder="Observaciones importantes..."
@@ -62,22 +69,16 @@ export function NotesModal({
                     </div>
                 </div>
 
-                <div className={styles.modalFooter}>
-                    <button
-                        className={styles.cancelButton}
-                        onClick={onClose}
-                    >
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose}>
                         Cancelar
-                    </button>
-                    <button
-                        className={styles.confirmButton}
-                        onClick={onSave}
-                    >
-                        <Save size={18} />
+                    </Button>
+                    <Button onClick={onSave}>
+                        <Save className="h-4 w-4" />
                         Guardar Notas
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }

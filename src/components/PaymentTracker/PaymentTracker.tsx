@@ -32,6 +32,10 @@ export default function PaymentTracker({ orders, onUpdatePayment }: PaymentTrack
   })
   const [isMounted, setIsMounted] = useState(false)
 
+  const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false)
+  const [linkModalOrder, setLinkModalOrder] = useState<CateringOrder | null>(null)
+  const [linkAmount, setLinkAmount] = useState<number>(0)
+
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -68,6 +72,46 @@ export default function PaymentTracker({ orders, onUpdatePayment }: PaymentTrack
       order.estimatedPrice && order.status === 'approved'
     )
   }, [orders])
+
+  const openLinkModal = (order: CateringOrder) => {
+    setLinkModalOrder(order)
+    setLinkAmount(order.payment?.pendingAmount || order.estimatedPrice || 0)
+  }
+
+  const handleGenerateLink = async () => {
+    if (!linkModalOrder) return
+    if (linkAmount <= 0) {
+      alert('El monto debe ser mayor a 0.')
+      return
+    }
+    
+    setIsGeneratingLink(true)
+    try {
+      const response = await fetch('/api/payments/create-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: linkModalOrder.id,
+          amount: linkAmount,
+          customerEmail: linkModalOrder.contact.email,
+          customerName: linkModalOrder.contact.name
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al generar el link')
+      }
+      
+      alert(`Link enviado con éxito al correo: ${linkModalOrder.contact.email}\nEl link es: ${data.paymentUrl}`)
+      setLinkModalOrder(null)
+    } catch (error: any) {
+      alert(`Error: ${error.message}`)
+    } finally {
+      setIsGeneratingLink(false)
+    }
+  }
 
   const handleAddPayment = (order: CateringOrder) => {
     setSelectedOrder(order)
@@ -228,8 +272,15 @@ export default function PaymentTracker({ orders, onUpdatePayment }: PaymentTrack
                 <div className={styles.actions}>
                   <button
                     className={styles.actionBtn}
+                    onClick={() => openLinkModal(order)}
+                    title="Enviar link de pago Systempay"
+                  >
+                    <CreditCard size={16} />
+                  </button>
+                  <button
+                    className={styles.actionBtn}
                     onClick={() => handleAddPayment(order)}
-                    title="Registrar pago"
+                    title="Registrar pago manual"
                   >
                     <Plus size={16} />
                   </button>
@@ -246,7 +297,64 @@ export default function PaymentTracker({ orders, onUpdatePayment }: PaymentTrack
         )}
       </div>
 
-      {/* Modal para agregar pago */}
+      {/* Modal para generar link de pago */}
+      {linkModalOrder && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Enviar Link de Pago</h3>
+              <button
+                className={styles.closeBtn}
+                onClick={() => setLinkModalOrder(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Enviar a:</label>
+              <div style={{ padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', color: '#166534', fontWeight: 500 }}>
+                {linkModalOrder.contact.name} ({linkModalOrder.contact.email})
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Monto a Cobrar (€) *</label>
+              <input
+                type="number"
+                className={styles.input}
+                value={linkAmount}
+                onChange={(e) => setLinkAmount(Number(e.target.value))}
+                min="1"
+                step="0.01"
+                required
+              />
+              <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+                Este monto puede ser modificado si deseas cobrar un anticipo o pago parcial.
+              </span>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.cancelBtn}
+                onClick={() => setLinkModalOrder(null)}
+                disabled={isGeneratingLink}
+              >
+                Cancelar
+              </button>
+              <button
+                className={styles.saveBtn}
+                onClick={handleGenerateLink}
+                disabled={!linkAmount || linkAmount <= 0 || isGeneratingLink}
+              >
+                {isGeneratingLink ? 'Enviando...' : 'Generar y Enviar Correo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para agregar pago manual */}
       {isModalOpen && selectedOrder && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>

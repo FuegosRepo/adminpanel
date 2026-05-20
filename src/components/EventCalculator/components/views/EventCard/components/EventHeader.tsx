@@ -1,5 +1,15 @@
 import { ChevronDown, ChevronUp, History, Copy, Trash2, Users } from 'lucide-react'
-import styles from './EventHeader.module.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { CardHeader } from '@/components/ui/card'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
 import type { Event } from '../../../../types'
 
 interface EventHeaderProps {
@@ -31,99 +41,107 @@ export const EventHeader = ({
     onRemove
 }: EventHeaderProps) => {
     return (
-        <div className={styles.eventHeader}>
-            {/* Sección de título */}
-            <div className={styles.eventTitleSection}>
-                {/* Checkbox de selección */}
-                <div className={styles.checkboxWrapper}>
-                    <input
-                        type="checkbox"
+        <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-3">
+                {/* Left: checkbox + expand + title */}
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                    <Checkbox
                         checked={isSelected}
-                        onChange={(e) => onSelect(e.target.checked)}
-                        className={styles.eventCheckbox}
+                        onCheckedChange={(checked) => onSelect(checked as boolean)}
+                        className="mt-1"
                     />
-                </div>
 
-                {/* Botón expandir/colapsar */}
-                <button
-                    className={styles.expandBtn}
-                    onClick={onToggleExpand}
-                >
-                    {event.expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                </button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={onToggleExpand}
+                    >
+                        {event.expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
 
-                {/* Título y metadata */}
-                <div>
-                    <h3 className={styles.eventName}>
-                        {event.name}
-                        {event.isSaved === false && (
-                            <span className={styles.unsavedBadge}>* Sin guardar</span>
-                        )}
-                        {isSaving && (
-                            <span className={styles.savingBadge}>Guardando...</span>
-                        )}
-                    </h3>
-                    <div className={styles.eventMeta}>
-                        {event.eventDate && (
-                            <span className={styles.eventDate}>
-                                📅 {new Date(event.eventDate).toLocaleDateString()}
-                            </span>
-                        )}
-                        <span className={styles.ingredientCount}>
-                            🍽️ {event.ingredients.length} ingredientes
-                        </span>
-                        {event.dbId && (
-                            <span className={styles.versionInfo}>
-                                v{event.versionNumber || 1}
-                            </span>
-                        )}
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <h3
+                                className="font-semibold text-sm truncate cursor-pointer hover:text-primary transition-colors"
+                                onClick={onToggleExpand}
+                            >
+                                {event.name}
+                            </h3>
+                            {event.isSaved === false && (
+                                <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 bg-amber-50">
+                                    Sin guardar
+                                </Badge>
+                            )}
+                            {isSaving && (
+                                <Badge variant="secondary" className="text-xs animate-pulse">
+                                    Guardando...
+                                </Badge>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                            {event.eventDate && (
+                                <span>📅 {new Date(event.eventDate).toLocaleDateString()}</span>
+                            )}
+                            <span>🍽️ {event.ingredients.length} ingredientes</span>
+                            {event.dbId && (
+                                <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+                                    v{event.versionNumber || 1}
+                                </Badge>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Sección de acciones */}
-            <div className={styles.eventActions}>
-                {/* Input de invitados */}
-                <div className={styles.guestsInput}>
-                    <Users size={18} />
-                    <input
-                        type="number"
-                        value={event.guestCount}
-                        onChange={(e) => onUpdateGuests(parseInt(e.target.value) || 0)}
-                        min="1"
-                    />
-                    <span>invitados</span>
+                {/* Right: guests + actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                    {/* Guest count input */}
+                    <div className="flex items-center gap-1.5 text-sm">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="number"
+                            value={event.guestCount}
+                            onChange={(e) => onUpdateGuests(parseInt(e.target.value) || 0)}
+                            min={1}
+                            className="w-16 h-7 text-xs text-center"
+                        />
+                    </div>
+
+                    {/* Action buttons */}
+                    <TooltipProvider delayDuration={200}>
+                        <div className="flex items-center gap-0.5">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onDuplicate}>
+                                        <Copy className="h-3.5 w-3.5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Duplicar evento</TooltipContent>
+                            </Tooltip>
+
+                            {event.dbId && (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onShowHistory}>
+                                            <History className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Ver historial de versiones</TooltipContent>
+                                </Tooltip>
+                            )}
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={onRemove}>
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Eliminar evento</TooltipContent>
+                            </Tooltip>
+                        </div>
+                    </TooltipProvider>
                 </div>
-
-                {/* Botones de acción */}
-                <div className={styles.actionButtons}>
-                    <button
-                        className={styles.iconActionBtn}
-                        onClick={onDuplicate}
-                        title="Duplicar evento"
-                    >
-                        <Copy size={18} />
-                    </button>
-
-                    {event.dbId && (
-                        <button
-                            className={styles.iconActionBtn}
-                            onClick={onShowHistory}
-                            title="Ver historial de versiones"
-                        >
-                            <History size={18} />
-                        </button>
-                    )}
-
-                    <button
-                        className={styles.deleteBtn}
-                        onClick={onRemove}
-                        title="Eliminar evento"
-                    >
-                        <Trash2 size={18} />
-                    </button>
-                </div>
             </div>
-        </div>
+        </CardHeader>
     )
 }

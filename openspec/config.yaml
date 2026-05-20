@@ -1,0 +1,59 @@
+strict_tdd: true
+context: |
+  fuegos-admin-panel is a Node.js/TypeScript, React, Next.js project.
+  Detected markers: package.json, tsconfig.json, npm package manager.
+  Package managers: npm.
+  Additional evidence: Test-like files detected (2); examples: scripts\parse-csv-test.js, src\utils\logger.test.ts.
+  Primary test command: npm run vitest.
+  Unit tests: Vitest (npm run vitest).
+  Integration tests: Testing Library (npm run vitest).
+  E2E tests: none.
+rules:
+  proposal:
+    require_problem_statement: true
+  spec:
+    require_acceptance_criteria: true
+  design:
+    require_tradeoffs: true
+  tasks:
+    protect_review_workload: true
+  apply:
+    test_command: "npm run vitest"
+  verify:
+    test_command: "npm run vitest"
+testing:
+  detected: "2026-05-20"
+  runner:
+    command: "npm run vitest"
+    framework: "Vitest"
+  layers:
+    unit: "Vitest"
+    integration: "Testing Library"
+    e2e: ""
+  commands:
+    unit:
+      - scope: "."
+        command: "npm run vitest"
+        framework: "Vitest"
+    integration:
+      - scope: "."
+        command: "npm run vitest"
+        framework: "Testing Library"
+    e2e:
+      []
+  coverage:
+    command: ""
+    commands:
+      []
+quality:
+  lint: "npm run lint"
+  lint_commands:
+    - scope: "."
+      command: "npm run lint"
+      framework: "linter"
+  typecheck: ""
+  typecheck_commands:
+    []
+  format: ""
+  format_commands:
+    []

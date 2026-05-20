@@ -40,6 +40,24 @@ export default function BudgetsFilterBar({ filters, setFilters, setPage, budgets
           </Button>
         ))}
 
+        <div className="h-6 w-px bg-border mx-1"></div>
+
+        <Button
+          variant={filters.year === '2027' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => handleFilterChange({ ...filters, year: filters.year === '2027' ? undefined : '2027' })}
+        >
+          2027
+        </Button>
+
+        <Button
+          variant={filters.eventType === 'mariage' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => handleFilterChange({ ...filters, eventType: filters.eventType === 'mariage' ? undefined : 'mariage' })}
+        >
+          Casamientos
+        </Button>
+
         <div className="ml-auto min-w-[200px]">
           <Input
             type="text"

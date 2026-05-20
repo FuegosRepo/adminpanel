@@ -1,0 +1,4 @@
+{
+  "signature": "src/components/BudgetEditor/hooks/useBudgetActions.ts::Unresolved from this turn — src/components/BudgetEditor/hooks/useBudgetActions.ts:\n🔴 STOP — 1 issue(s) must be fixed:\n  L169: Unused '@ts-expect-error' directive.",
+  "sessionId": "lens-mpe66v3k-2efcc720"
+}

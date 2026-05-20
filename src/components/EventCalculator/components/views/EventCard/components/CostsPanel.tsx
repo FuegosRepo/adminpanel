@@ -1,6 +1,14 @@
 import { memo, useMemo } from 'react'
 import { useIngredientDisplay } from '../hooks/useIngredientDisplay'
-import styles from './CostsPanel.module.css'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import type { EventCost } from '../../../../utils/calculations'
 import type { Product } from '@/types'
 
@@ -14,50 +22,54 @@ interface CostsPanelProps {
  */
 export const CostsPanel = ({ costs }: CostsPanelProps) => {
     return (
-        <div className={styles.costsPanel}>
+        <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
             {/* Resumen de costos */}
-            <div className={styles.costsSummary}>
-                <div className={styles.costItem}>
-                    <span className={styles.costLabel}>Costo Total:</span>
-                    <span className={styles.costValue}>€{costs.totalCost.toFixed(2)}</span>
+            <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-md bg-background border p-3">
+                    <span className="text-xs text-muted-foreground block mb-0.5">Costo Total</span>
+                    <span className="text-lg font-bold text-primary">€{costs.totalCost.toFixed(2)}</span>
                 </div>
-                <div className={styles.costItem}>
-                    <span className={styles.costLabel}>Por Invitado:</span>
-                    <span className={styles.costValue}>€{costs.avgCostPerGuest.toFixed(2)}</span>
+                <div className="rounded-md bg-background border p-3">
+                    <span className="text-xs text-muted-foreground block mb-0.5">Por Invitado</span>
+                    <span className="text-lg font-bold">€{costs.avgCostPerGuest.toFixed(2)}</span>
                 </div>
             </div>
 
             {/* Desglose por categoría */}
-            <div className={styles.costsBreakdown}>
-                <h5 className={styles.breakdownTitle}>Desglose por Categoría:</h5>
-                <div className={styles.categoryGrid}>
+            <div>
+                <h5 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                    Desglose por Categoría
+                </h5>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {Object.entries(costs.costByCategory).map(([cat, amount]) => (
-                        <div key={cat} className={styles.categoryCard}>
-                            <span className={styles.catName}>{cat}</span>
-                            <span className={styles.catAmount}>€{amount.toFixed(2)}</span>
+                        <div key={cat} className="flex justify-between items-center rounded-md bg-background border px-3 py-2 text-sm">
+                            <span className="text-muted-foreground capitalize truncate">{cat}</span>
+                            <span className="font-medium ml-2">€{amount.toFixed(2)}</span>
                         </div>
                     ))}
                 </div>
             </div>
 
             {/* Desglose por ingrediente */}
-            <div className={styles.costsBreakdown}>
-                <h5 className={styles.breakdownTitle}>Desglose por Ingrediente:</h5>
-                <table className={styles.costsTable}>
-                    <thead>
-                        <tr>
-                            <th>Ingrediente</th>
-                            <th>Cantidad Total</th>
-                            <th>Precio Unit.</th>
-                            <th>Costo Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div>
+                <h5 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                    Desglose por Ingrediente
+                </h5>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Ingrediente</TableHead>
+                            <TableHead>Cantidad Total</TableHead>
+                            <TableHead>Precio Unit.</TableHead>
+                            <TableHead className="text-right">Costo Total</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {costs.ingredientCosts.map((item, idx) => (
                             <CostsTableRow key={idx} item={item} />
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
         </div>
     )
@@ -94,12 +106,12 @@ const CostsTableRow = memo(({ item }: CostsTableRowProps) => {
     )
 
     return (
-        <tr>
-            <td className={styles.ingredientName}>{item.product.name}</td>
-            <td>{formattedQuantity}</td>
-            <td>{formattedPrice}</td>
-            <td className={styles.costAmount}>{formattedCost}</td>
-        </tr>
+        <TableRow>
+            <TableCell className="font-medium">{item.product.name}</TableCell>
+            <TableCell>{formattedQuantity}</TableCell>
+            <TableCell>{formattedPrice}</TableCell>
+            <TableCell className="text-right font-semibold">{formattedCost}</TableCell>
+        </TableRow>
     )
 })
 

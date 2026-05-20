@@ -1,5 +1,5 @@
 import { Calculator, StickyNote, FileText, Wrench } from 'lucide-react'
-import styles from './ToolsBar.module.css'
+import { Button } from '@/components/ui/button'
 import type { Event } from '../../../../types'
 
 interface ToolsBarProps {
@@ -24,59 +24,67 @@ export const ToolsBar = ({
     onRepair
 }: ToolsBarProps) => {
     return (
-        <div className={styles.toolsBar}>
+        <div className="flex items-center gap-1.5 flex-wrap">
             {/* Botón reparar (si tiene orderId y no tiene advertencia) */}
             {event.orderId && !event.notes?.includes('Items no encontrados') && (
-                <button
-                    className={styles.actionBtn}
+                <Button
+                    variant="outline"
+                    size="sm"
                     onClick={(e) => {
                         e.stopPropagation()
                         onRepair()
                     }}
                     disabled={isSaving}
+                    className="text-xs h-7"
                 >
-                    <Wrench size={16} />
+                    <Wrench className="h-3.5 w-3.5" />
                     {isSaving ? 'Reparando...' : 'Reparar Evento'}
-                </button>
+                </Button>
             )}
 
             {/* Botón analizar costos */}
             {event.ingredients.length > 0 && (
-                <button
-                    className={styles.actionBtn}
+                <Button
+                    variant={event.showCosts ? "secondary" : "outline"}
+                    size="sm"
                     onClick={(e) => {
                         e.stopPropagation()
                         onToggleCosts()
                     }}
+                    className="text-xs h-7"
                 >
-                    <Calculator size={16} />
+                    <Calculator className="h-3.5 w-3.5" />
                     {event.showCosts ? 'Ocultar' : 'Analizar'} Costos
-                </button>
+                </Button>
             )}
 
             {/* Botón ver notas */}
-            <button
-                className={styles.actionBtn}
+            <Button
+                variant={event.showNotes ? "secondary" : "outline"}
+                size="sm"
                 onClick={(e) => {
                     e.stopPropagation()
                     onToggleNotes()
                 }}
+                className="text-xs h-7"
             >
-                <StickyNote size={16} />
+                <StickyNote className="h-3.5 w-3.5" />
                 {event.showNotes ? 'Ocultar' : 'Ver'} Notas
-            </button>
+            </Button>
 
             {/* Botón editar notas */}
-            <button
-                className={styles.actionBtn}
+            <Button
+                variant="outline"
+                size="sm"
                 onClick={(e) => {
                     e.stopPropagation()
                     onShowNotesModal()
                 }}
+                className="text-xs h-7"
             >
-                <FileText size={16} />
+                <FileText className="h-3.5 w-3.5" />
                 Editar Notas
-            </button>
+            </Button>
         </div>
     )
 }

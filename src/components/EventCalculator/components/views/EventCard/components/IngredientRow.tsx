@@ -4,7 +4,16 @@ import { useIngredientRowData } from '../hooks/useIngredientRowData'
 import { useIngredientDisplay } from '../hooks/useIngredientDisplay'
 import { parsePortionPerPerson, convertToDisplayUnitForSummary } from '../../../../utils/unitConversions'
 import { X } from 'lucide-react'
-import styles from './IngredientRow.module.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { TableCell, TableRow } from '@/components/ui/table'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
 import type { EventIngredient } from '../../../../types'
 
 interface IngredientRowProps {
@@ -58,96 +67,96 @@ export const IngredientRow = memo(({
     const portionFromProduct = ingredient.product.portion_per_person
 
     return (
-        <tr>
+        <TableRow>
             {/* Nombre del ingrediente */}
-            <td className={styles.ingredientName}>
-                <div>
-                    <strong>{ingredient.product.name}</strong>
+            <TableCell>
+                <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                        <strong className="text-sm">{ingredient.product.name}</strong>
+                        {ingredient.isFixedQuantity && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+                                            🔒 Fijo
+                                        </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Cantidad fija por evento (no se multiplica por invitados)</TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </div>
 
-                    {/* Badge de cantidad fija */}
-                    {ingredient.isFixedQuantity && (
-                        <span
-                            className={styles.fixedQuantityBadge}
-                            title="Cantidad fija por evento (no se multiplica por invitados)"
-                        >
-                            🔒 Fijo
-                        </span>
-                    )}
-
-                    {/* Porción estándar y aclaraciones */}
                     {!ingredient.isFixedQuantity && portionFromProduct && (
-                        <div className={styles.portionInfo}>
-                            <span className={styles.portionLabel}>
-                                Porción estándar: {portionFromProduct}
-                            </span>
+                        <div className="text-[11px] text-muted-foreground space-y-0.5">
+                            <span>Porción estándar: {portionFromProduct}</span>
                             {ingredient.product.clarifications && (
-                                <span
-                                    className={styles.clarificationHint}
-                                    title={ingredient.product.clarifications}
-                                >
+                                <span className="block text-[10px] opacity-70" title={ingredient.product.clarifications}>
                                     💡 {ingredient.product.clarifications}
                                 </span>
                             )}
                         </div>
                     )}
 
-                    {/* Notas personalizadas (solo si son diferentes de clarifications) */}
                     {ingredient.notes &&
                         ingredient.notes !== ingredient.product.clarifications && (
-                            <span className={styles.ingredientNote} title={ingredient.notes}>
+                            <span className="text-[11px] text-muted-foreground block" title={ingredient.notes}>
                                 📝 {ingredient.notes}
                             </span>
                         )}
                 </div>
-            </td>
+            </TableCell>
 
             {/* Input de cantidad por persona */}
-            <td>
-                <div className={styles.quantityContainer}>
-                    <input
+            <TableCell>
+                <div className="flex items-center gap-1.5">
+                    <Input
                         type="number"
-                        min="0"
-                        step={display.displayUnit === 'gr' ? '1' : '0.1'}
+                        min={0}
+                        step={display.displayUnit === 'gr' ? 1 : 0.1}
                         value={display.inputValue}
                         onChange={handleQuantityChange}
-                        className={styles.quantityInput}
+                        className="w-20 h-7 text-xs text-center"
                         title={
                             portionFromProduct
                                 ? `Valor estándar: ${portionFromProduct}`
                                 : 'Cantidad personalizada'
                         }
                     />
-                    <span className={styles.unit}>{display.displayUnit}</span>
+                    <span className="text-xs text-muted-foreground">{display.displayUnit}</span>
 
-                    {/* Botón para usar porción estándar */}
                     {portionFromProduct && isUsingDefault && (
-                        <button
-                            className={styles.useDefaultBtn}
+                        <Button
+                            variant="link"
+                            size="sm"
                             onClick={handleUseDefault}
+                            className="text-[10px] h-auto p-0 text-primary"
                             title={`Usar valor estándar: ${portionFromProduct}`}
                         >
                             Usar estándar
-                        </button>
+                        </Button>
                     )}
                 </div>
-            </td>
+            </TableCell>
 
             {/* Total calculado */}
-            <td className={styles.total}>
+            <TableCell className="font-medium text-sm">
                 {totalDisplay.value.toFixed(2)} {totalDisplay.unit}
-            </td>
+            </TableCell>
 
             {/* Botón eliminar */}
-            <td>
-                <button
-                    className={styles.removeBtn}
+            <TableCell>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
                     onClick={handleRemove}
                     title="Eliminar"
                 >
-                    <X size={16} />
-                </button>
-            </td>
-        </tr>
+                    <X className="h-3.5 w-3.5" />
+                </Button>
+            </TableCell>
+        </TableRow>
     )
 })
 
