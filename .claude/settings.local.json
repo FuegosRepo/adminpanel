@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(head:*)",
+      "Bash(claude mcp:*)",
+      "Bash(wc:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(npx next:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 20 npm run:*)",
+      "Bash(timeout 15 npm run:*)",
+      "Bash(npx vitest:*)",
+      "WebSearch",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(rm:*)",
+      "Bash(node:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

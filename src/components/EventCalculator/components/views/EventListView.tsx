@@ -1,4 +1,3 @@
-import styles from '../../EventCalculator.module.css'
 import { EventCard } from './EventCard'
 import { EventSummary } from '../EventSummary'
 import { useEventCalculator } from '../../context/EventCalculatorContext'
@@ -12,9 +11,9 @@ export const EventListView = () => {
     } = useEventCalculator()
 
     return (
-        <div className={styles.layoutWrapper}>
+        <div className="space-y-4">
             {filteredEvents.length === 0 ? (
-                <div className={styles.emptyState}>
+                <div className="text-center py-12 text-muted-foreground">
                     <p>No se encontraron eventos</p>
                 </div>
             ) : (

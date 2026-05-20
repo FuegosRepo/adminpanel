@@ -1,0 +1,57 @@
+=====================================================
+PLANTILLA DE NOMBRES PARA PDF - FUEGOS D'AZUR
+=====================================================
+Completar la columna "NOMBRE EN PDF" con el texto
+exacto que desea que aparezca en el presupuesto.
+Si no quiere cambiar alguno, dejarlo como está.
+=====================================================
+
+
+== ENTRÉES ==
+
+Nombre en DB                        → Nombre en PDF
+-----------------------------------------------------------------------
+Brochettes de jambon ibérique       → Brochettes de jambon ibérique, tomates cerises, melon, mozzarella di bufala et basilic frais
+Choripan                            → Choripan - Chorizo argentin grillé, chimichurri maison et pain artisanal [classique]
+Empanadas                           → Empanadas maison (bœuf, poulet ou vegan)
+Miniburger maison au brasero        → Miniburger maison au brasero, viande premium, fromage et condiments artisanaux
+Secreto de porc Ibérique            → Secreto de porc Ibérique, pièce noble et fondante
+
+
+== VIANDES PREMIUM (Sélection d'exception) ==
+
+Nombre en DB                                    → Nombre en PDF
+-----------------------------------------------------------------------
+Entrecôte / Ojo de bife / Ribeye (ARG)          → Entrecôte / Ojo de bife / Ribeye [Argentine]
+Picanha                                         → Picanha [Argentine]
+Côte de bœuf ou Tomahawk                        → Côte de bœuf ou Tomahawk [France ou USA]
+Faux filet / Bife de chorizo / Sirloin steak    → Faux filet / Bife de chorizo / Sirloin steak [Argentine]
+Saumon                                          → Saumon [Norvège]
+
+
+== VIANDES CLASSIQUES (Morceaux traditionnels) ==
+
+Nombre en DB                                    → Nombre en PDF
+-----------------------------------------------------------------------
+Vacio / Bavette d'aloyau                        → Vacio / Bavette d'aloyau [Irlande]
+Entrecôte / Ojo de bife / Ribeye (FRA)          → Entrecôte / Ojo de bife / Ribeye [France]
+Magret de Canard                                → Magret de Canard [France]
+Chorizo Bombón                                  → (COMPLETAR)
+
+
+== DESSERTS ==
+
+Nombre en DB                                            → Nombre en PDF
+-----------------------------------------------------------------------
+Fruits grillés                                          → (COMPLETAR)
+Panqueques avec dulce de leche fondu au brasero         → (COMPLETAR)
+Pièce montée ou gâteau d'anniversaire prévu             → (COMPLETAR)
+
+
+== ACCOMPAGNEMENTS ET SAUCES (texto fijo, no viene de la DB) ==
+
+1 → Pommes de terre "Rusticas" en persillade.
+2 → Salade verte, fruits de saison, fromage feta, grains et vinaigrette.
+3 → Légumes grillés.
+4 → Pain (divers).
+5 → Sauce traditionnelle Chimichurri.

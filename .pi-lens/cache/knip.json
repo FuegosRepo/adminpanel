@@ -1,0 +1,2240 @@
+{
+  "success": true,
+  "issues": [
+    {
+      "type": "file",
+      "name": "verify_filename.js",
+      "file": "verify_filename.js"
+    },
+    {
+      "type": "file",
+      "name": "verify_filename.ts",
+      "file": "verify_filename.ts"
+    },
+    {
+      "type": "file",
+      "name": "scripts/check_product.js",
+      "file": "scripts/check_product.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/create_panqueques.js",
+      "file": "scripts/create_panqueques.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/generate-preview.ts",
+      "file": "scripts/generate-preview.ts"
+    },
+    {
+      "type": "file",
+      "name": "scripts/import-external-budgets.js",
+      "file": "scripts/import-external-budgets.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/insert-external-budgets.js",
+      "file": "scripts/insert-external-budgets.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/measure-performance.js",
+      "file": "scripts/measure-performance.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/parse-csv-test.js",
+      "file": "scripts/parse-csv-test.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/split-sql-batches.js",
+      "file": "scripts/split-sql-batches.js"
+    },
+    {
+      "type": "file",
+      "name": "src/app/page.module.css",
+      "file": "src/app/page.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/hooks/useCalendarOrders.ts",
+      "file": "src/hooks/useCalendarOrders.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/hooks/useOrderFilters.ts",
+      "file": "src/hooks/useOrderFilters.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetsList.css",
+      "file": "src/_backups_pre_shadcn/BudgetsList.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetsList.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetsList.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetsManager.css",
+      "file": "src/_backups_pre_shadcn/BudgetsManager.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetsManager.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetsManager.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/FilterBar.module.css",
+      "file": "src/_backups_pre_shadcn/FilterBar.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/FilterBar.tsx",
+      "file": "src/_backups_pre_shadcn/FilterBar.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/globals.css",
+      "file": "src/_backups_pre_shadcn/globals.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/layout.tsx",
+      "file": "src/_backups_pre_shadcn/layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/OrderCard.module.css",
+      "file": "src/_backups_pre_shadcn/OrderCard.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/OrderCard.tsx",
+      "file": "src/_backups_pre_shadcn/OrderCard.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/orders.module.css",
+      "file": "src/_backups_pre_shadcn/orders.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/orders_page.tsx",
+      "file": "src/_backups_pre_shadcn/orders_page.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/postcss.config.js",
+      "file": "src/_backups_pre_shadcn/postcss.config.js"
+    },
+    {
+      "type": "file",
+      "name": "src/app/(admin)/layout.module.css",
+      "file": "src/app/(admin)/layout.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/BudgetsList/BudgetsList.css",
+      "file": "src/components/BudgetsList/BudgetsList.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/BudgetsManager/BudgetsManager.css",
+      "file": "src/components/BudgetsManager/BudgetsManager.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/EventCalculator/index.ts",
+      "file": "src/components/EventCalculator/index.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/components/FilterBar/FilterBar.module.css",
+      "file": "src/components/FilterBar/FilterBar.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/Header/Header.module.css",
+      "file": "src/components/Header/Header.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/OrderCard/OrderCard.module.css",
+      "file": "src/components/OrderCard/OrderCard.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/OrderDetails/OrderDetails.module.css",
+      "file": "src/components/OrderDetails/OrderDetails.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/Sidebar/Sidebar.module.css",
+      "file": "src/components/Sidebar/Sidebar.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/BudgetEditor.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/BudgetEditor.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/index.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/index.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/types.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/types.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/app/(admin)/orders/orders.module.css",
+      "file": "src/app/(admin)/orders/orders.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/BudgetEditor/components/DeliveryRepriseSection.tsx",
+      "file": "src/components/BudgetEditor/components/DeliveryRepriseSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/components/EventCalculator/hooks/useEventContext.ts",
+      "file": "src/components/EventCalculator/hooks/useEventContext.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetCalculations.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetCalculations.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetData.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetData.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetModals.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetModals.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/hooks/useMaterialSelector.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/hooks/useMaterialSelector.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/AdminNotesSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/AdminNotesSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/BoissonsSoftSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/BoissonsSoftSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/BoissonsSoftSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/BoissonsSoftSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/BudgetActions.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/BudgetActions.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/BudgetActions.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/BudgetActions.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ClientInfoSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ClientInfoSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ClientInfoSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ClientInfoSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/DeliveryRepriseSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/DeliveryRepriseSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/DeliveryRepriseSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/DeliveryRepriseSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/DeplacementSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/DeplacementSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/DeplacementSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/DeplacementSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ExtrasSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ExtrasSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/InternalNoteSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/InternalNoteSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/InternalNoteSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/InternalNoteSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSelectorModal.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSelectorModal.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSelectorModal.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSelectorModal.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSelectorModal.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSelectorModal.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSelectorModal.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSelectorModal.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/PDFPreviewModal.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/PDFPreviewModal.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/PDFPreviewModal.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/PDFPreviewModal.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ServiceSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ServiceSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ServiceSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ServiceSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/TotalsSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/TotalsSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/TotalsSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/TotalsSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/utils/budgetCalculations.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/utils/budgetCalculations.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/utils/formatItemName.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/utils/formatItemName.ts"
+    },
+    {
+      "type": "dependency",
+      "name": "@radix-ui/react-dropdown-menu",
+      "file": "package.json",
+      "line": 15
+    },
+    {
+      "type": "devDependency",
+      "name": "@testing-library/dom",
+      "file": "package.json",
+      "line": 48
+    },
+    {
+      "type": "devDependency",
+      "name": "@testing-library/react",
+      "file": "package.json",
+      "line": 49
+    },
+    {
+      "type": "devDependency",
+      "name": "@types/papaparse",
+      "file": "package.json",
+      "line": 51
+    },
+    {
+      "type": "devDependency",
+      "name": "papaparse",
+      "file": "package.json",
+      "line": 59
+    },
+    {
+      "type": "export",
+      "name": "generateBudgetPDFFromHTML",
+      "file": "src/lib/budgetPDFService.ts",
+      "line": 6
+    },
+    {
+      "type": "unlisted",
+      "name": "puppeteer",
+      "file": "src/lib/budgetPDFService.ts",
+      "line": 45
+    },
+    {
+      "type": "export",
+      "name": "apiLogger",
+      "file": "src/utils/logger.ts",
+      "line": 146
+    },
+    {
+      "type": "export",
+      "name": "orderLogger",
+      "file": "src/utils/logger.ts",
+      "line": 148
+    },
+    {
+      "type": "export",
+      "name": "authLogger",
+      "file": "src/utils/logger.ts",
+      "line": 149
+    },
+    {
+      "type": "export",
+      "name": "SidebarFooter",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 749
+    },
+    {
+      "type": "export",
+      "name": "SidebarGroupAction",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 751
+    },
+    {
+      "type": "export",
+      "name": "SidebarGroupLabel",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 753
+    },
+    {
+      "type": "export",
+      "name": "SidebarInput",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 755
+    },
+    {
+      "type": "export",
+      "name": "SidebarInset",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 756
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuAction",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 758
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuBadge",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 759
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuSkeleton",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 762
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuSub",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 763
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuSubButton",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 764
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuSubItem",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 765
+    },
+    {
+      "type": "export",
+      "name": "SidebarRail",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 767
+    },
+    {
+      "type": "export",
+      "name": "SidebarSeparator",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 768
+    },
+    {
+      "type": "export",
+      "name": "useSidebar",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 770
+    },
+    {
+      "type": "export",
+      "name": "mockOrders",
+      "file": "src/data/mockData.ts",
+      "line": 3
+    },
+    {
+      "type": "export",
+      "name": "sampleManualEvents",
+      "file": "src/data/mockData.ts",
+      "line": 212
+    },
+    {
+      "type": "export",
+      "name": "badgeVariants",
+      "file": "src/components/ui/badge.tsx",
+      "line": 36
+    },
+    {
+      "type": "export",
+      "name": "BadgeProps",
+      "file": "src/components/ui/badge.tsx",
+      "line": 26
+    },
+    {
+      "type": "export",
+      "name": "buttonVariants",
+      "file": "src/components/ui/button.tsx",
+      "line": 57
+    },
+    {
+      "type": "export",
+      "name": "ButtonProps",
+      "file": "src/components/ui/button.tsx",
+      "line": 37
+    },
+    {
+      "type": "export",
+      "name": "TableFooter",
+      "file": "src/components/ui/table.tsx",
+      "line": 114
+    },
+    {
+      "type": "export",
+      "name": "TableCaption",
+      "file": "src/components/ui/table.tsx",
+      "line": 118
+    },
+    {
+      "type": "export",
+      "name": "fetchOrdersWithEvents",
+      "file": "src/services/ordersService.ts",
+      "line": 210
+    },
+    {
+      "type": "export",
+      "name": "CardFooter",
+      "file": "src/components/ui/card.tsx",
+      "line": 69
+    },
+    {
+      "type": "export",
+      "name": "CardDescription",
+      "file": "src/components/ui/card.tsx",
+      "line": 69
+    },
+    {
+      "type": "export",
+      "name": "SheetPortal",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 131
+    },
+    {
+      "type": "export",
+      "name": "SheetOverlay",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 132
+    },
+    {
+      "type": "export",
+      "name": "SheetTrigger",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 133
+    },
+    {
+      "type": "export",
+      "name": "SheetClose",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 134
+    },
+    {
+      "type": "export",
+      "name": "SheetFooter",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 137
+    },
+    {
+      "type": "export",
+      "name": "MEAT_MAPPINGS",
+      "file": "src/lib/meatMapping.ts",
+      "line": 21
+    },
+    {
+      "type": "export",
+      "name": "getMeatDisplayName",
+      "file": "src/lib/meatMapping.ts",
+      "line": 90
+    },
+    {
+      "type": "export",
+      "name": "MeatCategory",
+      "file": "src/lib/meatMapping.ts",
+      "line": 6
+    },
+    {
+      "type": "export",
+      "name": "MeatMapping",
+      "file": "src/lib/meatMapping.ts",
+      "line": 11
+    },
+    {
+      "type": "export",
+      "name": "ENTREE_MAPPINGS",
+      "file": "src/lib/entreeMapping.ts",
+      "line": 9
+    },
+    {
+      "type": "export",
+      "name": "EntreeMapping",
+      "file": "src/lib/entreeMapping.ts",
+      "line": 4
+    },
+    {
+      "type": "export",
+      "name": "PaymentMethodBadge",
+      "file": "src/components/common/PaymentMethodSelector.tsx",
+      "line": 124
+    },
+    {
+      "type": "export",
+      "name": "DialogPortal",
+      "file": "src/components/ui/dialog.tsx",
+      "line": 88
+    },
+    {
+      "type": "export",
+      "name": "DialogOverlay",
+      "file": "src/components/ui/dialog.tsx",
+      "line": 89
+    },
+    {
+      "type": "export",
+      "name": "DialogClose",
+      "file": "src/components/ui/dialog.tsx",
+      "line": 90
+    },
+    {
+      "type": "export",
+      "name": "DialogTrigger",
+      "file": "src/components/ui/dialog.tsx",
+      "line": 91
+    },
+    {
+      "type": "export",
+      "name": "ScrollBar",
+      "file": "src/components/ui/scroll-area.tsx",
+      "line": 46
+    },
+    {
+      "type": "export",
+      "name": "getExternalBudgetById",
+      "file": "src/services/externalBudgetsService.ts",
+      "line": 82
+    },
+    {
+      "type": "export",
+      "name": "deleteExternalBudget",
+      "file": "src/services/externalBudgetsService.ts",
+      "line": 115
+    },
+    {
+      "type": "export",
+      "name": "markExternalBudgetAsSent",
+      "file": "src/services/externalBudgetsService.ts",
+      "line": 127
+    },
+    {
+      "type": "export",
+      "name": "DEFAULT_PAGE_SIZE",
+      "file": "src/utils/queryHelpers.ts",
+      "line": 41
+    },
+    {
+      "type": "export",
+      "name": "DEFAULT_PAGE",
+      "file": "src/utils/queryHelpers.ts",
+      "line": 42
+    },
+    {
+      "type": "export",
+      "name": "PaginationParams",
+      "file": "src/utils/queryHelpers.ts",
+      "line": 47
+    },
+    {
+      "type": "export",
+      "name": "BaseFilters",
+      "file": "src/utils/queryHelpers.ts",
+      "line": 55
+    },
+    {
+      "type": "export",
+      "name": "useEventState",
+      "file": "src/components/EventCalculator/context/EventCalculatorContext.tsx",
+      "line": 120
+    },
+    {
+      "type": "export",
+      "name": "useEventDispatch",
+      "file": "src/components/EventCalculator/context/EventCalculatorContext.tsx",
+      "line": 126
+    },
+    {
+      "type": "export",
+      "name": "default",
+      "file": "src/components/EventCalculator/context/EventCalculatorContext.tsx",
+      "line": 139
+    },
+    {
+      "type": "export",
+      "name": "SelectScrollUpButton",
+      "file": "src/components/ui/select.tsx",
+      "line": 155
+    },
+    {
+      "type": "export",
+      "name": "SelectScrollDownButton",
+      "file": "src/components/ui/select.tsx",
+      "line": 156
+    },
+    {
+      "type": "export",
+      "name": "PRODUCT_ID_NORMALIZATION",
+      "file": "src/lib/productNormalization.ts",
+      "line": 29
+    },
+    {
+      "type": "export",
+      "name": "normalizeFrontendIdToProductName",
+      "file": "src/lib/productNormalization.ts",
+      "line": 154
+    },
+    {
+      "type": "export",
+      "name": "smartNormalizeProductName",
+      "file": "src/lib/productNormalization.ts",
+      "line": 168
+    },
+    {
+      "type": "export",
+      "name": "getCategoryForFrontendId",
+      "file": "src/lib/productNormalization.ts",
+      "line": 206
+    },
+    {
+      "type": "export",
+      "name": "isKnownFrontendId",
+      "file": "src/lib/productNormalization.ts",
+      "line": 214
+    },
+    {
+      "type": "export",
+      "name": "getFrontendIdsByCategory",
+      "file": "src/lib/productNormalization.ts",
+      "line": 221
+    },
+    {
+      "type": "export",
+      "name": "debugListAllMappings",
+      "file": "src/lib/productNormalization.ts",
+      "line": 230
+    },
+    {
+      "type": "export",
+      "name": "ProductNormalizationMap",
+      "file": "src/lib/productNormalization.ts",
+      "line": 12
+    },
+    {
+      "type": "export",
+      "name": "getBudgetPDFFilename",
+      "file": "src/lib/pdf/pdfClientService.tsx",
+      "line": 15
+    },
+    {
+      "type": "export",
+      "name": "generatePdfBlob",
+      "file": "src/lib/pdf/pdfClientService.tsx",
+      "line": 52
+    },
+    {
+      "type": "export",
+      "name": "uploadPdfToSupabase",
+      "file": "src/lib/pdf/pdfClientService.tsx",
+      "line": 74
+    },
+    {
+      "type": "export",
+      "name": "DISPLAY_NAME_OVERRIDES",
+      "file": "src/utils/productDisplay.ts",
+      "line": 5
+    },
+    {
+      "type": "export",
+      "name": "DEJEUNER_PRICE_PER_PERSON",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 9
+    },
+    {
+      "type": "export",
+      "name": "DINER_PRICE_PER_PERSON",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 12
+    },
+    {
+      "type": "export",
+      "name": "DEFAULT_PRICE_PER_KM",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 18
+    },
+    {
+      "type": "export",
+      "name": "TVA_MENU",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 23
+    },
+    {
+      "type": "export",
+      "name": "TVA_MATERIAL",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 29
+    },
+    {
+      "type": "export",
+      "name": "TVA_DELIVERY",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 32
+    },
+    {
+      "type": "export",
+      "name": "TVA_DEPLACEMENT",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 35
+    },
+    {
+      "type": "export",
+      "name": "TVA_BOISSONS",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 38
+    },
+    {
+      "type": "export",
+      "name": "BUDGET_VALIDITY_DAYS",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 56
+    },
+    {
+      "type": "export",
+      "name": "getBasePriceByMenuType",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 62
+    },
+    {
+      "type": "export",
+      "name": "MenuType",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 60
+    },
+    {
+      "type": "export",
+      "name": "useIngredientDisplay",
+      "file": "src/components/EventCalculator/components/views/EventCard/hooks/index.ts",
+      "line": 7
+    },
+    {
+      "type": "export",
+      "name": "useIngredientRowData",
+      "file": "src/components/EventCalculator/components/views/EventCard/hooks/index.ts",
+      "line": 8
+    },
+    {
+      "type": "export",
+      "name": "useAvailableProducts",
+      "file": "src/components/EventCalculator/components/views/EventCard/hooks/index.ts",
+      "line": 10
+    },
+    {
+      "type": "export",
+      "name": "IngredientRow",
+      "file": "src/components/EventCalculator/components/views/EventCard/components/index.ts",
+      "line": 9
+    },
+    {
+      "type": "export",
+      "name": "formatCurrency",
+      "file": "src/components/EventCalculator/components/views/EventCard/utils/ingredientHelpers.ts",
+      "line": 40
+    },
+    {
+      "type": "export",
+      "name": "formatDate",
+      "file": "src/components/EventCalculator/components/views/EventCard/utils/ingredientHelpers.ts",
+      "line": 50
+    },
+    {
+      "type": "export",
+      "name": "BudgetStatus",
+      "file": "src/lib/types/budget.ts",
+      "line": 4
+    },
+    {
+      "type": "export",
+      "name": "BudgetMenuSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 15
+    },
+    {
+      "type": "export",
+      "name": "BudgetMaterialSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 40
+    },
+    {
+      "type": "export",
+      "name": "BudgetDeplacementSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 53
+    },
+    {
+      "type": "export",
+      "name": "BudgetServiceSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 63
+    },
+    {
+      "type": "export",
+      "name": "BudgetDeliverySection",
+      "file": "src/lib/types/budget.ts",
+      "line": 73
+    },
+    {
+      "type": "export",
+      "name": "BudgetBoissonsSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 83
+    },
+    {
+      "type": "export",
+      "name": "BudgetTotals",
+      "file": "src/lib/types/budget.ts",
+      "line": 106
+    },
+    {
+      "type": "export",
+      "name": "BudgetVersionHistory",
+      "file": "src/lib/types/budget.ts",
+      "line": 176
+    },
+    {
+      "type": "export",
+      "name": "ContactData",
+      "file": "src/types/index.ts",
+      "line": 1
+    },
+    {
+      "type": "export",
+      "name": "MenuSelection",
+      "file": "src/types/index.ts",
+      "line": 12
+    },
+    {
+      "type": "export",
+      "name": "ExtraServices",
+      "file": "src/types/index.ts",
+      "line": 16
+    },
+    {
+      "type": "export",
+      "name": "InternalNote",
+      "file": "src/types/index.ts",
+      "line": 64
+    },
+    {
+      "type": "export",
+      "name": "ReportDateRange",
+      "file": "src/types/index.ts",
+      "line": 114
+    },
+    {
+      "type": "export",
+      "name": "Reminder",
+      "file": "src/types/index.ts",
+      "line": 132
+    },
+    {
+      "type": "export",
+      "name": "EventCalculation",
+      "file": "src/types/index.ts",
+      "line": 180
+    },
+    {
+      "type": "export",
+      "name": "EventCalculationIngredient",
+      "file": "src/types/index.ts",
+      "line": 198
+    },
+    {
+      "type": "export",
+      "name": "EmailAttachment",
+      "file": "src/lib/emails/types.ts",
+      "line": 2
+    },
+    {
+      "type": "export",
+      "name": "BudgetData",
+      "file": "src/lib/emails/types.ts",
+      "line": 26
+    },
+    {
+      "type": "export",
+      "name": "BudgetStatus",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 4
+    },
+    {
+      "type": "export",
+      "name": "BudgetMenuItem",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 5
+    },
+    {
+      "type": "export",
+      "name": "BudgetMenuSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 6
+    },
+    {
+      "type": "export",
+      "name": "BudgetMaterialSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 7
+    },
+    {
+      "type": "export",
+      "name": "BudgetDeplacementSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 8
+    },
+    {
+      "type": "export",
+      "name": "BudgetServiceSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 9
+    },
+    {
+      "type": "export",
+      "name": "BudgetDeliverySection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 10
+    },
+    {
+      "type": "export",
+      "name": "BudgetBoissonsSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 11
+    },
+    {
+      "type": "export",
+      "name": "BudgetExtrasSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 12
+    },
+    {
+      "type": "export",
+      "name": "BudgetTotals",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 13
+    },
+    {
+      "type": "export",
+      "name": "BudgetVersionHistory",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 16
+    }
+  ],
+  "unusedExports": [
+    {
+      "type": "export",
+      "name": "generateBudgetPDFFromHTML",
+      "file": "src/lib/budgetPDFService.ts",
+      "line": 6
+    },
+    {
+      "type": "export",
+      "name": "apiLogger",
+      "file": "src/utils/logger.ts",
+      "line": 146
+    },
+    {
+      "type": "export",
+      "name": "orderLogger",
+      "file": "src/utils/logger.ts",
+      "line": 148
+    },
+    {
+      "type": "export",
+      "name": "authLogger",
+      "file": "src/utils/logger.ts",
+      "line": 149
+    },
+    {
+      "type": "export",
+      "name": "SidebarFooter",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 749
+    },
+    {
+      "type": "export",
+      "name": "SidebarGroupAction",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 751
+    },
+    {
+      "type": "export",
+      "name": "SidebarGroupLabel",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 753
+    },
+    {
+      "type": "export",
+      "name": "SidebarInput",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 755
+    },
+    {
+      "type": "export",
+      "name": "SidebarInset",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 756
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuAction",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 758
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuBadge",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 759
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuSkeleton",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 762
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuSub",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 763
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuSubButton",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 764
+    },
+    {
+      "type": "export",
+      "name": "SidebarMenuSubItem",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 765
+    },
+    {
+      "type": "export",
+      "name": "SidebarRail",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 767
+    },
+    {
+      "type": "export",
+      "name": "SidebarSeparator",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 768
+    },
+    {
+      "type": "export",
+      "name": "useSidebar",
+      "file": "src/components/ui/sidebar.tsx",
+      "line": 770
+    },
+    {
+      "type": "export",
+      "name": "mockOrders",
+      "file": "src/data/mockData.ts",
+      "line": 3
+    },
+    {
+      "type": "export",
+      "name": "sampleManualEvents",
+      "file": "src/data/mockData.ts",
+      "line": 212
+    },
+    {
+      "type": "export",
+      "name": "badgeVariants",
+      "file": "src/components/ui/badge.tsx",
+      "line": 36
+    },
+    {
+      "type": "export",
+      "name": "BadgeProps",
+      "file": "src/components/ui/badge.tsx",
+      "line": 26
+    },
+    {
+      "type": "export",
+      "name": "buttonVariants",
+      "file": "src/components/ui/button.tsx",
+      "line": 57
+    },
+    {
+      "type": "export",
+      "name": "ButtonProps",
+      "file": "src/components/ui/button.tsx",
+      "line": 37
+    },
+    {
+      "type": "export",
+      "name": "TableFooter",
+      "file": "src/components/ui/table.tsx",
+      "line": 114
+    },
+    {
+      "type": "export",
+      "name": "TableCaption",
+      "file": "src/components/ui/table.tsx",
+      "line": 118
+    },
+    {
+      "type": "export",
+      "name": "fetchOrdersWithEvents",
+      "file": "src/services/ordersService.ts",
+      "line": 210
+    },
+    {
+      "type": "export",
+      "name": "CardFooter",
+      "file": "src/components/ui/card.tsx",
+      "line": 69
+    },
+    {
+      "type": "export",
+      "name": "CardDescription",
+      "file": "src/components/ui/card.tsx",
+      "line": 69
+    },
+    {
+      "type": "export",
+      "name": "SheetPortal",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 131
+    },
+    {
+      "type": "export",
+      "name": "SheetOverlay",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 132
+    },
+    {
+      "type": "export",
+      "name": "SheetTrigger",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 133
+    },
+    {
+      "type": "export",
+      "name": "SheetClose",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 134
+    },
+    {
+      "type": "export",
+      "name": "SheetFooter",
+      "file": "src/components/ui/sheet.tsx",
+      "line": 137
+    },
+    {
+      "type": "export",
+      "name": "MEAT_MAPPINGS",
+      "file": "src/lib/meatMapping.ts",
+      "line": 21
+    },
+    {
+      "type": "export",
+      "name": "getMeatDisplayName",
+      "file": "src/lib/meatMapping.ts",
+      "line": 90
+    },
+    {
+      "type": "export",
+      "name": "MeatCategory",
+      "file": "src/lib/meatMapping.ts",
+      "line": 6
+    },
+    {
+      "type": "export",
+      "name": "MeatMapping",
+      "file": "src/lib/meatMapping.ts",
+      "line": 11
+    },
+    {
+      "type": "export",
+      "name": "ENTREE_MAPPINGS",
+      "file": "src/lib/entreeMapping.ts",
+      "line": 9
+    },
+    {
+      "type": "export",
+      "name": "EntreeMapping",
+      "file": "src/lib/entreeMapping.ts",
+      "line": 4
+    },
+    {
+      "type": "export",
+      "name": "PaymentMethodBadge",
+      "file": "src/components/common/PaymentMethodSelector.tsx",
+      "line": 124
+    },
+    {
+      "type": "export",
+      "name": "DialogPortal",
+      "file": "src/components/ui/dialog.tsx",
+      "line": 88
+    },
+    {
+      "type": "export",
+      "name": "DialogOverlay",
+      "file": "src/components/ui/dialog.tsx",
+      "line": 89
+    },
+    {
+      "type": "export",
+      "name": "DialogClose",
+      "file": "src/components/ui/dialog.tsx",
+      "line": 90
+    },
+    {
+      "type": "export",
+      "name": "DialogTrigger",
+      "file": "src/components/ui/dialog.tsx",
+      "line": 91
+    },
+    {
+      "type": "export",
+      "name": "ScrollBar",
+      "file": "src/components/ui/scroll-area.tsx",
+      "line": 46
+    },
+    {
+      "type": "export",
+      "name": "getExternalBudgetById",
+      "file": "src/services/externalBudgetsService.ts",
+      "line": 82
+    },
+    {
+      "type": "export",
+      "name": "deleteExternalBudget",
+      "file": "src/services/externalBudgetsService.ts",
+      "line": 115
+    },
+    {
+      "type": "export",
+      "name": "markExternalBudgetAsSent",
+      "file": "src/services/externalBudgetsService.ts",
+      "line": 127
+    },
+    {
+      "type": "export",
+      "name": "DEFAULT_PAGE_SIZE",
+      "file": "src/utils/queryHelpers.ts",
+      "line": 41
+    },
+    {
+      "type": "export",
+      "name": "DEFAULT_PAGE",
+      "file": "src/utils/queryHelpers.ts",
+      "line": 42
+    },
+    {
+      "type": "export",
+      "name": "PaginationParams",
+      "file": "src/utils/queryHelpers.ts",
+      "line": 47
+    },
+    {
+      "type": "export",
+      "name": "BaseFilters",
+      "file": "src/utils/queryHelpers.ts",
+      "line": 55
+    },
+    {
+      "type": "export",
+      "name": "useEventState",
+      "file": "src/components/EventCalculator/context/EventCalculatorContext.tsx",
+      "line": 120
+    },
+    {
+      "type": "export",
+      "name": "useEventDispatch",
+      "file": "src/components/EventCalculator/context/EventCalculatorContext.tsx",
+      "line": 126
+    },
+    {
+      "type": "export",
+      "name": "default",
+      "file": "src/components/EventCalculator/context/EventCalculatorContext.tsx",
+      "line": 139
+    },
+    {
+      "type": "export",
+      "name": "SelectScrollUpButton",
+      "file": "src/components/ui/select.tsx",
+      "line": 155
+    },
+    {
+      "type": "export",
+      "name": "SelectScrollDownButton",
+      "file": "src/components/ui/select.tsx",
+      "line": 156
+    },
+    {
+      "type": "export",
+      "name": "PRODUCT_ID_NORMALIZATION",
+      "file": "src/lib/productNormalization.ts",
+      "line": 29
+    },
+    {
+      "type": "export",
+      "name": "normalizeFrontendIdToProductName",
+      "file": "src/lib/productNormalization.ts",
+      "line": 154
+    },
+    {
+      "type": "export",
+      "name": "smartNormalizeProductName",
+      "file": "src/lib/productNormalization.ts",
+      "line": 168
+    },
+    {
+      "type": "export",
+      "name": "getCategoryForFrontendId",
+      "file": "src/lib/productNormalization.ts",
+      "line": 206
+    },
+    {
+      "type": "export",
+      "name": "isKnownFrontendId",
+      "file": "src/lib/productNormalization.ts",
+      "line": 214
+    },
+    {
+      "type": "export",
+      "name": "getFrontendIdsByCategory",
+      "file": "src/lib/productNormalization.ts",
+      "line": 221
+    },
+    {
+      "type": "export",
+      "name": "debugListAllMappings",
+      "file": "src/lib/productNormalization.ts",
+      "line": 230
+    },
+    {
+      "type": "export",
+      "name": "ProductNormalizationMap",
+      "file": "src/lib/productNormalization.ts",
+      "line": 12
+    },
+    {
+      "type": "export",
+      "name": "getBudgetPDFFilename",
+      "file": "src/lib/pdf/pdfClientService.tsx",
+      "line": 15
+    },
+    {
+      "type": "export",
+      "name": "generatePdfBlob",
+      "file": "src/lib/pdf/pdfClientService.tsx",
+      "line": 52
+    },
+    {
+      "type": "export",
+      "name": "uploadPdfToSupabase",
+      "file": "src/lib/pdf/pdfClientService.tsx",
+      "line": 74
+    },
+    {
+      "type": "export",
+      "name": "DISPLAY_NAME_OVERRIDES",
+      "file": "src/utils/productDisplay.ts",
+      "line": 5
+    },
+    {
+      "type": "export",
+      "name": "DEJEUNER_PRICE_PER_PERSON",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 9
+    },
+    {
+      "type": "export",
+      "name": "DINER_PRICE_PER_PERSON",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 12
+    },
+    {
+      "type": "export",
+      "name": "DEFAULT_PRICE_PER_KM",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 18
+    },
+    {
+      "type": "export",
+      "name": "TVA_MENU",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 23
+    },
+    {
+      "type": "export",
+      "name": "TVA_MATERIAL",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 29
+    },
+    {
+      "type": "export",
+      "name": "TVA_DELIVERY",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 32
+    },
+    {
+      "type": "export",
+      "name": "TVA_DEPLACEMENT",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 35
+    },
+    {
+      "type": "export",
+      "name": "TVA_BOISSONS",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 38
+    },
+    {
+      "type": "export",
+      "name": "BUDGET_VALIDITY_DAYS",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 56
+    },
+    {
+      "type": "export",
+      "name": "getBasePriceByMenuType",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 62
+    },
+    {
+      "type": "export",
+      "name": "MenuType",
+      "file": "src/lib/constants/pricing.ts",
+      "line": 60
+    },
+    {
+      "type": "export",
+      "name": "useIngredientDisplay",
+      "file": "src/components/EventCalculator/components/views/EventCard/hooks/index.ts",
+      "line": 7
+    },
+    {
+      "type": "export",
+      "name": "useIngredientRowData",
+      "file": "src/components/EventCalculator/components/views/EventCard/hooks/index.ts",
+      "line": 8
+    },
+    {
+      "type": "export",
+      "name": "useAvailableProducts",
+      "file": "src/components/EventCalculator/components/views/EventCard/hooks/index.ts",
+      "line": 10
+    },
+    {
+      "type": "export",
+      "name": "IngredientRow",
+      "file": "src/components/EventCalculator/components/views/EventCard/components/index.ts",
+      "line": 9
+    },
+    {
+      "type": "export",
+      "name": "formatCurrency",
+      "file": "src/components/EventCalculator/components/views/EventCard/utils/ingredientHelpers.ts",
+      "line": 40
+    },
+    {
+      "type": "export",
+      "name": "formatDate",
+      "file": "src/components/EventCalculator/components/views/EventCard/utils/ingredientHelpers.ts",
+      "line": 50
+    },
+    {
+      "type": "export",
+      "name": "BudgetStatus",
+      "file": "src/lib/types/budget.ts",
+      "line": 4
+    },
+    {
+      "type": "export",
+      "name": "BudgetMenuSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 15
+    },
+    {
+      "type": "export",
+      "name": "BudgetMaterialSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 40
+    },
+    {
+      "type": "export",
+      "name": "BudgetDeplacementSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 53
+    },
+    {
+      "type": "export",
+      "name": "BudgetServiceSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 63
+    },
+    {
+      "type": "export",
+      "name": "BudgetDeliverySection",
+      "file": "src/lib/types/budget.ts",
+      "line": 73
+    },
+    {
+      "type": "export",
+      "name": "BudgetBoissonsSection",
+      "file": "src/lib/types/budget.ts",
+      "line": 83
+    },
+    {
+      "type": "export",
+      "name": "BudgetTotals",
+      "file": "src/lib/types/budget.ts",
+      "line": 106
+    },
+    {
+      "type": "export",
+      "name": "BudgetVersionHistory",
+      "file": "src/lib/types/budget.ts",
+      "line": 176
+    },
+    {
+      "type": "export",
+      "name": "ContactData",
+      "file": "src/types/index.ts",
+      "line": 1
+    },
+    {
+      "type": "export",
+      "name": "MenuSelection",
+      "file": "src/types/index.ts",
+      "line": 12
+    },
+    {
+      "type": "export",
+      "name": "ExtraServices",
+      "file": "src/types/index.ts",
+      "line": 16
+    },
+    {
+      "type": "export",
+      "name": "InternalNote",
+      "file": "src/types/index.ts",
+      "line": 64
+    },
+    {
+      "type": "export",
+      "name": "ReportDateRange",
+      "file": "src/types/index.ts",
+      "line": 114
+    },
+    {
+      "type": "export",
+      "name": "Reminder",
+      "file": "src/types/index.ts",
+      "line": 132
+    },
+    {
+      "type": "export",
+      "name": "EventCalculation",
+      "file": "src/types/index.ts",
+      "line": 180
+    },
+    {
+      "type": "export",
+      "name": "EventCalculationIngredient",
+      "file": "src/types/index.ts",
+      "line": 198
+    },
+    {
+      "type": "export",
+      "name": "EmailAttachment",
+      "file": "src/lib/emails/types.ts",
+      "line": 2
+    },
+    {
+      "type": "export",
+      "name": "BudgetData",
+      "file": "src/lib/emails/types.ts",
+      "line": 26
+    },
+    {
+      "type": "export",
+      "name": "BudgetStatus",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 4
+    },
+    {
+      "type": "export",
+      "name": "BudgetMenuItem",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 5
+    },
+    {
+      "type": "export",
+      "name": "BudgetMenuSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 6
+    },
+    {
+      "type": "export",
+      "name": "BudgetMaterialSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 7
+    },
+    {
+      "type": "export",
+      "name": "BudgetDeplacementSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 8
+    },
+    {
+      "type": "export",
+      "name": "BudgetServiceSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 9
+    },
+    {
+      "type": "export",
+      "name": "BudgetDeliverySection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 10
+    },
+    {
+      "type": "export",
+      "name": "BudgetBoissonsSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 11
+    },
+    {
+      "type": "export",
+      "name": "BudgetExtrasSection",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 12
+    },
+    {
+      "type": "export",
+      "name": "BudgetTotals",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 13
+    },
+    {
+      "type": "export",
+      "name": "BudgetVersionHistory",
+      "file": "src/components/BudgetEditor/types.ts",
+      "line": 16
+    }
+  ],
+  "unusedFiles": [
+    {
+      "type": "file",
+      "name": "verify_filename.js",
+      "file": "verify_filename.js"
+    },
+    {
+      "type": "file",
+      "name": "verify_filename.ts",
+      "file": "verify_filename.ts"
+    },
+    {
+      "type": "file",
+      "name": "scripts/check_product.js",
+      "file": "scripts/check_product.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/create_panqueques.js",
+      "file": "scripts/create_panqueques.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/generate-preview.ts",
+      "file": "scripts/generate-preview.ts"
+    },
+    {
+      "type": "file",
+      "name": "scripts/import-external-budgets.js",
+      "file": "scripts/import-external-budgets.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/insert-external-budgets.js",
+      "file": "scripts/insert-external-budgets.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/measure-performance.js",
+      "file": "scripts/measure-performance.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/parse-csv-test.js",
+      "file": "scripts/parse-csv-test.js"
+    },
+    {
+      "type": "file",
+      "name": "scripts/split-sql-batches.js",
+      "file": "scripts/split-sql-batches.js"
+    },
+    {
+      "type": "file",
+      "name": "src/app/page.module.css",
+      "file": "src/app/page.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/hooks/useCalendarOrders.ts",
+      "file": "src/hooks/useCalendarOrders.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/hooks/useOrderFilters.ts",
+      "file": "src/hooks/useOrderFilters.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetsList.css",
+      "file": "src/_backups_pre_shadcn/BudgetsList.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetsList.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetsList.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetsManager.css",
+      "file": "src/_backups_pre_shadcn/BudgetsManager.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetsManager.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetsManager.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/FilterBar.module.css",
+      "file": "src/_backups_pre_shadcn/FilterBar.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/FilterBar.tsx",
+      "file": "src/_backups_pre_shadcn/FilterBar.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/globals.css",
+      "file": "src/_backups_pre_shadcn/globals.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/layout.tsx",
+      "file": "src/_backups_pre_shadcn/layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/OrderCard.module.css",
+      "file": "src/_backups_pre_shadcn/OrderCard.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/OrderCard.tsx",
+      "file": "src/_backups_pre_shadcn/OrderCard.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/orders.module.css",
+      "file": "src/_backups_pre_shadcn/orders.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/orders_page.tsx",
+      "file": "src/_backups_pre_shadcn/orders_page.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/postcss.config.js",
+      "file": "src/_backups_pre_shadcn/postcss.config.js"
+    },
+    {
+      "type": "file",
+      "name": "src/app/(admin)/layout.module.css",
+      "file": "src/app/(admin)/layout.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/BudgetsList/BudgetsList.css",
+      "file": "src/components/BudgetsList/BudgetsList.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/BudgetsManager/BudgetsManager.css",
+      "file": "src/components/BudgetsManager/BudgetsManager.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/EventCalculator/index.ts",
+      "file": "src/components/EventCalculator/index.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/components/FilterBar/FilterBar.module.css",
+      "file": "src/components/FilterBar/FilterBar.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/Header/Header.module.css",
+      "file": "src/components/Header/Header.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/OrderCard/OrderCard.module.css",
+      "file": "src/components/OrderCard/OrderCard.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/OrderDetails/OrderDetails.module.css",
+      "file": "src/components/OrderDetails/OrderDetails.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/Sidebar/Sidebar.module.css",
+      "file": "src/components/Sidebar/Sidebar.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/BudgetEditor.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/BudgetEditor.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/index.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/index.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/types.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/types.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/app/(admin)/orders/orders.module.css",
+      "file": "src/app/(admin)/orders/orders.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/components/BudgetEditor/components/DeliveryRepriseSection.tsx",
+      "file": "src/components/BudgetEditor/components/DeliveryRepriseSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/components/EventCalculator/hooks/useEventContext.ts",
+      "file": "src/components/EventCalculator/hooks/useEventContext.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetCalculations.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetCalculations.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetData.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetData.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetModals.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/hooks/useBudgetModals.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/hooks/useMaterialSelector.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/hooks/useMaterialSelector.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/AdminNotesSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/AdminNotesSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/BoissonsSoftSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/BoissonsSoftSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/BoissonsSoftSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/BoissonsSoftSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/BudgetActions.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/BudgetActions.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/BudgetActions.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/BudgetActions.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ClientInfoSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ClientInfoSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ClientInfoSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ClientInfoSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/DeliveryRepriseSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/DeliveryRepriseSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/DeliveryRepriseSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/DeliveryRepriseSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/DeplacementSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/DeplacementSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/DeplacementSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/DeplacementSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ExtrasSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ExtrasSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/InternalNoteSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/InternalNoteSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/InternalNoteSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/InternalNoteSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSelectorModal.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSelectorModal.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSelectorModal.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MaterialSelectorModal.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSelectorModal.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSelectorModal.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSelectorModal.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/MenuSelectorModal.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/PDFPreviewModal.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/PDFPreviewModal.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/PDFPreviewModal.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/PDFPreviewModal.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ServiceSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ServiceSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/ServiceSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/ServiceSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/TotalsSection.module.css",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/TotalsSection.module.css"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/components/TotalsSection.tsx",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/components/TotalsSection.tsx"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/utils/budgetCalculations.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/utils/budgetCalculations.ts"
+    },
+    {
+      "type": "file",
+      "name": "src/_backups_pre_shadcn/BudgetEditor/utils/formatItemName.ts",
+      "file": "src/_backups_pre_shadcn/BudgetEditor/utils/formatItemName.ts"
+    }
+  ],
+  "unusedDeps": [
+    {
+      "type": "dependency",
+      "name": "@radix-ui/react-dropdown-menu",
+      "file": "package.json",
+      "line": 15
+    },
+    {
+      "type": "devDependency",
+      "name": "@testing-library/dom",
+      "file": "package.json",
+      "line": 48
+    },
+    {
+      "type": "devDependency",
+      "name": "@testing-library/react",
+      "file": "package.json",
+      "line": 49
+    },
+    {
+      "type": "devDependency",
+      "name": "@types/papaparse",
+      "file": "package.json",
+      "line": 51
+    },
+    {
+      "type": "devDependency",
+      "name": "papaparse",
+      "file": "package.json",
+      "line": 59
+    }
+  ],
+  "unlistedDeps": [
+    {
+      "type": "unlisted",
+      "name": "puppeteer",
+      "file": "src/lib/budgetPDFService.ts",
+      "line": 45
+    }
+  ],
+  "summary": "Found 198 issues"
+}

@@ -1,8 +1,20 @@
 import React from 'react'
-import { Package, X, CheckSquare, CheckCircle2, Plus } from 'lucide-react'
+import { Package, Plus, CheckCircle2 } from 'lucide-react'
 import { Product } from '@/types'
 import { Event } from '@/components/EventCalculator/types'
-import styles from './MaterialSelectorModal.module.css'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
 interface MaterialSelectorModalProps {
     isOpen: boolean
@@ -25,33 +37,24 @@ export function MaterialSelectorModal({
     events,
     currentEventId
 }: MaterialSelectorModalProps) {
-    if (!isOpen) return null
-
     // Filter products to only show materials
     const materialProducts = availableProducts.filter(p => p.category === 'material')
 
     return (
-        <div className={styles.modalOverlay} onClick={onClose}>
-            <div className={styles.modalLarge} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.modalHeader}>
-                    <h3 className={styles.modalTitle}>
-                        <Package size={24} />
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Package className="h-5 w-5 text-primary" />
                         Agregar Materiales
-                    </h3>
-                    <button
-                        className={styles.closeButton}
-                        onClick={onClose}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-
-                <div className={styles.modalBody}>
-                    <p className={styles.helperText}>
+                    </DialogTitle>
+                    <DialogDescription>
                         Selecciona los materiales que deseas agregar al evento. Se agregarán como cantidad fija (1 unidad por defecto).
-                    </p>
+                    </DialogDescription>
+                </DialogHeader>
 
-                    <div className={styles.materialsGrid}>
+                <div className="flex-1 overflow-y-auto pr-2 min-h-0 max-h-[55vh]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pb-2">
                         {materialProducts.map(product => {
                             const isSelected = selectedMaterialIds.includes(product.id)
                             const event = events.find(e => e.id === currentEventId)
@@ -61,21 +64,31 @@ export function MaterialSelectorModal({
                                 <div
                                     key={product.id}
                                     onClick={() => !alreadyInEvent && onMaterialToggle(product.id)}
-                                    className={`${styles.materialItem} ${isSelected ? styles.selected : ''} ${alreadyInEvent ? styles.disabled : ''}`}
+                                    className={cn(
+                                        "flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all",
+                                        isSelected && "border-primary bg-primary/5",
+                                        alreadyInEvent && "opacity-50 cursor-not-allowed bg-muted/50",
+                                        !alreadyInEvent && !isSelected && "hover:bg-accent/50"
+                                    )}
                                 >
-                                    <div className={`${styles.checkbox} ${isSelected ? styles.checked : ''}`}>
-                                        {isSelected && <CheckSquare size={14} color="white" />}
-                                        {alreadyInEvent && !isSelected && <CheckCircle2 size={14} color="#94a3b8" />}
-                                    </div>
-                                    <div>
-                                        <div className={styles.productName}>{product.name}</div>
+                                    <Checkbox
+                                        checked={isSelected}
+                                        disabled={alreadyInEvent}
+                                        className="mt-0.5"
+                                        onCheckedChange={() => !alreadyInEvent && onMaterialToggle(product.id)}
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                        <div className="font-medium text-sm">{product.name}</div>
                                         {product.clarifications && (
-                                            <div className={styles.productClarifications}>{product.clarifications}</div>
+                                            <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                                                {product.clarifications}
+                                            </div>
                                         )}
                                         {alreadyInEvent && (
-                                            <div className={styles.alreadyAddedBadge}>
+                                            <Badge variant="secondary" className="mt-1 text-xs font-normal">
+                                                <CheckCircle2 className="h-3 w-3 mr-1" />
                                                 Ya agregado
-                                            </div>
+                                            </Badge>
                                         )}
                                     </div>
                                 </div>
@@ -84,23 +97,19 @@ export function MaterialSelectorModal({
                     </div>
                 </div>
 
-                <div className={styles.modalFooter}>
-                    <button
-                        className={styles.cancelButton}
-                        onClick={onClose}
-                    >
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose}>
                         Cancelar
-                    </button>
-                    <button
-                        className={styles.confirmButton}
+                    </Button>
+                    <Button
                         onClick={onAddMaterials}
                         disabled={selectedMaterialIds.length === 0}
                     >
-                        <Plus size={18} />
+                        <Plus className="h-4 w-4" />
                         Agregar {selectedMaterialIds.length} Material(es)
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }

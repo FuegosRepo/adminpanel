@@ -4,6 +4,8 @@ import { sanitizeSearchTerm, getPaginationRange } from '@/utils/queryHelpers'
 export type BudgetsFilters = {
     status?: string
     searchTerm?: string
+    year?: string
+    eventType?: string
 }
 
 export type FetchBudgetsParams = {
@@ -75,6 +77,14 @@ export const fetchBudgets = async ({
             // Search in budget_data JSON (clientInfo.name or email)
             query = query.or(`budget_data->clientInfo->>name.ilike.%${term}%,budget_data->clientInfo->>email.ilike.%${term}%`)
         }
+    }
+
+    if (filters?.year) {
+        query = query.ilike('budget_data->clientInfo->>eventDate', `%${filters.year}%`)
+    }
+
+    if (filters?.eventType) {
+        query = query.ilike('budget_data->clientInfo->>eventType', `%${filters.eventType}%`)
     }
 
     // ✅ Use shared pagination helper

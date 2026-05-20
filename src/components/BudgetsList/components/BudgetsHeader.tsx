@@ -8,10 +8,11 @@ interface BudgetsHeaderProps {
   filters: BudgetsFilters
   selectedBudgets: Set<string>
   onBulkRelance: () => void
+  onBulkReject: () => void
   onCreateManual: () => void
 }
 
-export default function BudgetsHeader({ totalCount, filters, selectedBudgets, onBulkRelance, onCreateManual }: BudgetsHeaderProps) {
+export default function BudgetsHeader({ totalCount, filters, selectedBudgets, onBulkRelance, onBulkReject, onCreateManual }: BudgetsHeaderProps) {
   const showRelance = filters.status && (filters.status.startsWith('relance_') || filters.status === 'sent')
 
   return (
@@ -32,6 +33,19 @@ export default function BudgetsHeader({ totalCount, filters, selectedBudgets, on
             {selectedBudgets.size > 0
               ? `Relanzar seleccionados (${selectedBudgets.size})`
               : `Relanzar a todos (${filters.status === 'sent' ? '1ra vez' : filters.status === 'relance_3' ? '3+' : filters.status!.split('_')[1]})`
+            }
+          </Button>
+        )}
+        {filters.status === 'relance_3' && (
+          <Button
+            size="sm"
+            variant={selectedBudgets.size > 0 ? 'destructive' : 'outline'}
+            onClick={onBulkReject}
+            className={selectedBudgets.size === 0 ? "text-destructive hover:text-destructive-foreground hover:bg-destructive gap-1" : "gap-1"}
+          >
+            {selectedBudgets.size > 0
+              ? `Rechazar seleccionados (${selectedBudgets.size})`
+              : `Rechazar a todos (${totalCount})`
             }
           </Button>
         )}

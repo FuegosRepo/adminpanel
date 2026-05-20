@@ -79,6 +79,8 @@ export interface FilterOptions {
   dateFrom?: string
   dateTo?: string
   searchTerm?: string
+  year?: string
+  eventType?: string
 }
 
 export interface FinancialReport {

@@ -7,6 +7,8 @@ export type OrdersFilters = {
     searchTerm?: string
     dateFrom?: string
     dateTo?: string
+    year?: string
+    eventType?: string
 }
 
 export type FetchOrdersParams = {
@@ -91,6 +93,14 @@ export const fetchOrders = async ({
     }
     if (filters?.dateTo) {
         query = query.lte('event_date', filters.dateTo)
+    }
+
+    if (filters?.year) {
+        query = query.gte('event_date', `${filters.year}-01-01`).lte('event_date', `${filters.year}-12-31`)
+    }
+
+    if (filters?.eventType) {
+        query = query.ilike('event_type', `%${filters.eventType}%`)
     }
 
     // ✅ Use shared pagination helper

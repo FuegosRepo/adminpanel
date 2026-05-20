@@ -168,6 +168,68 @@ export function useBudgetListActions({ deleteBudget, createManualBudget, onSelec
     }
   }
 
+  // Bulk reject
+  const [bulkRejectModalOpen, setBulkRejectModalOpen] = useState(false)
+  const [isBulkRejecting, setIsBulkRejecting] = useState(false)
+
+  const handleConfirmBulkReject = async () => {
+    setIsBulkRejecting(true)
+    try {
+      let budgetIds = Array.from(selectedBudgets)
+      
+      // Si no hay seleccionados, pero estamos en la pestaña relance_3, buscamos todos
+      if (budgetIds.length === 0) {
+        if (filters.status !== 'relance_3') return // Seguro extra
+        const { data: allBudgets, error: fetchError } = await supabase
+          .from('budgets')
+          .select('id')
+          .eq('status', 'relance_3')
+          
+        if (fetchError) throw fetchError
+        if (!allBudgets || allBudgets.length === 0) {
+          toast.info('No hay presupuestos para rechazar')
+          setBulkRejectModalOpen(false)
+          setIsBulkRejecting(false)
+          return
+        }
+        budgetIds = allBudgets.map(b => b.id)
+      }
+      
+      const { error: budgetError } = await supabase
+        .from('budgets')
+        .update({ status: 'rejected' })
+        .in('id', budgetIds)
+        
+      if (budgetError) throw budgetError
+
+      const { data: budgetsData } = await supabase
+        .from('budgets')
+        .select('order_id')
+        .in('id', budgetIds)
+        
+      if (budgetsData && budgetsData.length > 0) {
+        const orderIds = budgetsData.map(b => b.order_id).filter(Boolean)
+        if (orderIds.length > 0) {
+          await supabase
+            .from('catering_orders')
+            .update({ status: 'rejected' })
+            .in('id', orderIds)
+        }
+      }
+
+      toast.success(`✅ ${budgetIds.length} presupuestos rechazados`)
+      setBulkRejectModalOpen(false)
+      setSelectedBudgets(new Set())
+      queryClient.invalidateQueries({ queryKey: ['budgets'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    } catch (error: any) {
+      console.error('Error en rechazo masivo:', error)
+      toast.error(error.message || 'Error al procesar el rechazo masivo')
+    } finally {
+      setIsBulkRejecting(false)
+    }
+  }
+
   return {
     // Delete
     deleteModalOpen, setDeleteModalOpen,
@@ -182,6 +244,9 @@ export function useBudgetListActions({ deleteBudget, createManualBudget, onSelec
     isBulkRelancing,
     selectedBudgets, toggleBudgetSelection, toggleSelectAll,
     handleConfirmBulkRelance,
+    // Bulk reject
+    bulkRejectModalOpen, setBulkRejectModalOpen,
+    isBulkRejecting, handleConfirmBulkReject,
     // Payment method
     handleUpdatePaymentMethod,
     isUpdatingPaymentMethod: updatePaymentMethodMutation.isPending,

@@ -1,614 +1,700 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useQueryClient } from '@tanstack/react-query'  // ✅ Add for cache invalidation
-import { supabase } from '@/lib/supabaseClient'
-import { Budget, BudgetData } from '../types'
-import { formatItemName } from '../utils/formatItemName'
-import { MATERIAL_MAPPINGS } from '@/components/EventCalculator/utils/productMapping'
-import { normalizeFrontendIdsToProductNames } from '@/lib/productNormalization'
+import { useState, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query"; // ✅ Add for cache invalidation
+import { supabase } from "@/lib/supabaseClient";
+import { Budget, BudgetData } from "../types";
+import { formatItemName } from "../utils/formatItemName";
+import { MATERIAL_MAPPINGS } from "@/components/EventCalculator/utils/productMapping";
+import { normalizeFrontendIdsToProductNames } from "@/lib/productNormalization";
 
 export function useBudgetData(budgetId: string) {
-    const queryClient = useQueryClient()  // ✅ Get query client
-    const [budget, setBudget] = useState<Budget | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const [saving, setSaving] = useState(false)
-    const [internalNotes, setInternalNotes] = useState<{ text: string; createdAt: string }[]>([])  // ✅ Array of notes
-    const [orderId, setOrderId] = useState<string | null>(null)
-
-    const loadBudget = useCallback(async () => {
-        try {
-            setLoading(true)
-
-            const { data, error } = await supabase
-                .from('budgets')
-                .select('*')
-                .eq('id', budgetId)
-                .single()
-
-            if (error) {
-                throw error
-            }
-
-            if (data) {
-                setBudget(data as any)
-
-                // Procesamiento inicial de datos (similar al original)
-                const budgetData = { ...data.budget_data } as BudgetData
-
-                // Start material products fetch early (runs in parallel with order fetch)
-                const materialProductsPromise = supabase
-                    .from('products')
-                    .select('name, price_per_portion')
-                    .eq('category', 'material')
-
-                // Safe Client Info Backfill Strategy
-                // - Only fills NULL/empty fields
-                // - Preserves manual edits
-                // - Always fetch selectedItems from orders
-                if (data.order_id) {
-                    setOrderId(data.order_id)  // ✅ Store order_id
-                    const { data: orderData, error: orderError } = await supabase
-                        .from('catering_orders')
-                        .select('entrees, viandes, dessert, event_date, name, email, phone, address, event_type, guest_count, internal_note')
-                        .eq('id', data.order_id)
-                        .single()
-
-                    if (orderError) {
-                        console.error('❌ Error fetching order data:', orderError)
-                    }
-
-                    if (orderData) {
-                        // ✅ Parse internal notes array
-                        if (orderData.internal_note) {
-                            let noteData = orderData.internal_note
-                            if (typeof noteData === 'string') {
-                                try { noteData = JSON.parse(noteData) } catch { noteData = null }
-                            }
-                            // Handle array or single object
-                            if (Array.isArray(noteData)) {
-                                setInternalNotes(noteData.map((n: any) => ({
-                                    text: n.text || '',
-                                    createdAt: n.createdAt || n.created_at || new Date().toISOString()
-                                })))
-                            } else if (noteData && typeof noteData === 'object') {
-                                // Legacy single object format
-                                setInternalNotes([{
-                                    text: noteData.text || '',
-                                    createdAt: noteData.createdAt || noteData.updatedAt || new Date().toISOString()
-                                }])
-                            } else {
-                                setInternalNotes([])
-                            }
-                        } else {
-                            setInternalNotes([])
-                        }
-                        // PHASE 1: PRODUCT NORMALIZATION
-                        // Convert frontend IDs (e.g., 'secreto', 'burger') to database product names
-                        const normalizedEntrees = normalizeFrontendIdsToProductNames(orderData.entrees || [])
-                        const normalizedViandes = normalizeFrontendIdsToProductNames(orderData.viandes || [])
-                        const normalizedDessert = orderData.dessert
-                            ? normalizeFrontendIdsToProductNames([orderData.dessert])[0]
-                            : null
-
-                        // Fetch full product objects from database
-                        const allProductNames = [...normalizedEntrees, ...normalizedViandes]
-                        if (normalizedDessert) allProductNames.push(normalizedDessert)
-
-                        const { data: products, error: productsError } = await supabase
-                            .from('products')
-                            .select('id, name, price_per_portion, category, is_combo')
-                            .in('name', allProductNames)
-
-                        if (productsError) {
-                            console.error('❌ Error fetching products:', productsError)
-                        }
-
-                        // Hydrate selectedItems with full product objects
-                        if (products) {
-                            const findProduct = (name: string) => products.find(p =>
-                                p.name.toLowerCase() === name.toLowerCase()
-                            )
-
-                            budgetData.menu.selectedItems = {
-                                entrees: normalizedEntrees.map(name => findProduct(name)?.name || name),
-                                viandes: normalizedViandes.map(name => findProduct(name)?.name || name),
-                                desserts: normalizedDessert ? [findProduct(normalizedDessert)?.name || normalizedDessert] : []
-                            }
-
-                            console.log('✅ Product normalization complete:', {
-                                originalEntrees: orderData.entrees,
-                                normalizedEntrees,
-                                originalViandes: orderData.viandes,
-                                normalizedViandes,
-                                foundProducts: products.length
-                            })
-                        } else {
-                            // Fallback: use normalized names even if no products found
-                            budgetData.menu.selectedItems = {
-                                entrees: normalizedEntrees,
-                                viandes: normalizedViandes,
-                                desserts: normalizedDessert ? [normalizedDessert] : []
-                            }
-                        }
-
-                        // Safe fallback: Only fill empty fields, never overwrite
-                        // This preserves manual edits while filling in missing data
-                        if (!budgetData.clientInfo.name && orderData.name) {
-                            budgetData.clientInfo.name = orderData.name
-                        }
-                        if (!budgetData.clientInfo.email && orderData.email) {
-                            budgetData.clientInfo.email = orderData.email
-                        }
-                        if (!budgetData.clientInfo.phone && orderData.phone) {
-                            budgetData.clientInfo.phone = orderData.phone
-                        }
-                        if (!budgetData.clientInfo.address && orderData.address) {
-                            budgetData.clientInfo.address = orderData.address
-                        }
-                        if (!budgetData.clientInfo.eventType && orderData.event_type) {
-                            budgetData.clientInfo.eventType = orderData.event_type
-                        }
-                        if (!budgetData.clientInfo.guestCount && orderData.guest_count) {
-                            budgetData.clientInfo.guestCount = orderData.guest_count
-                        }
-                        // Event date: Fill if missing
-                        if (!budgetData.clientInfo.eventDate && orderData.event_date) {
-                            budgetData.clientInfo.eventDate = orderData.event_date
-                        }
-                    }
-                } else {
-                    // Budget has no order_id - standalone budget
-                }
-
-                // Asegurar valores fijos para servicio si existe
-                if (budgetData.service) {
-                    budgetData.service.pricePerHour = 40
-                    budgetData.service.tvaPct = 20
-                    const serviceHT = budgetData.service.mozos * budgetData.service.hours * 40
-                    budgetData.service.totalHT = serviceHT
-                    budgetData.service.tva = serviceHT * 0.20
-                    budgetData.service.totalTTC = serviceHT + budgetData.service.tva
-                }
-
-                // Await material products (started early, ran in parallel with order fetch)
-                let materialProducts: { name: string; price_per_portion: number }[] | null = null
-                try {
-                    const result = await materialProductsPromise
-                    materialProducts = result.data
-                } catch {
-                    // Silently fail - material price correction is optional
-                }
-
-                // Formatear nombres y corregir precios de items de material
-                if (budgetData.material && budgetData.material.items) {
-                    budgetData.material.items = budgetData.material.items
-                        .filter(item => {
-                            const itemNameLower = item.name.toLowerCase()
-                            return !itemNameLower.includes('serveur') &&
-                                !itemNameLower.includes('servicio') &&
-                                !itemNameLower.includes('mozos')
-                        })
-                        .map(item => {
-                            // 1. Formatear nombre para francés (Visualización)
-                            const formattedName = formatItemName(item.name)
-
-                            // \u2705 PRESERVE MANUAL PRICES
-                            // If item has isManualPrice flag, keep the existing price
-                            if (item.isManualPrice) {
-                                console.log(`\u2705 Preserving manual price for "${formattedName}": ${item.pricePerUnit}\u20ac`)
-                                return {
-                                    ...item,
-                                    name: formattedName,
-                                    // pricePerUnit unchanged
-                                }
-                            }
-
-                            // 2. Buscar precio correcto en BD (Lógica)
-                            let correctPrice = item.pricePerUnit
-
-                            if (materialProducts) {
-                                // Intentar mapear usando las claves conocidas
-                                const dbMatches = Object.entries(MATERIAL_MAPPINGS).find(([key, _]) =>
-                                    item.name.toLowerCase().includes(key) || formatItemName(item.name).toLowerCase().includes(key)
-                                )
-
-                                let foundProduct = null;
-
-                                if (dbMatches) {
-                                    // Buscar por nombre mapeado (Español)
-                                    const possibleNames = dbMatches[1] as string[]
-                                    foundProduct = materialProducts.find(p =>
-                                        possibleNames.some((name: string) => p.name.toLowerCase().includes(name))
-                                    )
-                                }
-
-                                // Si no se encuentra por mapeo, buscar directo (por si ya estaba en español o coincidencia exacta)
-                                if (!foundProduct) {
-                                    foundProduct = materialProducts.find(p =>
-                                        p.name.toLowerCase() === item.name.toLowerCase() ||
-                                        p.name.toLowerCase().includes(item.name.toLowerCase())
-                                    )
-                                }
-
-                                if (foundProduct) {
-                                    console.log(`\u2705 Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion} `)
-                                    correctPrice = foundProduct.price_per_portion || 0.50
-                                }
-                            }
-
-                            // Si el precio sigue siendo sospechoso (entero 5, etc) y parece un plato/vaso, forzar 0.50
-                            if (correctPrice >= 1.0 && (
-                                formattedName.toLowerCase().includes('verre') ||
-                                formattedName.toLowerCase().includes('assiette') ||
-                                formattedName.toLowerCase().includes('couverts')
-                            )) {
-                                console.warn(`\u26a0\ufe0f Forzando precio 0.50 para "${formattedName}"(precio anterior: ${correctPrice})`)
-                                correctPrice = 0.50
-                            }
-
-                            return {
-                                ...item,
-                                name: formattedName,
-                                pricePerUnit: correctPrice
-                            }
-                        })
-
-                    // Recálculo inicial de material
-                    if (budgetData.material.items.length > 0) {
-                        let materialHT = 0
-                        budgetData.material.items.forEach(item => {
-                            item.total = item.quantity * item.pricePerUnit
-                            materialHT += item.total
-                        })
-                        const insPct = (budgetData.material.insurancePct ?? 6) / 100
-                        const insurance = materialHT * insPct
-                        budgetData.material.insurancePct = insPct * 100
-                        budgetData.material.insuranceAmount = insurance
-                        const materialHTWithInsurance = materialHT + insurance
-                        budgetData.material.totalHT = materialHTWithInsurance
-                        budgetData.material.tva = materialHTWithInsurance * (budgetData.material.tvaPct / 100)
-                        budgetData.material.totalTTC = budgetData.material.totalHT + budgetData.material.tva
-                    } else {
-                        delete budgetData.material
-                    }
-                }
-
-                // Updating the local budget object with enriched data
-                const enrichedBudget = { ...data, budget_data: budgetData }
-                setBudget(enrichedBudget as any)
-
-                return budgetData
-            }
-            return null
-        } catch (err) {
-            setError('Error cargando presupuesto')
-            console.error(err)
-            return null
-        } finally {
-            setLoading(false)
-        }
-    }, [budgetId])
-
-    useEffect(() => {
-        if (budgetId) {
-            loadBudget()
-        }
-    }, [budgetId, loadBudget])
-
-    const saveBudget = async (editedData: BudgetData, summary: string = 'Edición manual') => {
-        try {
-            setSaving(true)
-
-            const response = await fetch('/api/update-budget', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    budgetId,
-                    budgetData: editedData,
-                    editedBy: 'admin',
-                    changesSummary: summary
-                })
-            })
-
-            if (!response.ok) {
-                throw new Error('Error al guardar')
-            }
-
-            const result = await response.json()
-            console.log('✅ Cambios guardados:', result)
-
-            // ✅ Invalidate React Query caches so lists refresh with updated data
-            queryClient.invalidateQueries({ queryKey: ['budgets'] })
-            queryClient.invalidateQueries({ queryKey: ['orders'] })
-
-            // Recargar presupuesto para actualizar versión y estado
-            const updatedData = await loadBudget()
-            return { success: true, data: updatedData }
-        } catch (err) {
-            console.error('Error guardando:', err)
-            return { success: false, error: err }
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    const deleteBudget = async () => {
-        try {
-            setSaving(true)
-
-            // Get current budget to find order_id
-            const currentBudget = budget
-
-            // Delete budget first
-            const { error: budgetError } = await supabase
-                .from('budgets')
-                .delete()
-                .eq('id', budgetId)
-
-            if (budgetError) throw budgetError
-
-            // \u2705 Mirror delete: Also delete related order if exists
-            if (currentBudget?.order_id) {
-                console.log(`\ud83d\uddd1\ufe0f Mirror delete: Removing related order ${currentBudget.order_id}`)
-                const { error: orderError } = await supabase
-                    .from('catering_orders')
-                    .delete()
-                    .eq('id', currentBudget.order_id)
-
-                if (orderError) {
-                    console.warn('\u26a0\ufe0f Failed to delete related order:', orderError)
-                    // Don't throw - budget already deleted
-                } else {
-                    console.log('\u2705 Related order deleted successfully')
-                }
-            }
-
-            return { success: true }
-        } catch (err) {
-            console.error('Error eliminando:', err)
-            return { success: false, error: err }
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    const approveAndSend = async (clientEmail: string, clientName: string) => {
-        try {
-            setSaving(true)
-            const response = await fetch('/api/approve-and-send-budget', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    budgetId,
-                    clientEmail,
-                    clientName
-                })
-            })
-
-            const result = await response.json()
-            if (!response.ok) throw new Error(result.details || result.error || 'Error al aprobar y enviar')
-
-            await loadBudget()
-            return { success: true, result }
-        } catch (err) {
-            console.error('Error aprobando:', err)
-            return { success: false, error: err }
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    const generatePDF = async (currentData: BudgetData): Promise<{ success: true; pdfUrl: string; pdfBlob: Blob; pdfFilename: string } | { success: false; error: any }> => {
-        try {
-            setSaving(true)
-
-            // ✅ Verification logging for transport cost
-            console.log('🔍 PDF Generation - Deplacement data:', currentData.deplacement)
-            if (currentData.deplacement) {
-                console.log('  Distance:', currentData.deplacement.distance, 'km')
-                console.log('  Price per km:', currentData.deplacement.pricePerKm, '€')
-                console.log('  Total HT:', currentData.deplacement.totalHT, '€')
-            } else {
-                console.log('  ⚠️ No deplacement data present')
-            }
-
-            // Guardar primero
-            await saveBudget(currentData, 'Guardado automático antes de PDF')
-
-            // ✅ CLIENT-SIDE PDF GENERATION (Fast! ~100-500ms)
-            // Import dynamically to avoid SSR issues
-            const { generateAndUploadPdf } = await import('@/lib/pdf/pdfClientService')
-
-            console.log('🚀 Starting client-side PDF generation...')
-            const startTime = performance.now()
-
-            const { blob, filename, pdfUrl } = await generateAndUploadPdf(currentData, budgetId)
-
-            const endTime = performance.now()
-            console.log(`✅ Total PDF generation + upload: ${(endTime - startTime).toFixed(0)}ms`)
-
-            // Update budget record with new PDF URL
-            const { error: updateError } = await supabase
-                .from('budgets')
-                .update({ pdf_url: pdfUrl })
-                .eq('id', budgetId)
-
-            if (updateError) {
-                console.warn('⚠️ Could not update pdf_url in database:', updateError)
-            }
-
-            // Optimistic Update (Avoid full reload)
-            if (budget) {
-                setBudget({ ...budget, pdf_url: pdfUrl })
-            }
-
-            // Invalidate List Query in Background (don't await/block)
-            queryClient.invalidateQueries({ queryKey: ['budgets'] })
-
-            return { success: true, pdfUrl, pdfBlob: blob, pdfFilename: filename }
-        } catch (err) {
-            console.error('Error generando PDF:', err)
-            return { success: false, error: err }
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    const markAsSent = async () => {
-        try {
-            setSaving(true)
-            const response = await fetch('/api/mark-budget-as-sent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ budgetId })
-            })
-
-            const result = await response.json()
-            if (!response.ok) throw new Error(result.error || 'Error al marcar como enviado')
-
-            await loadBudget()
-            return { success: true, result }
-        } catch (err) {
-            console.error('Error marcando como enviado:', err)
-            return { success: false, error: err }
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    // ✅ Add new internal note to thread
-    const addInternalNote = async (note: string) => {
-        if (!orderId) {
-            console.warn('⚠️ No order_id linked to this budget')
-            return { success: false, error: 'No hay pedido vinculado' }
-        }
-        if (!note.trim()) return { success: false, error: 'Nota vacía' }
-
-        try {
-            setSaving(true)
-
-            // Add new note at beginning of array (newest first)
-            const newNote = { text: note.trim(), createdAt: new Date().toISOString() }
-            const updatedNotes = [newNote, ...internalNotes]
-
-            const { error } = await supabase
-                .from('catering_orders')
-                .update({
-                    internal_note: updatedNotes,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', orderId)
-
-            if (error) throw error
-
-            setInternalNotes(updatedNotes)
-            return { success: true }
-        } catch (err) {
-            console.error('❌ Error adding note:', err)
-            return { success: false, error: err }
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    // ✅ Delete note from thread by index
-    const deleteInternalNote = async (noteIndex: number) => {
-        if (!orderId) return { success: false, error: 'No hay pedido vinculado' }
-
-        try {
-            setSaving(true)
-
-            const updatedNotes = internalNotes.filter((_, i) => i !== noteIndex)
-
-            const { error } = await supabase
-                .from('catering_orders')
-                .update({
-                    internal_note: updatedNotes.length > 0 ? updatedNotes : null,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', orderId)
-
-            if (error) throw error
-
-            setInternalNotes(updatedNotes)
-            return { success: true }
-        } catch (err) {
-            console.error('❌ Error deleting note:', err)
-            return { success: false, error: err }
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    // ✅ Crea un order para un presupuesto huérfano y lo vincula
-    const createLinkedOrder = async (currentData: any) => {
-        try {
-            setSaving(true)
-            console.log('🔗 Creating linked order for orphan budget...')
-
-            // 1. Crear el order con los datos actuales del presupuesto
-            const initialOrder = {
-                status: 'draft',
-                name: currentData.clientInfo?.name || 'Nuevo Presupuesto (Migrado)',
-                email: currentData.clientInfo?.email || '',
-                phone: currentData.clientInfo?.phone || '',
-                event_date: currentData.clientInfo?.eventDate || (new Date()).toISOString(),
-                event_type: currentData.clientInfo?.eventType || '',
-                guest_count: currentData.clientInfo?.guestCount || 0,
-                address: currentData.clientInfo?.address || '',
-                created_at: (new Date()).toISOString(),
-                updated_at: (new Date()).toISOString(),
-                internal_note: [{
-                    text: 'Presupuesto migrado manualmente desde panel admin',
-                    createdAt: (new Date()).toISOString()
-                }]
-            }
-
-            const { data: orderData, error: orderError } = await supabase
-                .from('catering_orders')
-                .insert(initialOrder)
-                .select()
-                .single()
-
-            if (orderError) throw orderError
-            console.log('✅ Order created:', orderData.id)
-
-            // 2. Vincular el presupuesto al nuevo order
-            const { error: updateError } = await supabase
-                .from('budgets')
-                .update({ order_id: orderData.id })
-                .eq('id', budgetId)
-
-            if (updateError) throw updateError
-            console.log('✅ Budget linked to order')
-
-            // 3. Recargar para actualizar estado
-            await loadBudget()
-            return { success: true }
-
-        } catch (err) {
-            console.error('❌ Error linking order:', err)
-            return { success: false, error: err }
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    return {
-        budget,
-        loading,
-        error,
-        saving,
-        internalNotes,
-        orderId,
-        loadBudget,
-        saveBudget,
-        deleteBudget,
-        approveAndSend,
-        generatePDF,
-        markAsSent,
-        addInternalNote,
-        deleteInternalNote,
-        createLinkedOrder // ✅ Expose new function
-    }
+	const queryClient = useQueryClient(); // ✅ Get query client
+	const [budget, setBudget] = useState<Budget | null>(null);
+	const [persistedBudgetData, setPersistedBudgetData] =
+		useState<BudgetData | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [saving, setSaving] = useState(false);
+	const [internalNotes, setInternalNotes] = useState<
+		{ text: string; createdAt: string }[]
+	>([]); // ✅ Array of notes
+	const [orderId, setOrderId] = useState<string | null>(null);
+
+	const loadBudget = useCallback(async () => {
+		try {
+			setLoading(true);
+
+			const { data, error } = await supabase
+				.from("budgets")
+				.select("*")
+				.eq("id", budgetId)
+				.single();
+
+			if (error) {
+				throw error;
+			}
+
+			if (data) {
+				setBudget(data as any);
+				const persistedData = structuredClone(data.budget_data) as BudgetData;
+				setPersistedBudgetData(persistedData);
+
+				// Procesamiento inicial de datos (similar al original)
+				const budgetData = structuredClone(data.budget_data) as BudgetData;
+
+				// Start material products fetch early (runs in parallel with order fetch)
+				const materialProductsPromise = supabase
+					.from("products")
+					.select("name, price_per_portion")
+					.eq("category", "material");
+
+				// Safe Client Info Backfill Strategy
+				// - Only fills NULL/empty fields
+				// - Preserves manual edits
+				// - Always fetch selectedItems from orders
+				if (data.order_id) {
+					setOrderId(data.order_id); // ✅ Store order_id
+					const { data: orderData, error: orderError } = await supabase
+						.from("catering_orders")
+						.select(
+							"entrees, viandes, dessert, event_date, name, email, phone, address, event_type, guest_count, internal_note",
+						)
+						.eq("id", data.order_id)
+						.single();
+
+					if (orderError) {
+						console.error("❌ Error fetching order data:", orderError);
+					}
+
+					if (orderData) {
+						// ✅ Parse internal notes array
+						if (orderData.internal_note) {
+							let noteData = orderData.internal_note;
+							if (typeof noteData === "string") {
+								try {
+									noteData = JSON.parse(noteData);
+								} catch {
+									noteData = null;
+								}
+							}
+							// Handle array or single object
+							if (Array.isArray(noteData)) {
+								setInternalNotes(
+									noteData.map((n: any) => ({
+										text: n.text || "",
+										createdAt:
+											n.createdAt || n.created_at || new Date().toISOString(),
+									})),
+								);
+							} else if (noteData && typeof noteData === "object") {
+								// Legacy single object format
+								setInternalNotes([
+									{
+										text: noteData.text || "",
+										createdAt:
+											noteData.createdAt ||
+											noteData.updatedAt ||
+											new Date().toISOString(),
+									},
+								]);
+							} else {
+								setInternalNotes([]);
+							}
+						} else {
+							setInternalNotes([]);
+						}
+						// PHASE 1: PRODUCT NORMALIZATION
+						// Convert frontend IDs (e.g., 'secreto', 'burger') to database product names
+						const normalizedEntrees = normalizeFrontendIdsToProductNames(
+							orderData.entrees || [],
+						);
+						const normalizedViandes = normalizeFrontendIdsToProductNames(
+							orderData.viandes || [],
+						);
+						const normalizedDessert = orderData.dessert
+							? normalizeFrontendIdsToProductNames([orderData.dessert])[0]
+							: null;
+
+						// Fetch full product objects from database
+						const allProductNames = [
+							...normalizedEntrees,
+							...normalizedViandes,
+						];
+						if (normalizedDessert) allProductNames.push(normalizedDessert);
+
+						const { data: products, error: productsError } = await supabase
+							.from("products")
+							.select("id, name, price_per_portion, category, is_combo")
+							.in("name", allProductNames);
+
+						if (productsError) {
+							console.error("❌ Error fetching products:", productsError);
+						}
+
+						// Hydrate selectedItems with full product objects
+						if (products) {
+							const findProduct = (name: string) =>
+								products.find(
+									(p) => p.name.toLowerCase() === name.toLowerCase(),
+								);
+
+							budgetData.menu.selectedItems = {
+								entrees: normalizedEntrees.map(
+									(name) => findProduct(name)?.name || name,
+								),
+								viandes: normalizedViandes.map(
+									(name) => findProduct(name)?.name || name,
+								),
+								desserts: normalizedDessert
+									? [findProduct(normalizedDessert)?.name || normalizedDessert]
+									: [],
+							};
+
+							console.log("✅ Product normalization complete:", {
+								originalEntrees: orderData.entrees,
+								normalizedEntrees,
+								originalViandes: orderData.viandes,
+								normalizedViandes,
+								foundProducts: products.length,
+							});
+						} else {
+							// Fallback: use normalized names even if no products found
+							budgetData.menu.selectedItems = {
+								entrees: normalizedEntrees,
+								viandes: normalizedViandes,
+								desserts: normalizedDessert ? [normalizedDessert] : [],
+							};
+						}
+
+						// Safe fallback: Only fill empty fields, never overwrite
+						// This preserves manual edits while filling in missing data
+						if (!budgetData.clientInfo.name && orderData.name) {
+							budgetData.clientInfo.name = orderData.name;
+						}
+						if (!budgetData.clientInfo.email && orderData.email) {
+							budgetData.clientInfo.email = orderData.email;
+						}
+						if (!budgetData.clientInfo.phone && orderData.phone) {
+							budgetData.clientInfo.phone = orderData.phone;
+						}
+						if (!budgetData.clientInfo.address && orderData.address) {
+							budgetData.clientInfo.address = orderData.address;
+						}
+						if (!budgetData.clientInfo.eventType && orderData.event_type) {
+							budgetData.clientInfo.eventType = orderData.event_type;
+						}
+						if (!budgetData.clientInfo.guestCount && orderData.guest_count) {
+							budgetData.clientInfo.guestCount = orderData.guest_count;
+						}
+						// Event date: Fill if missing
+						if (!budgetData.clientInfo.eventDate && orderData.event_date) {
+							budgetData.clientInfo.eventDate = orderData.event_date;
+						}
+					}
+				} else {
+					// Budget has no order_id - standalone budget
+				}
+
+				// Asegurar valores fijos para servicio si existe
+				if (budgetData.service) {
+					budgetData.service.pricePerHour = 40;
+					budgetData.service.tvaPct = 20;
+					const serviceHT =
+						budgetData.service.mozos * budgetData.service.hours * 40;
+					budgetData.service.totalHT = serviceHT;
+					budgetData.service.tva = serviceHT * 0.2;
+					budgetData.service.totalTTC = serviceHT + budgetData.service.tva;
+				}
+
+				// Await material products (started early, ran in parallel with order fetch)
+				let materialProducts:
+					| { name: string; price_per_portion: number }[]
+					| null = null;
+				try {
+					const result = await materialProductsPromise;
+					materialProducts = result.data;
+				} catch {
+					// Silently fail - material price correction is optional
+				}
+
+				// Formatear nombres y corregir precios de items de material
+				if (budgetData.material && budgetData.material.items) {
+					budgetData.material.items = budgetData.material.items
+						.filter((item) => {
+							const itemNameLower = item.name.toLowerCase();
+							return (
+								!itemNameLower.includes("serveur") &&
+								!itemNameLower.includes("servicio") &&
+								!itemNameLower.includes("mozos")
+							);
+						})
+						.map((item) => {
+							// 1. Formatear nombre para francés (Visualización)
+							const formattedName = formatItemName(item.name);
+
+							// \u2705 PRESERVE MANUAL PRICES
+							// If item has isManualPrice flag, keep the existing price
+							if (item.isManualPrice) {
+								console.log(
+									`\u2705 Preserving manual price for "${formattedName}": ${item.pricePerUnit}\u20ac`,
+								);
+								return {
+									...item,
+									name: formattedName,
+									// pricePerUnit unchanged
+								};
+							}
+
+							// 2. Buscar precio correcto en BD (Lógica)
+							let correctPrice = item.pricePerUnit;
+
+							if (materialProducts) {
+								// Intentar mapear usando las claves conocidas
+								const dbMatches = Object.entries(MATERIAL_MAPPINGS).find(
+									([key, _]) =>
+										item.name.toLowerCase().includes(key) ||
+										formatItemName(item.name).toLowerCase().includes(key),
+								);
+
+								let foundProduct = null;
+
+								if (dbMatches) {
+									// Buscar por nombre mapeado (Español)
+									const possibleNames = dbMatches[1] as string[];
+									foundProduct = materialProducts.find((p) =>
+										possibleNames.some((name: string) =>
+											p.name.toLowerCase().includes(name),
+										),
+									);
+								}
+
+								// Si no se encuentra por mapeo, buscar directo (por si ya estaba en español o coincidencia exacta)
+								if (!foundProduct) {
+									foundProduct = materialProducts.find(
+										(p) =>
+											p.name.toLowerCase() === item.name.toLowerCase() ||
+											p.name.toLowerCase().includes(item.name.toLowerCase()),
+									);
+								}
+
+								if (foundProduct) {
+									console.log(
+										`\u2705 Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion} `,
+									);
+									correctPrice = foundProduct.price_per_portion || 0.5;
+								}
+							}
+
+							// Si el precio sigue siendo sospechoso (entero 5, etc) y parece un plato/vaso, forzar 0.50
+							if (
+								correctPrice >= 1.0 &&
+								(formattedName.toLowerCase().includes("verre") ||
+									formattedName.toLowerCase().includes("assiette") ||
+									formattedName.toLowerCase().includes("couverts"))
+							) {
+								console.warn(
+									`\u26a0\ufe0f Forzando precio 0.50 para "${formattedName}"(precio anterior: ${correctPrice})`,
+								);
+								correctPrice = 0.5;
+							}
+
+							return {
+								...item,
+								name: formattedName,
+								pricePerUnit: correctPrice,
+							};
+						});
+
+					// Recálculo inicial de material
+					if (budgetData.material.items.length > 0) {
+						let materialHT = 0;
+						budgetData.material.items.forEach((item) => {
+							item.total = item.quantity * item.pricePerUnit;
+							materialHT += item.total;
+						});
+						const insPct = (budgetData.material.insurancePct ?? 6) / 100;
+						const insurance = materialHT * insPct;
+						budgetData.material.insurancePct = insPct * 100;
+						budgetData.material.insuranceAmount = insurance;
+						const materialHTWithInsurance = materialHT + insurance;
+						budgetData.material.totalHT = materialHTWithInsurance;
+						budgetData.material.tva =
+							materialHTWithInsurance * (budgetData.material.tvaPct / 100);
+						budgetData.material.totalTTC =
+							budgetData.material.totalHT + budgetData.material.tva;
+					} else {
+						delete budgetData.material;
+					}
+				}
+
+				// Updating the local budget object with enriched data
+				const enrichedBudget = { ...data, budget_data: budgetData };
+				setBudget(enrichedBudget as any);
+
+				return budgetData;
+			}
+			return null;
+		} catch (err) {
+			setError("Error cargando presupuesto");
+			console.error(err);
+			return null;
+		} finally {
+			setLoading(false);
+		}
+	}, [budgetId]);
+
+	useEffect(() => {
+		if (budgetId) {
+			loadBudget();
+		}
+	}, [budgetId, loadBudget]);
+
+	const saveBudget = async (
+		editedData: BudgetData,
+		summary: string = "Edición manual",
+	) => {
+		try {
+			setSaving(true);
+
+			const response = await fetch("/api/update-budget", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					budgetId,
+					budgetData: editedData,
+					editedBy: "admin",
+					changesSummary: summary,
+				}),
+			});
+
+			if (!response.ok) {
+				throw new Error("Error al guardar");
+			}
+
+			const result = await response.json();
+			console.log("✅ Cambios guardados:", result);
+
+			// ✅ Invalidate React Query caches so lists refresh with updated data
+			queryClient.invalidateQueries({ queryKey: ["budgets"] });
+			queryClient.invalidateQueries({ queryKey: ["orders"] });
+
+			// Recargar presupuesto para actualizar versión y estado
+			const updatedData = await loadBudget();
+			return { success: true, data: updatedData };
+		} catch (err) {
+			console.error("Error guardando:", err);
+			return { success: false, error: err };
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const deleteBudget = async () => {
+		try {
+			setSaving(true);
+
+			// Get current budget to find order_id
+			const currentBudget = budget;
+
+			// Delete budget first
+			const { error: budgetError } = await supabase
+				.from("budgets")
+				.delete()
+				.eq("id", budgetId);
+
+			if (budgetError) throw budgetError;
+
+			// \u2705 Mirror delete: Also delete related order if exists
+			if (currentBudget?.order_id) {
+				console.log(
+					`\ud83d\uddd1\ufe0f Mirror delete: Removing related order ${currentBudget.order_id}`,
+				);
+				const { error: orderError } = await supabase
+					.from("catering_orders")
+					.delete()
+					.eq("id", currentBudget.order_id);
+
+				if (orderError) {
+					console.warn(
+						"\u26a0\ufe0f Failed to delete related order:",
+						orderError,
+					);
+					// Don't throw - budget already deleted
+				} else {
+					console.log("\u2705 Related order deleted successfully");
+				}
+			}
+
+			return { success: true };
+		} catch (err) {
+			console.error("Error eliminando:", err);
+			return { success: false, error: err };
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const approveAndSend = async (clientEmail: string, clientName: string) => {
+		try {
+			setSaving(true);
+			const response = await fetch("/api/approve-and-send-budget", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					budgetId,
+					clientEmail,
+					clientName,
+				}),
+			});
+
+			const result = await response.json();
+			if (!response.ok)
+				throw new Error(
+					result.details || result.error || "Error al aprobar y enviar",
+				);
+
+			await loadBudget();
+			return { success: true, result };
+		} catch (err) {
+			console.error("Error aprobando:", err);
+			return { success: false, error: err };
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const generatePDF = async (
+		currentData: BudgetData,
+	): Promise<
+		| { success: true; pdfUrl: string; pdfBlob: Blob; pdfFilename: string }
+		| { success: false; error: any }
+	> => {
+		try {
+			setSaving(true);
+
+			// ✅ Verification logging for transport cost
+			console.log(
+				"🔍 PDF Generation - Deplacement data:",
+				currentData.deplacement,
+			);
+			if (currentData.deplacement) {
+				console.log("  Distance:", currentData.deplacement.distance, "km");
+				console.log("  Price per km:", currentData.deplacement.pricePerKm, "€");
+				console.log("  Total HT:", currentData.deplacement.totalHT, "€");
+			} else {
+				console.log("  ⚠️ No deplacement data present");
+			}
+
+			// Guardar primero
+			await saveBudget(currentData, "Guardado automático antes de PDF");
+
+			// ✅ CLIENT-SIDE PDF GENERATION (Fast! ~100-500ms)
+			// Import dynamically to avoid SSR issues
+			const { generateAndUploadPdf } = await import(
+				"@/lib/pdf/pdfClientService"
+			);
+
+			console.log("🚀 Starting client-side PDF generation...");
+			const startTime = performance.now();
+
+			const { blob, filename, pdfUrl } = await generateAndUploadPdf(
+				currentData,
+				budgetId,
+			);
+
+			const endTime = performance.now();
+			console.log(
+				`✅ Total PDF generation + upload: ${(endTime - startTime).toFixed(0)}ms`,
+			);
+
+			// Update budget record with new PDF URL
+			const { error: updateError } = await supabase
+				.from("budgets")
+				.update({ pdf_url: pdfUrl })
+				.eq("id", budgetId);
+
+			if (updateError) {
+				console.warn("⚠️ Could not update pdf_url in database:", updateError);
+			}
+
+			// Optimistic Update (Avoid full reload)
+			if (budget) {
+				setBudget({ ...budget, pdf_url: pdfUrl });
+			}
+
+			// Invalidate List Query in Background (don't await/block)
+			queryClient.invalidateQueries({ queryKey: ["budgets"] });
+
+			return { success: true, pdfUrl, pdfBlob: blob, pdfFilename: filename };
+		} catch (err) {
+			console.error("Error generando PDF:", err);
+			return { success: false, error: err };
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const markAsSent = async () => {
+		try {
+			setSaving(true);
+			const response = await fetch("/api/mark-budget-as-sent", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ budgetId }),
+			});
+
+			const result = await response.json();
+			if (!response.ok)
+				throw new Error(result.error || "Error al marcar como enviado");
+
+			await loadBudget();
+			return { success: true, result };
+		} catch (err) {
+			console.error("Error marcando como enviado:", err);
+			return { success: false, error: err };
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	// ✅ Add new internal note to thread
+	const addInternalNote = async (note: string) => {
+		if (!orderId) {
+			console.warn("⚠️ No order_id linked to this budget");
+			return { success: false, error: "No hay pedido vinculado" };
+		}
+		if (!note.trim()) return { success: false, error: "Nota vacía" };
+
+		try {
+			setSaving(true);
+
+			// Add new note at beginning of array (newest first)
+			const newNote = {
+				text: note.trim(),
+				createdAt: new Date().toISOString(),
+			};
+			const updatedNotes = [newNote, ...internalNotes];
+
+			const { error } = await supabase
+				.from("catering_orders")
+				.update({
+					internal_note: updatedNotes,
+					updated_at: new Date().toISOString(),
+				})
+				.eq("id", orderId);
+
+			if (error) throw error;
+
+			setInternalNotes(updatedNotes);
+			return { success: true };
+		} catch (err) {
+			console.error("❌ Error adding note:", err);
+			return { success: false, error: err };
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	// ✅ Delete note from thread by index
+	const deleteInternalNote = async (noteIndex: number) => {
+		if (!orderId) return { success: false, error: "No hay pedido vinculado" };
+
+		try {
+			setSaving(true);
+
+			const updatedNotes = internalNotes.filter((_, i) => i !== noteIndex);
+
+			const { error } = await supabase
+				.from("catering_orders")
+				.update({
+					internal_note: updatedNotes.length > 0 ? updatedNotes : null,
+					updated_at: new Date().toISOString(),
+				})
+				.eq("id", orderId);
+
+			if (error) throw error;
+
+			setInternalNotes(updatedNotes);
+			return { success: true };
+		} catch (err) {
+			console.error("❌ Error deleting note:", err);
+			return { success: false, error: err };
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	// ✅ Crea un order para un presupuesto huérfano y lo vincula
+	const createLinkedOrder = async (currentData: any) => {
+		try {
+			setSaving(true);
+			console.log("🔗 Creating linked order for orphan budget...");
+
+			// 1. Crear el order con los datos actuales del presupuesto
+			const initialOrder = {
+				status: "draft",
+				name: currentData.clientInfo?.name || "Nuevo Presupuesto (Migrado)",
+				email: currentData.clientInfo?.email || "",
+				phone: currentData.clientInfo?.phone || "",
+				event_date:
+					currentData.clientInfo?.eventDate || new Date().toISOString(),
+				event_type: currentData.clientInfo?.eventType || "",
+				guest_count: currentData.clientInfo?.guestCount || 0,
+				address: currentData.clientInfo?.address || "",
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+				internal_note: [
+					{
+						text: "Presupuesto migrado manualmente desde panel admin",
+						createdAt: new Date().toISOString(),
+					},
+				],
+			};
+
+			const { data: orderData, error: orderError } = await supabase
+				.from("catering_orders")
+				.insert(initialOrder)
+				.select()
+				.single();
+
+			if (orderError) throw orderError;
+			console.log("✅ Order created:", orderData.id);
+
+			// 2. Vincular el presupuesto al nuevo order
+			const { error: updateError } = await supabase
+				.from("budgets")
+				.update({ order_id: orderData.id })
+				.eq("id", budgetId);
+
+			if (updateError) throw updateError;
+			console.log("✅ Budget linked to order");
+
+			// 3. Recargar para actualizar estado
+			await loadBudget();
+			return { success: true };
+		} catch (err) {
+			console.error("❌ Error linking order:", err);
+			return { success: false, error: err };
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	return {
+		budget,
+		persistedBudgetData,
+		loading,
+		error,
+		saving,
+		internalNotes,
+		orderId,
+		loadBudget,
+		saveBudget,
+		deleteBudget,
+		approveAndSend,
+		generatePDF,
+		markAsSent,
+		addInternalNote,
+		deleteInternalNote,
+		createLinkedOrder, // ✅ Expose new function
+	};
 }

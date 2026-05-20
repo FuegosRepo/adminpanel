@@ -1,6 +1,16 @@
 import React from 'react'
-import { Plus, X } from 'lucide-react'
-import styles from './AddEventModal.module.css'
+import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 
 interface AddEventModalProps {
     isOpen: boolean
@@ -25,32 +35,26 @@ export function AddEventModal({
     onDateChange,
     onGuestCountChange
 }: AddEventModalProps) {
-    if (!isOpen) return null
-
     const isValid = eventName.trim() && guestCount > 0
 
     return (
-        <div className={styles.modalOverlay} onClick={onClose}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.modalHeader}>
-                    <h3 className={styles.modalTitle}>
-                        <Plus size={24} />
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Plus className="h-5 w-5 text-primary" />
                         Agregar Evento Manual
-                    </h3>
-                    <button
-                        className={styles.closeButton}
-                        onClick={onClose}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
+                    </DialogTitle>
+                    <DialogDescription>
+                        Crea un nuevo evento y define sus parámetros básicos.
+                    </DialogDescription>
+                </DialogHeader>
 
-                <div className={styles.modalBody}>
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Nombre del Evento *</label>
-                        <input
-                            type="text"
-                            className={styles.input}
+                <div className="space-y-4 py-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="event-name">Nombre del Evento *</Label>
+                        <Input
+                            id="event-name"
                             value={eventName}
                             onChange={(e) => onNameChange(e.target.value)}
                             placeholder="Ej: Evento Viernes, Boda Juan y María..."
@@ -58,22 +62,22 @@ export function AddEventModal({
                         />
                     </div>
 
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Fecha del Evento</label>
-                        <input
+                    <div className="space-y-2">
+                        <Label htmlFor="event-date">Fecha del Evento</Label>
+                        <Input
+                            id="event-date"
                             type="date"
-                            className={styles.input}
                             value={eventDate}
                             onChange={(e) => onDateChange(e.target.value)}
                         />
                     </div>
 
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Número de Invitados *</label>
-                        <input
+                    <div className="space-y-2">
+                        <Label htmlFor="guest-count">Número de Invitados *</Label>
+                        <Input
+                            id="guest-count"
                             type="number"
                             min="1"
-                            className={styles.input}
                             value={guestCount || ''}
                             onChange={(e) => onGuestCountChange(parseInt(e.target.value) || 0)}
                             placeholder="Ej: 50"
@@ -81,23 +85,16 @@ export function AddEventModal({
                     </div>
                 </div>
 
-                <div className={styles.modalFooter}>
-                    <button
-                        className={styles.cancelButton}
-                        onClick={onClose}
-                    >
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose}>
                         Cancelar
-                    </button>
-                    <button
-                        className={styles.confirmButton}
-                        onClick={onSubmit}
-                        disabled={!isValid}
-                    >
-                        <Plus size={18} />
+                    </Button>
+                    <Button onClick={onSubmit} disabled={!isValid}>
+                        <Plus className="h-4 w-4" />
                         Crear Evento
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }

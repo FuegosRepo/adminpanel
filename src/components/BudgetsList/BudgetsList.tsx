@@ -55,6 +55,7 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
         filters={filters}
         selectedBudgets={actions.selectedBudgets}
         onBulkRelance={() => actions.setBulkRelanceModalOpen(true)}
+        onBulkReject={() => actions.setBulkRejectModalOpen(true)}
         onCreateManual={actions.handleCreateManual}
       />
 
@@ -163,6 +164,18 @@ export default function BudgetsList({ onSelectBudget, page, setPage, filters, se
         }
         confirmLabel={actions.isBulkRelancing ? "Enviando..." : (actions.selectedBudgets.size > 0 ? "Sí, Relanzar Seleccionados" : "Sí, Relanzar a Todos")}
         variant="warning"
+      />
+      <ConfirmationModal
+        isOpen={actions.bulkRejectModalOpen}
+        onClose={() => actions.setBulkRejectModalOpen(false)}
+        onConfirm={actions.handleConfirmBulkReject}
+        title={actions.selectedBudgets.size > 0 ? "Confirmar Rechazo Seleccionado" : "Confirmar Rechazo Masivo"}
+        message={actions.selectedBudgets.size > 0
+          ? `¿Estás seguro de que deseas rechazar permanentemente los ${actions.selectedBudgets.size} presupuestos SELECCIONADOS? Esta acción cambiará su estado a rechazado y no se enviarán más relances.`
+          : `¿Estás seguro de que deseas rechazar permanentemente TODOS los ${totalCount} presupuestos de esta lista? Esta acción cambiará su estado a rechazado y no se enviarán más relances.`
+        }
+        confirmLabel={actions.isBulkRejecting ? "Rechazando..." : (actions.selectedBudgets.size > 0 ? "Sí, Rechazar Seleccionados" : "Sí, Rechazar a Todos")}
+        variant="danger"
       />
     </div>
   )

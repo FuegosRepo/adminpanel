@@ -1,5 +1,5 @@
-import { Wrench } from 'lucide-react'
-import styles from './WarningBox.module.css'
+import { AlertCircle, Wrench } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface WarningBoxProps {
     message: string
@@ -13,32 +13,19 @@ interface WarningBoxProps {
  */
 export const WarningBox = ({ message, onRepair, isSaving }: WarningBoxProps) => {
     return (
-        <div className={styles.warningBox}>
-            <svg
-                className={styles.icon}
-                xmlns="http://www.w3.org/2000/svg"
-                width={18}
-                height={18}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            >
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <p>{message}</p>
-            <button
-                className={styles.repairBtn}
+        <div className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
+            <p className="flex-1 text-xs leading-relaxed">{message}</p>
+            <Button
+                variant="outline"
+                size="sm"
                 onClick={onRepair}
                 disabled={isSaving}
+                className="shrink-0 text-xs h-7 border-amber-300 text-amber-700 hover:bg-amber-100"
             >
-                <Wrench size={16} />
-                {isSaving ? 'Reparando...' : 'Reparar Evento'}
-            </button>
+                <Wrench className="h-3.5 w-3.5" />
+                {isSaving ? 'Reparando...' : 'Reparar'}
+            </Button>
         </div>
     )
 }
