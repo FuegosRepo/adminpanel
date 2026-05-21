@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabaseClient'
+import { sanitizeSearchTerm } from '@/utils/queryHelpers'
 import type { BudgetsFilters } from '@/services/budgetsService'
 import type { PaymentMethod } from '@/types'
 
@@ -180,10 +181,29 @@ export function useBudgetListActions({ deleteBudget, createManualBudget, onSelec
       // Si no hay seleccionados, pero estamos en la pestaña relance_3, buscamos todos
       if (budgetIds.length === 0) {
         if (filters.status !== 'relance_3') return // Seguro extra
-        const { data: allBudgets, error: fetchError } = await supabase
+        
+        let query = supabase
           .from('budgets')
           .select('id')
-          .eq('status', 'relance_3')
+          .not('status', 'in', '(approved,APPROVED,rejected)')
+          .gte('relance_count', 3)
+
+        if (filters.searchTerm) {
+          const term = sanitizeSearchTerm(filters.searchTerm)
+          if (term.length > 0) {
+            query = query.or(`budget_data->clientInfo->>name.ilike.%${term}%,budget_data->clientInfo->>email.ilike.%${term}%`)
+          }
+        }
+
+        if (filters.year) {
+          query = query.ilike('budget_data->clientInfo->>eventDate', `%${filters.year}%`)
+        }
+
+        if (filters.eventType) {
+          query = query.ilike('budget_data->clientInfo->>eventType', `%${filters.eventType}%`)
+        }
+
+        const { data: allBudgets, error: fetchError } = await query
           
         if (fetchError) throw fetchError
         if (!allBudgets || allBudgets.length === 0) {
