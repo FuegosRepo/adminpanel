@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query"; // ✅ Add for cache inv
 import { supabase } from "@/lib/supabaseClient";
 import { Budget, BudgetData } from "../types";
 import { formatItemName } from "../utils/formatItemName";
+import { recalculateTotals } from "../utils/budgetCalculations";
 import { MATERIAL_MAPPINGS } from "@/components/EventCalculator/utils/productMapping";
 import { normalizeFrontendIdsToProductNames } from "@/lib/productNormalization";
 
@@ -19,7 +20,7 @@ export function useBudgetData(budgetId: string) {
 	>([]); // ✅ Array of notes
 	const [orderId, setOrderId] = useState<string | null>(null);
 
-	const loadBudget = useCallback(async () => {
+	const loadBudget = useCallback(async (alignPersistedWithEditor = false) => {
 		try {
 			setLoading(true);
 
@@ -35,8 +36,7 @@ export function useBudgetData(budgetId: string) {
 
 			if (data) {
 				setBudget(data as any);
-				const persistedData = structuredClone(data.budget_data) as BudgetData;
-				setPersistedBudgetData(persistedData);
+				const rawPersistedData = structuredClone(data.budget_data) as BudgetData;
 
 				// Procesamiento inicial de datos (similar al original)
 				const budgetData = structuredClone(data.budget_data) as BudgetData;
@@ -326,11 +326,24 @@ export function useBudgetData(budgetId: string) {
 					}
 				}
 
+				// BudgetEditor displays normalized/enriched data, while the database stores raw JSON.
+				// After an explicit save, align the dirty-check baseline with the exact normalized
+				// data returned to the editor so the footer can switch to Generate PDF.
+				// On normal loads, keep the raw persisted baseline so stale PDFs remain guarded
+				// when order/product enrichment would change the displayed budget.
+				const normalizedBudgetData = recalculateTotals(budgetData);
+				const dirtyCheckBaseline = alignPersistedWithEditor
+					? normalizedBudgetData
+					: rawPersistedData;
+				setPersistedBudgetData(
+					structuredClone(dirtyCheckBaseline) as BudgetData,
+				);
+
 				// Updating the local budget object with enriched data
-				const enrichedBudget = { ...data, budget_data: budgetData };
+				const enrichedBudget = { ...data, budget_data: normalizedBudgetData };
 				setBudget(enrichedBudget as any);
 
-				return budgetData;
+				return normalizedBudgetData;
 			}
 			return null;
 		} catch (err) {
@@ -378,7 +391,7 @@ export function useBudgetData(budgetId: string) {
 			queryClient.invalidateQueries({ queryKey: ["orders"] });
 
 			// Recargar presupuesto para actualizar versión y estado
-			const updatedData = await loadBudget();
+			const updatedData = await loadBudget(true);
 			return { success: true, data: updatedData };
 		} catch (err) {
 			console.error("Error guardando:", err);
