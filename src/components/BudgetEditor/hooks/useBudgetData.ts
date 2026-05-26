@@ -7,10 +7,6 @@ import { recalculateTotals } from "../utils/budgetCalculations";
 import { MATERIAL_MAPPINGS } from "@/components/EventCalculator/utils/productMapping";
 import { normalizeFrontendIdsToProductNames } from "@/lib/productNormalization";
 
-type LoadBudgetOptions = {
-	alignPersistedWithEditor?: boolean;
-};
-
 export function useBudgetData(budgetId: string) {
 	const queryClient = useQueryClient(); // ✅ Get query client
 	const [budget, setBudget] = useState<Budget | null>(null);
@@ -24,348 +20,340 @@ export function useBudgetData(budgetId: string) {
 	>([]); // ✅ Array of notes
 	const [orderId, setOrderId] = useState<string | null>(null);
 
-	const loadBudget = useCallback(
-		async (options: LoadBudgetOptions = {}) => {
-			try {
-				setLoading(true);
+	const loadBudget = useCallback(async (alignPersistedWithEditor = false) => {
+		try {
+			setLoading(true);
 
-				const { data, error } = await supabase
-					.from("budgets")
-					.select("*")
-					.eq("id", budgetId)
-					.single();
+			const { data, error } = await supabase
+				.from("budgets")
+				.select("*")
+				.eq("id", budgetId)
+				.single();
 
-				if (error) {
-					throw error;
-				}
+			if (error) {
+				throw error;
+			}
 
-				if (data) {
-					setBudget(data as any);
-					const rawPersistedData = structuredClone(
-						data.budget_data,
-					) as BudgetData;
+			if (data) {
+				setBudget(data as any);
+				const rawPersistedData = structuredClone(data.budget_data) as BudgetData;
 
-					// Procesamiento inicial de datos (similar al original)
-					const budgetData = structuredClone(data.budget_data) as BudgetData;
+				// Procesamiento inicial de datos (similar al original)
+				const budgetData = structuredClone(data.budget_data) as BudgetData;
 
-					// Start material products fetch early (runs in parallel with order fetch)
-					const materialProductsPromise = supabase
-						.from("products")
-						.select("name, price_per_portion")
-						.eq("category", "material");
+				// Start material products fetch early (runs in parallel with order fetch)
+				const materialProductsPromise = supabase
+					.from("products")
+					.select("name, price_per_portion")
+					.eq("category", "material");
 
-					// Safe Client Info Backfill Strategy
-					// - Only fills NULL/empty fields
-					// - Preserves manual edits
-					// - Always fetch selectedItems from orders
-					if (data.order_id) {
-						setOrderId(data.order_id); // ✅ Store order_id
-						const { data: orderData, error: orderError } = await supabase
-							.from("catering_orders")
-							.select(
-								"entrees, viandes, dessert, event_date, name, email, phone, address, event_type, guest_count, internal_note",
-							)
-							.eq("id", data.order_id)
-							.single();
+				// Safe Client Info Backfill Strategy
+				// - Only fills NULL/empty fields
+				// - Preserves manual edits
+				// - Always fetch selectedItems from orders
+				if (data.order_id) {
+					setOrderId(data.order_id); // ✅ Store order_id
+					const { data: orderData, error: orderError } = await supabase
+						.from("catering_orders")
+						.select(
+							"entrees, viandes, dessert, event_date, name, email, phone, address, event_type, guest_count, internal_note",
+						)
+						.eq("id", data.order_id)
+						.single();
 
-						if (orderError) {
-							console.error("❌ Error fetching order data:", orderError);
-						}
+					if (orderError) {
+						console.error("❌ Error fetching order data:", orderError);
+					}
 
-						if (orderData) {
-							// ✅ Parse internal notes array
-							if (orderData.internal_note) {
-								let noteData = orderData.internal_note;
-								if (typeof noteData === "string") {
-									try {
-										noteData = JSON.parse(noteData);
-									} catch {
-										noteData = null;
-									}
+					if (orderData) {
+						// ✅ Parse internal notes array
+						if (orderData.internal_note) {
+							let noteData = orderData.internal_note;
+							if (typeof noteData === "string") {
+								try {
+									noteData = JSON.parse(noteData);
+								} catch {
+									noteData = null;
 								}
-								// Handle array or single object
-								if (Array.isArray(noteData)) {
-									setInternalNotes(
-										noteData.map((n: any) => ({
-											text: n.text || "",
-											createdAt:
-												n.createdAt || n.created_at || new Date().toISOString(),
-										})),
-									);
-								} else if (noteData && typeof noteData === "object") {
-									// Legacy single object format
-									setInternalNotes([
-										{
-											text: noteData.text || "",
-											createdAt:
-												noteData.createdAt ||
-												noteData.updatedAt ||
-												new Date().toISOString(),
-										},
-									]);
-								} else {
-									setInternalNotes([]);
-								}
+							}
+							// Handle array or single object
+							if (Array.isArray(noteData)) {
+								setInternalNotes(
+									noteData.map((n: any) => ({
+										text: n.text || "",
+										createdAt:
+											n.createdAt || n.created_at || new Date().toISOString(),
+									})),
+								);
+							} else if (noteData && typeof noteData === "object") {
+								// Legacy single object format
+								setInternalNotes([
+									{
+										text: noteData.text || "",
+										createdAt:
+											noteData.createdAt ||
+											noteData.updatedAt ||
+											new Date().toISOString(),
+									},
+								]);
 							} else {
 								setInternalNotes([]);
 							}
-							// PHASE 1: PRODUCT NORMALIZATION
-							// Convert frontend IDs (e.g., 'secreto', 'burger') to database product names
-							const normalizedEntrees = normalizeFrontendIdsToProductNames(
-								orderData.entrees || [],
-							);
-							const normalizedViandes = normalizeFrontendIdsToProductNames(
-								orderData.viandes || [],
-							);
-							const normalizedDessert = orderData.dessert
-								? normalizeFrontendIdsToProductNames([orderData.dessert])[0]
-								: null;
-
-							// Fetch full product objects from database
-							const allProductNames = [
-								...normalizedEntrees,
-								...normalizedViandes,
-							];
-							if (normalizedDessert) allProductNames.push(normalizedDessert);
-
-							const { data: products, error: productsError } = await supabase
-								.from("products")
-								.select("id, name, price_per_portion, category, is_combo")
-								.in("name", allProductNames);
-
-							if (productsError) {
-								console.error("❌ Error fetching products:", productsError);
-							}
-
-							// Hydrate selectedItems with full product objects
-							if (products) {
-								const findProduct = (name: string) =>
-									products.find(
-										(p) => p.name.toLowerCase() === name.toLowerCase(),
-									);
-
-								budgetData.menu.selectedItems = {
-									entrees: normalizedEntrees.map(
-										(name) => findProduct(name)?.name || name,
-									),
-									viandes: normalizedViandes.map(
-										(name) => findProduct(name)?.name || name,
-									),
-									desserts: normalizedDessert
-										? [
-												findProduct(normalizedDessert)?.name ||
-													normalizedDessert,
-											]
-										: [],
-								};
-
-								console.log("✅ Product normalization complete:", {
-									originalEntrees: orderData.entrees,
-									normalizedEntrees,
-									originalViandes: orderData.viandes,
-									normalizedViandes,
-									foundProducts: products.length,
-								});
-							} else {
-								// Fallback: use normalized names even if no products found
-								budgetData.menu.selectedItems = {
-									entrees: normalizedEntrees,
-									viandes: normalizedViandes,
-									desserts: normalizedDessert ? [normalizedDessert] : [],
-								};
-							}
-
-							// Safe fallback: Only fill empty fields, never overwrite
-							// This preserves manual edits while filling in missing data
-							if (!budgetData.clientInfo.name && orderData.name) {
-								budgetData.clientInfo.name = orderData.name;
-							}
-							if (!budgetData.clientInfo.email && orderData.email) {
-								budgetData.clientInfo.email = orderData.email;
-							}
-							if (!budgetData.clientInfo.phone && orderData.phone) {
-								budgetData.clientInfo.phone = orderData.phone;
-							}
-							if (!budgetData.clientInfo.address && orderData.address) {
-								budgetData.clientInfo.address = orderData.address;
-							}
-							if (!budgetData.clientInfo.eventType && orderData.event_type) {
-								budgetData.clientInfo.eventType = orderData.event_type;
-							}
-							if (!budgetData.clientInfo.guestCount && orderData.guest_count) {
-								budgetData.clientInfo.guestCount = orderData.guest_count;
-							}
-							// Event date: Fill if missing
-							if (!budgetData.clientInfo.eventDate && orderData.event_date) {
-								budgetData.clientInfo.eventDate = orderData.event_date;
-							}
+						} else {
+							setInternalNotes([]);
 						}
-					} else {
-						// Budget has no order_id - standalone budget
-					}
+						// PHASE 1: PRODUCT NORMALIZATION
+						// Convert frontend IDs (e.g., 'secreto', 'burger') to database product names
+						const normalizedEntrees = normalizeFrontendIdsToProductNames(
+							orderData.entrees || [],
+						);
+						const normalizedViandes = normalizeFrontendIdsToProductNames(
+							orderData.viandes || [],
+						);
+						const normalizedDessert = orderData.dessert
+							? normalizeFrontendIdsToProductNames([orderData.dessert])[0]
+							: null;
 
-					// Asegurar valores fijos para servicio si existe
-					if (budgetData.service) {
-						budgetData.service.pricePerHour = 40;
-						budgetData.service.tvaPct = 20;
-						const serviceHT =
-							budgetData.service.mozos * budgetData.service.hours * 40;
-						budgetData.service.totalHT = serviceHT;
-						budgetData.service.tva = serviceHT * 0.2;
-						budgetData.service.totalTTC = serviceHT + budgetData.service.tva;
-					}
+						// Fetch full product objects from database
+						const allProductNames = [
+							...normalizedEntrees,
+							...normalizedViandes,
+						];
+						if (normalizedDessert) allProductNames.push(normalizedDessert);
 
-					// Await material products (started early, ran in parallel with order fetch)
-					let materialProducts:
-						| { name: string; price_per_portion: number }[]
-						| null = null;
-					try {
-						const result = await materialProductsPromise;
-						materialProducts = result.data;
-					} catch {
-						// Silently fail - material price correction is optional
-					}
+						const { data: products, error: productsError } = await supabase
+							.from("products")
+							.select("id, name, price_per_portion, category, is_combo")
+							.in("name", allProductNames);
 
-					// Formatear nombres y corregir precios de items de material
-					if (budgetData.material && budgetData.material.items) {
-						budgetData.material.items = budgetData.material.items
-							.filter((item) => {
-								const itemNameLower = item.name.toLowerCase();
-								return (
-									!itemNameLower.includes("serveur") &&
-									!itemNameLower.includes("servicio") &&
-									!itemNameLower.includes("mozos")
+						if (productsError) {
+							console.error("❌ Error fetching products:", productsError);
+						}
+
+						// Hydrate selectedItems with full product objects
+						if (products) {
+							const findProduct = (name: string) =>
+								products.find(
+									(p) => p.name.toLowerCase() === name.toLowerCase(),
 								);
-							})
-							.map((item) => {
-								// 1. Formatear nombre para francés (Visualización)
-								const formattedName = formatItemName(item.name);
 
-								// \u2705 PRESERVE MANUAL PRICES
-								// If item has isManualPrice flag, keep the existing price
-								if (item.isManualPrice) {
-									console.log(
-										`\u2705 Preserving manual price for "${formattedName}": ${item.pricePerUnit}\u20ac`,
-									);
-									return {
-										...item,
-										name: formattedName,
-										// pricePerUnit unchanged
-									};
-								}
+							budgetData.menu.selectedItems = {
+								entrees: normalizedEntrees.map(
+									(name) => findProduct(name)?.name || name,
+								),
+								viandes: normalizedViandes.map(
+									(name) => findProduct(name)?.name || name,
+								),
+								desserts: normalizedDessert
+									? [findProduct(normalizedDessert)?.name || normalizedDessert]
+									: [],
+							};
 
-								// 2. Buscar precio correcto en BD (Lógica)
-								let correctPrice = item.pricePerUnit;
+							console.log("✅ Product normalization complete:", {
+								originalEntrees: orderData.entrees,
+								normalizedEntrees,
+								originalViandes: orderData.viandes,
+								normalizedViandes,
+								foundProducts: products.length,
+							});
+						} else {
+							// Fallback: use normalized names even if no products found
+							budgetData.menu.selectedItems = {
+								entrees: normalizedEntrees,
+								viandes: normalizedViandes,
+								desserts: normalizedDessert ? [normalizedDessert] : [],
+							};
+						}
 
-								if (materialProducts) {
-									// Intentar mapear usando las claves conocidas
-									const dbMatches = Object.entries(MATERIAL_MAPPINGS).find(
-										([key, _]) =>
-											item.name.toLowerCase().includes(key) ||
-											formatItemName(item.name).toLowerCase().includes(key),
-									);
+						// Safe fallback: Only fill empty fields, never overwrite
+						// This preserves manual edits while filling in missing data
+						if (!budgetData.clientInfo.name && orderData.name) {
+							budgetData.clientInfo.name = orderData.name;
+						}
+						if (!budgetData.clientInfo.email && orderData.email) {
+							budgetData.clientInfo.email = orderData.email;
+						}
+						if (!budgetData.clientInfo.phone && orderData.phone) {
+							budgetData.clientInfo.phone = orderData.phone;
+						}
+						if (!budgetData.clientInfo.address && orderData.address) {
+							budgetData.clientInfo.address = orderData.address;
+						}
+						if (!budgetData.clientInfo.eventType && orderData.event_type) {
+							budgetData.clientInfo.eventType = orderData.event_type;
+						}
+						if (!budgetData.clientInfo.guestCount && orderData.guest_count) {
+							budgetData.clientInfo.guestCount = orderData.guest_count;
+						}
+						// Event date: Fill if missing
+						if (!budgetData.clientInfo.eventDate && orderData.event_date) {
+							budgetData.clientInfo.eventDate = orderData.event_date;
+						}
+					}
+				} else {
+					// Budget has no order_id - standalone budget
+				}
 
-									let foundProduct = null;
+				// Asegurar valores fijos para servicio si existe
+				if (budgetData.service) {
+					budgetData.service.pricePerHour = 40;
+					budgetData.service.tvaPct = 20;
+					const serviceHT =
+						budgetData.service.mozos * budgetData.service.hours * 40;
+					budgetData.service.totalHT = serviceHT;
+					budgetData.service.tva = serviceHT * 0.2;
+					budgetData.service.totalTTC = serviceHT + budgetData.service.tva;
+				}
 
-									if (dbMatches) {
-										// Buscar por nombre mapeado (Español)
-										const possibleNames = dbMatches[1] as string[];
-										foundProduct = materialProducts.find((p) =>
-											possibleNames.some((name: string) =>
-												p.name.toLowerCase().includes(name),
-											),
-										);
-									}
+				// Await material products (started early, ran in parallel with order fetch)
+				let materialProducts:
+					| { name: string; price_per_portion: number }[]
+					| null = null;
+				try {
+					const result = await materialProductsPromise;
+					materialProducts = result.data;
+				} catch {
+					// Silently fail - material price correction is optional
+				}
 
-									// Si no se encuentra por mapeo, buscar directo (por si ya estaba en español o coincidencia exacta)
-									if (!foundProduct) {
-										foundProduct = materialProducts.find(
-											(p) =>
-												p.name.toLowerCase() === item.name.toLowerCase() ||
-												p.name.toLowerCase().includes(item.name.toLowerCase()),
-										);
-									}
+				// Formatear nombres y corregir precios de items de material
+				if (budgetData.material && budgetData.material.items) {
+					budgetData.material.items = budgetData.material.items
+						.filter((item) => {
+							const itemNameLower = item.name.toLowerCase();
+							return (
+								!itemNameLower.includes("serveur") &&
+								!itemNameLower.includes("servicio") &&
+								!itemNameLower.includes("mozos")
+							);
+						})
+						.map((item) => {
+							// 1. Formatear nombre para francés (Visualización)
+							const formattedName = formatItemName(item.name);
 
-									if (foundProduct) {
-										console.log(
-											`\u2705 Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion} `,
-										);
-										correctPrice = foundProduct.price_per_portion || 0.5;
-									}
-								}
-
-								// Si el precio sigue siendo sospechoso (entero 5, etc) y parece un plato/vaso, forzar 0.50
-								if (
-									correctPrice >= 1.0 &&
-									(formattedName.toLowerCase().includes("verre") ||
-										formattedName.toLowerCase().includes("assiette") ||
-										formattedName.toLowerCase().includes("couverts"))
-								) {
-									console.warn(
-										`\u26a0\ufe0f Forzando precio 0.50 para "${formattedName}"(precio anterior: ${correctPrice})`,
-									);
-									correctPrice = 0.5;
-								}
-
+							// \u2705 PRESERVE MANUAL PRICES
+							// If item has isManualPrice flag, keep the existing price
+							if (item.isManualPrice) {
+								console.log(
+									`\u2705 Preserving manual price for "${formattedName}": ${item.pricePerUnit}\u20ac`,
+								);
 								return {
 									...item,
 									name: formattedName,
-									pricePerUnit: correctPrice,
+									// pricePerUnit unchanged
 								};
-							});
+							}
 
-						// Recálculo inicial de material
-						if (budgetData.material.items.length > 0) {
-							let materialHT = 0;
-							budgetData.material.items.forEach((item) => {
-								item.total = item.quantity * item.pricePerUnit;
-								materialHT += item.total;
-							});
-							const insPct = (budgetData.material.insurancePct ?? 6) / 100;
-							const insurance = materialHT * insPct;
-							budgetData.material.insurancePct = insPct * 100;
-							budgetData.material.insuranceAmount = insurance;
-							const materialHTWithInsurance = materialHT + insurance;
-							budgetData.material.totalHT = materialHTWithInsurance;
-							budgetData.material.tva =
-								materialHTWithInsurance * (budgetData.material.tvaPct / 100);
-							budgetData.material.totalTTC =
-								budgetData.material.totalHT + budgetData.material.tva;
-						} else {
-							delete budgetData.material;
-						}
+							// 2. Buscar precio correcto en BD (Lógica)
+							let correctPrice = item.pricePerUnit;
+
+							if (materialProducts) {
+								// Intentar mapear usando las claves conocidas
+								const dbMatches = Object.entries(MATERIAL_MAPPINGS).find(
+									([key, _]) =>
+										item.name.toLowerCase().includes(key) ||
+										formatItemName(item.name).toLowerCase().includes(key),
+								);
+
+								let foundProduct = null;
+
+								if (dbMatches) {
+									// Buscar por nombre mapeado (Español)
+									const possibleNames = dbMatches[1] as string[];
+									foundProduct = materialProducts.find((p) =>
+										possibleNames.some((name: string) =>
+											p.name.toLowerCase().includes(name),
+										),
+									);
+								}
+
+								// Si no se encuentra por mapeo, buscar directo (por si ya estaba en español o coincidencia exacta)
+								if (!foundProduct) {
+									foundProduct = materialProducts.find(
+										(p) =>
+											p.name.toLowerCase() === item.name.toLowerCase() ||
+											p.name.toLowerCase().includes(item.name.toLowerCase()),
+									);
+								}
+
+								if (foundProduct) {
+									console.log(
+										`\u2705 Precio corregido para "${item.name}": ${item.pricePerUnit} -> ${foundProduct.price_per_portion} `,
+									);
+									correctPrice = foundProduct.price_per_portion || 0.5;
+								}
+							}
+
+							// Si el precio sigue siendo sospechoso (entero 5, etc) y parece un plato/vaso, forzar 0.50
+							if (
+								correctPrice >= 1.0 &&
+								(formattedName.toLowerCase().includes("verre") ||
+									formattedName.toLowerCase().includes("assiette") ||
+									formattedName.toLowerCase().includes("couverts"))
+							) {
+								console.warn(
+									`\u26a0\ufe0f Forzando precio 0.50 para "${formattedName}"(precio anterior: ${correctPrice})`,
+								);
+								correctPrice = 0.5;
+							}
+
+							return {
+								...item,
+								name: formattedName,
+								pricePerUnit: correctPrice,
+							};
+						});
+
+					// Recálculo inicial de material
+					if (budgetData.material.items.length > 0) {
+						let materialHT = 0;
+						budgetData.material.items.forEach((item) => {
+							item.total = item.quantity * item.pricePerUnit;
+							materialHT += item.total;
+						});
+						const insPct = (budgetData.material.insurancePct ?? 6) / 100;
+						const insurance = materialHT * insPct;
+						budgetData.material.insurancePct = insPct * 100;
+						budgetData.material.insuranceAmount = insurance;
+						const materialHTWithInsurance = materialHT + insurance;
+						budgetData.material.totalHT = materialHTWithInsurance;
+						budgetData.material.tva =
+							materialHTWithInsurance * (budgetData.material.tvaPct / 100);
+						budgetData.material.totalTTC =
+							budgetData.material.totalHT + budgetData.material.tva;
+					} else {
+						delete budgetData.material;
 					}
-
-					// BudgetEditor displays normalized/enriched data, while the database stores raw JSON.
-					// After an explicit save, align the dirty-check baseline with the exact normalized
-					// data returned to the editor so the footer can switch to Generate PDF.
-					// On normal loads, keep the raw persisted baseline so stale PDFs remain guarded
-					// when order/product enrichment would change the displayed budget.
-					const normalizedBudgetData = recalculateTotals(budgetData);
-					const dirtyCheckBaseline = options.alignPersistedWithEditor
-						? normalizedBudgetData
-						: rawPersistedData;
-					setPersistedBudgetData(
-						structuredClone(dirtyCheckBaseline) as BudgetData,
-					);
-
-					// Updating the local budget object with enriched data
-					const enrichedBudget = { ...data, budget_data: normalizedBudgetData };
-					setBudget(enrichedBudget as any);
-
-					return normalizedBudgetData;
 				}
-				return null;
-			} catch (err) {
-				setError("Error cargando presupuesto");
-				console.error(err);
-				return null;
-			} finally {
-				setLoading(false);
+
+				// BudgetEditor displays normalized/enriched data, while the database stores raw JSON.
+				// After an explicit save, align the dirty-check baseline with the exact normalized
+				// data returned to the editor so the footer can switch to Generate PDF.
+				// On normal loads, keep the raw persisted baseline so stale PDFs remain guarded
+				// when order/product enrichment would change the displayed budget.
+				const normalizedBudgetData = recalculateTotals(budgetData);
+				const dirtyCheckBaseline = alignPersistedWithEditor
+					? normalizedBudgetData
+					: rawPersistedData;
+				setPersistedBudgetData(
+					structuredClone(dirtyCheckBaseline) as BudgetData,
+				);
+
+				// Updating the local budget object with enriched data
+				const enrichedBudget = { ...data, budget_data: normalizedBudgetData };
+				setBudget(enrichedBudget as any);
+
+				return normalizedBudgetData;
 			}
-		},
-		[budgetId],
-	);
+			return null;
+		} catch (err) {
+			setError("Error cargando presupuesto");
+			console.error(err);
+			return null;
+		} finally {
+			setLoading(false);
+		}
+	}, [budgetId]);
 
 	useEffect(() => {
 		if (budgetId) {
@@ -403,7 +391,7 @@ export function useBudgetData(budgetId: string) {
 			queryClient.invalidateQueries({ queryKey: ["orders"] });
 
 			// Recargar presupuesto para actualizar versión y estado
-			const updatedData = await loadBudget({ alignPersistedWithEditor: true });
+			const updatedData = await loadBudget(true);
 			return { success: true, data: updatedData };
 		} catch (err) {
 			console.error("Error guardando:", err);
