@@ -50,6 +50,9 @@ export function useBudgetActions({
 	const handleSave = async () => {
 		const result = await saveBudget(editedData);
 		if (result?.success) {
+			if (result.data) {
+				setEditedData(result.data);
+			}
 			toast.success("✅ Presupuesto guardado y pedido sincronizado");
 		} else {
 			toast.error("❌ Error al guardar y sincronizar el pedido");
