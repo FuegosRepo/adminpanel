@@ -44,6 +44,16 @@ const SUPABASE_IMAGES = {
     waves: 'https://fygptwzqzjgomumixuqc.supabase.co/storage/v1/object/public/budgets/imgemail/waves.png',
 }
 
+const GENERAL_CONDITIONS = [
+    'Aucun aliment ne pourra être laissé à disposition après la prestation, Fuegos d’Azur SAS ne pouvant garantir les conditions de conservation des produits après le service.',
+    'Aucun aliment fourni par le client ou par un tiers ne pourra être cuisiné ou manipulé sur nos braseros, Fuegos d’Azur SAS ne pouvant garantir la provenance ni les conditions de conservation des produits avant leur consommation.',
+    `La prestation Fuegos d’Azur SAS comprend une durée totale de 4h30, répartie comme suit :
+– 1h d’installation
+– 2h30 de service
+– 1h de démontage et remise en ordre
+Toute durée supplémentaire fera l’objet d’une facturation additionnelle.`,
+]
+
 // ============================================================================
 // STYLES
 // ============================================================================
@@ -173,6 +183,48 @@ const styles = StyleSheet.create({
         borderTopColor: '#ffffff',
         fontWeight: 700,
         color: COLORS.white,
+    },
+    // General conditions and signature
+    termsAndSignature: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 4,
+        marginBottom: 12,
+    },
+    generalConditions: {
+        width: '68%',
+        backgroundColor: 'rgba(255, 255, 255, 0.45)',
+        borderRadius: 6,
+        padding: 10,
+    },
+    generalConditionsTitle: {
+        fontSize: 10,
+        fontWeight: 700,
+        color: COLORS.orange,
+        marginBottom: 6,
+    },
+    generalConditionItem: {
+        fontSize: 7.5,
+        lineHeight: 1.35,
+        marginBottom: 4,
+    },
+    signatureArea: {
+        width: '28%',
+        alignItems: 'stretch',
+    },
+    signatureBox: {
+        height: 72,
+        borderWidth: 1,
+        borderColor: COLORS.text,
+        backgroundColor: 'rgba(255, 255, 255, 0.35)',
+        borderRadius: 4,
+        marginBottom: 5,
+    },
+    signatureLabel: {
+        fontSize: 9,
+        fontWeight: 700,
+        textAlign: 'center',
+        color: COLORS.text,
     },
     // Footer
     footer: {
@@ -356,7 +408,7 @@ function MenuSection({ menu }: { menu: BudgetData['menu'] }) {
             {/* Accompagnements */}
             <View style={styles.menuCategory}>
                 <Text style={styles.sectionSubtitle}>Accompagnements et Sauces</Text>
-                <Text style={styles.menuItem}>• Pommes de terre "Rusticas" en persillade.</Text>
+                <Text style={styles.menuItem}>• Pommes de terre « Rusticas » en persillade.</Text>
                 <Text style={styles.menuItem}>• Salade verte, fruits de saison, fromage feta, grains et vinaigrette.</Text>
                 <Text style={styles.menuItem}>• Légumes grillés.</Text>
                 <Text style={styles.menuItem}>• Pain (divers).</Text>
@@ -390,6 +442,23 @@ function AmountRow({ label, value, isTotal = false }: { label: string; value: st
         <View style={isTotal ? styles.amountTotal : styles.amountRow}>
             <Text>{label}</Text>
             <Text>{value}</Text>
+        </View>
+    )
+}
+
+function GeneralConditionsSection() {
+    return (
+        <View style={styles.termsAndSignature} wrap={false}>
+            <View style={styles.generalConditions}>
+                <Text style={styles.generalConditionsTitle}>Conditions générales</Text>
+                {GENERAL_CONDITIONS.map((condition, index) => (
+                    <Text key={index} style={styles.generalConditionItem}>• {condition}</Text>
+                ))}
+            </View>
+            <View style={styles.signatureArea}>
+                <View style={styles.signatureBox} />
+                <Text style={styles.signatureLabel}>Signature client</Text>
+            </View>
         </View>
     )
 }
@@ -557,6 +626,9 @@ export function BudgetPdfDocument({ budgetData }: BudgetPdfDocumentProps) {
                             </View>
                         </View>
                     )}
+
+                    {/* General conditions and client signature */}
+                    <GeneralConditionsSection />
 
                     {/* Footer */}
                     <View style={styles.footer}>
