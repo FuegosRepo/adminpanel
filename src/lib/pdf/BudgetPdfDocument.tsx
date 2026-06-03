@@ -536,6 +536,7 @@ export function BudgetPdfDocument({ budgetData }: BudgetPdfDocumentProps) {
 		menu,
 		material,
 		deplacement,
+		boissonsSoft,
 		extras,
 		service,
 		totals,
@@ -677,6 +678,33 @@ export function BudgetPdfDocument({ budgetData }: BudgetPdfDocumentProps) {
 							<AmountRow
 								label="Montant TTC :"
 								value={`${deplacement.totalTTC.toFixed(2)} €`}
+								isTotal
+							/>
+						</AmountBox>
+					)}
+
+					{/* Boissons Soft */}
+					{boissonsSoft && boissonsSoft.totalHT > 0 && (
+						<AmountBox title="Montant – Boissons soft">
+							<AmountRow
+								label="Nombre de personnes :"
+								value={`${boissonsSoft.totalPersons}`}
+							/>
+							<AmountRow
+								label="Prix par personne :"
+								value={`${boissonsSoft.pricePerPerson.toFixed(2)} €`}
+							/>
+							<AmountRow
+								label="Montant HT :"
+								value={`${boissonsSoft.totalHT.toFixed(2)} €`}
+							/>
+							<AmountRow
+								label={`TVA (${boissonsSoft.tvaPct}%) :`}
+								value={`${boissonsSoft.tva.toFixed(2)} €`}
+							/>
+							<AmountRow
+								label="Montant TTC :"
+								value={`${boissonsSoft.totalTTC.toFixed(2)} €`}
 								isTotal
 							/>
 						</AmountBox>

@@ -657,6 +657,35 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
         </div>
       ` : ''}
 
+      ${budgetData.boissonsSoft && budgetData.boissonsSoft.totalHT > 0 ? `
+        <!-- BOISSONS SOFT -->
+        <div class="amount-section">
+          <div class="orange-box">
+            <div class="amount-title">Montant – Boissons soft</div>
+            <div class="amount-row">
+                <span>Nombre de personnes :</span>
+                <span>${budgetData.boissonsSoft.totalPersons}</span>
+            </div>
+            <div class="amount-row">
+                <span>Prix par personne :</span>
+                <span>${budgetData.boissonsSoft.pricePerPerson.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+                <span>Montant HT :</span>
+                <span>${budgetData.boissonsSoft.totalHT.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+                <span>TVA (${budgetData.boissonsSoft.tvaPct}%) :</span>
+                <span>${budgetData.boissonsSoft.tva.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row amount-total">
+                <span>Montant TTC :</span>
+                <span>${budgetData.boissonsSoft.totalTTC.toFixed(2)} €</span>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
       ${budgetData.extras && budgetData.extras.items.length > 0 ? `
         <!-- EXTRAS -->
         <div class="amount-section">
