@@ -262,8 +262,11 @@ function cleanText(text: string): string {
 
 function formatText(text: string): string {
 	if (!text) return "";
+
+	// Limpiar emojis primero
 	let formatted = cleanText(text);
 
+	// Mejorar casos específicos comunes primero (antes de procesar guiones)
 	const replacements: { [key: string]: string } = {
 		"verres-eau": "Verres d'eau",
 		"verres-vin": "Verres de vin",
@@ -271,16 +274,66 @@ function formatText(text: string): string {
 		"mange-debout": "Mange-debout",
 		"assiettes-plates": "Assiettes plates",
 		"assiettes-creuses": "Assiettes creuses",
+		choripan:
+			"Choripan (Chorizo argentin grillé au brasero, accompagné d'un sauce maison et pain artisanal)",
+		"fruits-grilles":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits-grille":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits grillés":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits grilles":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits grille":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits grillé":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		miniburger:
+			"Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)",
+		burger:
+			"Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)",
+		empanadas: '"Empanadas" spécialité d\'argentine',
+		panqueques:
+			"Panqueques argentins traditionnels avec dulce de leche fondu au brasero, glace vanille et fruits de saison fresco",
+		// Issue #3: Specific naming fixes
+		"brochettes de jambon ibérique": "Brochettes de jambon ibérique",
+		"brochettes de jamón ibérico": "Brochettes de jambon ibérique",
+		"secreto iberico": "Secreto de porc Ibérique",
+		"secreto ibérico": "Secreto de porc Ibérique",
 	};
 
+	// Aplicar reemplazos específicos (case insensitive)
 	const lowerText = formatted.toLowerCase();
 	for (const [key, value] of Object.entries(replacements)) {
 		if (lowerText.includes(key.toLowerCase())) {
-			return value;
+			formatted = formatted.replace(
+				new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"),
+				value,
+			);
+			// Si se aplicó un reemplazo, retornar directamente
+			if (formatted.toLowerCase() !== lowerText) {
+				return formatted;
+			}
 		}
 	}
 
-	// Capitalize first letter
+	// Si no hay reemplazo específico, capitalizar palabras separadas por guiones, manteniendo el guion
+	formatted = formatted
+		.split(/([-_])/) // Dividir manteniendo los separadores
+		.map((part) => {
+			// Si es un separador, mantenerlo
+			if (part === "-" || part === "_") {
+				return part;
+			}
+			// Capitalizar primera letra de cada palabra
+			if (part.length > 0) {
+				return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+			}
+			return part;
+		})
+		.join("");
+
+	// Capitalizar primera letra de la frase completa
 	if (formatted.length > 0) {
 		formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
 	}
