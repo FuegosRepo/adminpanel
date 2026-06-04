@@ -519,10 +519,12 @@ export function useBudgetData(budgetId: string) {
 				`✅ Total PDF generation + upload: ${(endTime - startTime).toFixed(0)}ms`,
 			);
 
+			const pdfUrlWithTimestamp = `${pdfUrl}?t=${Date.now()}`;
+
 			// Update budget record with new PDF URL
 			const { error: updateError } = await supabase
 				.from("budgets")
-				.update({ pdf_url: pdfUrl })
+				.update({ pdf_url: pdfUrlWithTimestamp })
 				.eq("id", budgetId);
 
 			if (updateError) {
@@ -531,7 +533,7 @@ export function useBudgetData(budgetId: string) {
 
 			// Optimistic Update (Avoid full reload)
 			if (budget) {
-				setBudget({ ...budget, pdf_url: pdfUrl });
+				setBudget({ ...budget, pdf_url: pdfUrlWithTimestamp });
 			}
 
 			// Invalidate List Query in Background (don't await/block)
