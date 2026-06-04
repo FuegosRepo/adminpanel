@@ -591,12 +591,12 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
           </div>
 
         ${
-					budgetData.boissonsSoft && budgetData.boissonsSoft.totalHT > 0
+					budgetData.menu.dessert
 						? `
           <div class="menu-category">
-            <div class="section-subtitle">Boissons soft</div>
+            <div class="section-subtitle">Dessert</div>
             <div class="menu-items-list">
-              <div class="menu-item">• Boissons soft (${budgetData.boissonsSoft.totalPersons} personnes à ${budgetData.boissonsSoft.pricePerPerson.toFixed(2)} € / personne)</div>
+              <div class="menu-item">• ${budgetData.menu.dessert.description || formatText(budgetData.menu.dessert.name)}</div>
             </div>
           </div>
         `
@@ -604,12 +604,12 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
 				}
 
         ${
-					budgetData.menu.dessert
+					budgetData.boissonsSoft && budgetData.boissonsSoft.totalHT > 0
 						? `
           <div class="menu-category">
-            <div class="section-subtitle">Dessert</div>
+            <div class="section-subtitle">Boissons soft</div>
             <div class="menu-items-list">
-              <div class="menu-item">• ${budgetData.menu.dessert.description || formatText(budgetData.menu.dessert.name)}</div>
+              <div class="menu-item">• Boissons soft (${budgetData.boissonsSoft.totalPersons} personnes à ${budgetData.boissonsSoft.pricePerPerson.toFixed(2)} € / personne)</div>
             </div>
           </div>
         `

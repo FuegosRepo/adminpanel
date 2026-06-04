@@ -519,22 +519,22 @@ function MenuSection({
 				<Text style={styles.menuItem}>• Sauce traditionnelle Chimichurri.</Text>
 			</View>
 
-			{/* Boissons Soft */}
-			{boissonsSoft && boissonsSoft.totalHT > 0 && (
-				<View style={styles.menuCategory}>
-					<Text style={styles.sectionSubtitle}>Boissons soft</Text>
-					<Text style={styles.menuItem}>
-						• Boissons soft ({boissonsSoft.totalPersons} personnes à {boissonsSoft.pricePerPerson.toFixed(2)} € / personne)
-					</Text>
-				</View>
-			)}
-
 			{/* Dessert */}
 			{menu.dessert && (
 				<View style={styles.menuCategory}>
 					<Text style={styles.sectionSubtitle}>Dessert</Text>
 					<Text style={styles.menuItem}>
 						• {menu.dessert.description || formatText(menu.dessert.name)}
+					</Text>
+				</View>
+			)}
+
+			{/* Boissons Soft */}
+			{boissonsSoft && boissonsSoft.totalHT > 0 && (
+				<View style={styles.menuCategory}>
+					<Text style={styles.sectionSubtitle}>Boissons soft</Text>
+					<Text style={styles.menuItem}>
+						• Boissons soft ({boissonsSoft.totalPersons} personnes à {boissonsSoft.pricePerPerson.toFixed(2)} € / personne)
 					</Text>
 				</View>
 			)}
