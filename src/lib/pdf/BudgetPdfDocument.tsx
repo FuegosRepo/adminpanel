@@ -471,7 +471,7 @@ function MenuSection({
 				<View style={styles.menuCategory}>
 					<Text style={styles.sectionSubtitle}>Boissons soft</Text>
 					<Text style={styles.menuItem}>
-						• Boissons soft ({boissonsSoft.totalPersons} personnes)
+						• Boissons soft ({boissonsSoft.totalPersons} personnes à {boissonsSoft.pricePerPerson.toFixed(2)} € / personne)
 					</Text>
 				</View>
 			)}

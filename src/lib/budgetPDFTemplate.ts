@@ -596,7 +596,7 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
           <div class="menu-category">
             <div class="section-subtitle">Boissons soft</div>
             <div class="menu-items-list">
-              <div class="menu-item">• Boissons soft (${budgetData.boissonsSoft.totalPersons} personnes)</div>
+              <div class="menu-item">• Boissons soft (${budgetData.boissonsSoft.totalPersons} personnes à ${budgetData.boissonsSoft.pricePerPerson.toFixed(2)} € / personne)</div>
             </div>
           </div>
         `
