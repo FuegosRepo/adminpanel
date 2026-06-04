@@ -380,7 +380,13 @@ function ClientInfoSection({
 	);
 }
 
-function MenuSection({ menu }: { menu: BudgetData["menu"] }) {
+function MenuSection({
+	menu,
+	boissonsSoft,
+}: {
+	menu: BudgetData["menu"];
+	boissonsSoft?: BudgetData["boissonsSoft"];
+}) {
 	const groupedMeats = menu.viandes
 		? groupMeatsByCategory(menu.viandes)
 		: { premium: [], classique: [] };
@@ -459,6 +465,16 @@ function MenuSection({ menu }: { menu: BudgetData["menu"] }) {
 				<Text style={styles.menuItem}>• Pain (divers).</Text>
 				<Text style={styles.menuItem}>• Sauce traditionnelle Chimichurri.</Text>
 			</View>
+
+			{/* Boissons Soft */}
+			{boissonsSoft && boissonsSoft.totalHT > 0 && (
+				<View style={styles.menuCategory}>
+					<Text style={styles.sectionSubtitle}>Boissons soft</Text>
+					<Text style={styles.menuItem}>
+						• Boissons soft ({boissonsSoft.totalPersons} personnes)
+					</Text>
+				</View>
+			)}
 
 			{/* Dessert */}
 			{menu.dessert && (
@@ -562,7 +578,7 @@ export function BudgetPdfDocument({ budgetData }: BudgetPdfDocumentProps) {
 					/>
 
 					{/* Menu */}
-					<MenuSection menu={menu} />
+					<MenuSection menu={menu} boissonsSoft={boissonsSoft} />
 
 					{/* Menu Amount */}
 					<AmountBox title="Montant - Menu">
