@@ -121,33 +121,68 @@ export function useBudgetData(budgetId: string) {
 						];
 						if (normalizedDessert) allProductNames.push(normalizedDessert);
 
-						const { data: products, error: productsError } = await supabase
-							.from("products")
-							.select("id, name, price_per_portion, category, is_combo")
-							.in("name", allProductNames);
+						const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+						const uuidsToFetch = allProductNames.filter(name => uuidRegex.test(name));
+						const namesToFetch = allProductNames.filter(name => !uuidRegex.test(name));
 
-						if (productsError) {
-							console.error("❌ Error fetching products:", productsError);
+						let products: any[] = [];
+
+						if (namesToFetch.length > 0) {
+							const { data: nameProducts, error: nameError } = await supabase
+								.from("products")
+								.select("id, name, price_per_portion, category, is_combo, description")
+								.in("name", namesToFetch);
+							if (nameProducts) products = [...products, ...nameProducts];
+							if (nameError) console.error("❌ Error fetching products by name:", nameError);
+						}
+
+						if (uuidsToFetch.length > 0) {
+							const { data: idProducts, error: idError } = await supabase
+								.from("products")
+								.select("id, name, price_per_portion, category, is_combo, description")
+								.in("id", uuidsToFetch);
+							if (idProducts) products = [...products, ...idProducts];
+							if (idError) console.error("❌ Error fetching products by id:", idError);
 						}
 
 						// Hydrate selectedItems with full product objects
-						if (products) {
-							const findProduct = (name: string) =>
+						if (products.length > 0 || allProductNames.length === 0) {
+							const findProduct = (nameOrId: string) =>
 								products.find(
-									(p) => p.name.toLowerCase() === name.toLowerCase(),
+									(p) => p.name.toLowerCase() === nameOrId.toLowerCase() || p.id === nameOrId,
 								);
 
 							budgetData.menu.selectedItems = {
 								entrees: normalizedEntrees.map(
-									(name) => findProduct(name)?.name || name,
+									(nameOrId) => findProduct(nameOrId)?.name || nameOrId,
 								),
 								viandes: normalizedViandes.map(
-									(name) => findProduct(name)?.name || name,
+									(nameOrId) => findProduct(nameOrId)?.name || nameOrId,
 								),
 								desserts: normalizedDessert
 									? [findProduct(normalizedDessert)?.name || normalizedDessert]
 									: [],
 							};
+
+							// Auto-heal generic dessert names ("Dessert" or UUIDs) using the resolved product name
+							if (normalizedDessert && budgetData.menu) {
+								const resolvedDessertProduct = findProduct(normalizedDessert);
+								if (resolvedDessertProduct) {
+									const isGenericName = !budgetData.menu.dessert?.name || 
+										budgetData.menu.dessert.name.toLowerCase() === 'dessert' || 
+										budgetData.menu.dessert.name === normalizedDessert;
+
+									if (isGenericName) {
+										budgetData.menu.dessert = {
+											name: resolvedDessertProduct.name,
+											quantity: budgetData.menu.dessert?.quantity ?? budgetData.menu.totalPersons ?? 0,
+											pricePerUnit: budgetData.menu.dessert?.pricePerUnit ?? 4,
+											total: (budgetData.menu.dessert?.quantity ?? budgetData.menu.totalPersons ?? 0) * (budgetData.menu.dessert?.pricePerUnit ?? 4),
+											description: resolvedDessertProduct.description || undefined
+										};
+									}
+								}
+							}
 
 							console.log("✅ Product normalization complete:", {
 								originalEntrees: orderData.entrees,

@@ -596,7 +596,16 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
           <div class="menu-category">
             <div class="section-subtitle">Dessert</div>
             <div class="menu-items-list">
-              <div class="menu-item">• ${budgetData.menu.dessert.description || formatText(budgetData.menu.dessert.name)}</div>
+              <div class="menu-item">• ${
+                ((budgetData.menu.dessert.name || "").toLowerCase().includes("pièce montée") || 
+                 (budgetData.menu.dessert.name || "").toLowerCase().includes("gateau d'anniversaire") || 
+                 (budgetData.menu.dessert.name || "").toLowerCase().includes("gâteau d'anniversaire") ||
+                 (budgetData.menu.dessert.description || "").toLowerCase().includes("vous avez prévu") ||
+                 (budgetData.menu.dessert.description || "").toLowerCase().includes("pièce montée") ||
+                 (budgetData.menu.dessert.description || "").toLowerCase().includes("gâteau d'anniversaire"))
+                    ? formatText(budgetData.menu.dessert.name)
+                    : (budgetData.menu.dessert.description || formatText(budgetData.menu.dessert.name))
+              }</div>
             </div>
           </div>
         `

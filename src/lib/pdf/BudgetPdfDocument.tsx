@@ -524,7 +524,14 @@ function MenuSection({
 				<View style={styles.menuCategory}>
 					<Text style={styles.sectionSubtitle}>Dessert</Text>
 					<Text style={styles.menuItem}>
-						• {menu.dessert.description || formatText(menu.dessert.name)}
+						• {((menu.dessert.name || "").toLowerCase().includes("pièce montée") || 
+							(menu.dessert.name || "").toLowerCase().includes("gateau d'anniversaire") || 
+							(menu.dessert.name || "").toLowerCase().includes("gâteau d'anniversaire") ||
+							(menu.dessert.description || "").toLowerCase().includes("vous avez prévu") ||
+							(menu.dessert.description || "").toLowerCase().includes("pièce montée") ||
+							(menu.dessert.description || "").toLowerCase().includes("gâteau d'anniversaire"))
+								? formatText(menu.dessert.name)
+								: (menu.dessert.description || formatText(menu.dessert.name))}
 					</Text>
 				</View>
 			)}
