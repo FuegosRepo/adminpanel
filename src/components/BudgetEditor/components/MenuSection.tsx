@@ -30,14 +30,17 @@ export function MenuSection({ data, onUpdate }: MenuSectionProps) {
         const cleanId = nameOrId.replace(/\s/g, '-').toLowerCase()
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+        let resolved = ''
         if (uuidRegex.test(cleanId)) {
             // It's a UUID - try to find product
             const product = products.find(p => p.id.toLowerCase() === cleanId)
-            return product ? product.name : '❓ Produit inconnu'
+            resolved = product ? product.name : '❓ Produit inconnu'
+        } else {
+            // Not a UUID - return formatted name
+            resolved = getProductDisplayName(nameOrId)
         }
 
-        // Not a UUID - return formatted name
-        return getProductDisplayName(nameOrId)
+        return resolved
     }
 
     // Helper to add manual item

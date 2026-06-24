@@ -1,192 +1,227 @@
-import { BudgetData } from './types/budget'
-import fs from 'fs'
-import path from 'path'
-import { groupMeatsByCategory, MEAT_CATEGORIES } from './meatMapping'
-import { getEntreeDisplayName } from './entreeMapping'
+import { BudgetData } from "./types/budget";
+import fs from "fs";
+import path from "path";
+import { groupMeatsByCategory, MEAT_CATEGORIES } from "./meatMapping";
+import { getEntreeDisplayName } from "./entreeMapping";
 
 // Función helper para convertir imagen a base64
 function imageToBase64(imagePath: string): string {
-  try {
-    if (!fs.existsSync(imagePath)) {
-      console.warn(`⚠️ Imagen no encontrada: ${imagePath}`)
-      return ''
-    }
+	try {
+		if (!fs.existsSync(imagePath)) {
+			console.warn(`⚠️ Imagen no encontrada: ${imagePath}`);
+			return "";
+		}
 
-    const imageBuffer = fs.readFileSync(imagePath)
-    const ext = path.extname(imagePath).toLowerCase()
-    let mimeType = 'image/png'
+		const imageBuffer = fs.readFileSync(imagePath);
+		const ext = path.extname(imagePath).toLowerCase();
+		let mimeType = "image/png";
 
-    if (ext === '.webp') {
-      mimeType = 'image/webp'
-    } else if (ext === '.jpg' || ext === '.jpeg') {
-      mimeType = 'image/jpeg'
-    }
+		if (ext === ".webp") {
+			mimeType = "image/webp";
+		} else if (ext === ".jpg" || ext === ".jpeg") {
+			mimeType = "image/jpeg";
+		}
 
-    return `data:${mimeType};base64,${imageBuffer.toString('base64')}`
-  } catch (error) {
-    console.error(`❌ Error leyendo imagen ${imagePath}:`, error)
-    return ''
-  }
+		return `data:${mimeType};base64,${imageBuffer.toString("base64")}`;
+	} catch (error) {
+		console.error(`❌ Error leyendo imagen ${imagePath}:`, error);
+		return "";
+	}
 }
 
 // Función helper para obtener la ruta de las imágenes
 function getImagePath(filename: string): string {
-  const possiblePaths = [
-    path.join(process.cwd(), 'src', 'lib', filename),
-    path.join(process.cwd(), '.next', 'server', 'src', 'lib', filename),
-    path.join(process.cwd(), 'lib', filename),
-  ]
+	const possiblePaths = [
+		path.join(process.cwd(), "src", "lib", filename),
+		path.join(process.cwd(), ".next", "server", "src", "lib", filename),
+		path.join(process.cwd(), "lib", filename),
+	];
 
-  for (const imagePath of possiblePaths) {
-    if (fs.existsSync(imagePath)) {
-      return imagePath
-    }
-  }
+	for (const imagePath of possiblePaths) {
+		if (fs.existsSync(imagePath)) {
+			return imagePath;
+		}
+	}
 
-  return path.join(process.cwd(), 'src', 'lib', filename)
+	return path.join(process.cwd(), "src", "lib", filename);
 }
 
 // Función helper para limpiar texto (remover emojis)
 function cleanText(text: string): string {
-  if (!text) return ''
-  return text
-    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
-    .replace(/[\u{2600}-\u{26FF}]/gu, '')
-    .replace(/[\u{2700}-\u{27BF}]/gu, '')
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
-    .trim()
+	if (!text) return "";
+	return text
+		.replace(/[\u{1F300}-\u{1F9FF}]/gu, "")
+		.replace(/[\u{2600}-\u{26FF}]/gu, "")
+		.replace(/[\u{2700}-\u{27BF}]/gu, "")
+		.replace(/[\u{1F600}-\u{1F64F}]/gu, "")
+		.replace(/[\u{1F680}-\u{1F6FF}]/gu, "")
+		.trim();
 }
 
 // Función helper para mejorar el formato de textos con guiones y otros casos
 function formatText(text: string): string {
-  if (!text) return ''
+	if (!text) return "";
 
-  // Limpiar emojis primero
-  let formatted = cleanText(text)
+	// Limpiar emojis primero
+	let formatted = cleanText(text);
 
-  // Mejorar casos específicos comunes primero (antes de procesar guiones)
-  const replacements: { [key: string]: string } = {
-    'verres-eau': 'Verres d\'eau',
-    'verres-vin': 'Verres de vin',
-    'verres-champagne': 'Verres de champagne',
-    'mange-debout': 'Mange-debout',
-    'assiettes-plates': 'Assiettes plates',
-    'assiettes-creuses': 'Assiettes creuses',
-    'choripan': 'Choripan (Chorizo argentin grillé au brasero, accompagné d\'un sauce maison et pain artisanal)',
-    'fruits-grilles': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
-    'fruits-grille': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
-    'fruits grillés': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
-    'fruits grilles': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
-    'fruits grille': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
-    'fruits grillé': 'Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés',
-    'miniburger': 'Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)',
-    'burger': 'Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)',
-    'empanadas': '"Empanadas" spécialité d\'argentine',
-    'panqueques': 'Panqueques argentins traditionnels avec dulce de leche fondu au brasero, glace vanille et fruits de saison frais',
-    // Issue #3: Specific naming fixes
-    'brochettes de jambon ibérique': 'Brochettes de jambon ibérique',
-    'brochettes de jamón ibérico': 'Brochettes de jambon ibérique',
-    'secreto iberico': 'Secreto de porc Ibérique',
-    'secreto ibérico': 'Secreto de porc Ibérique',
-  }
+	// Mejorar casos específicos comunes primero (antes de procesar guiones)
+	const replacements: { [key: string]: string } = {
+		"verres-eau": "Verres d'eau",
+		"verres-vin": "Verres de vin",
+		"verres-champagne": "Verres de champagne",
+		"mange-debout": "Mange-debout",
+		"assiettes-plates": "Assiettes plates",
+		"assiettes-creuses": "Assiettes creuses",
+		choripan:
+			"Choripan (Chorizo argentin grillé au brasero, accompagné d'un sauce maison et pain artisanal)",
+		"fruits-grilles":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits-grille":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits grillés":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits grilles":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits grille":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		"fruits grillé":
+			"Fruits de saison grillés au brasero et flambés au cognac, accompagnés de glace vanille artisanale, noix concassées et spéculoos émiettés",
+		miniburger:
+			"Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)",
+		burger:
+			"Miniburger maison au brasero (sauce chimimayo, cornichon, pain brioché)",
+		empanadas: '"Empanadas" spécialité d\'argentine',
+		panqueques:
+			"Panqueques argentins traditionnels avec dulce de leche fondu au brasero, glace vanille et fruits de saison frais",
+		// Issue #3: Specific naming fixes
+		"brochettes de jambon ibérique": "Brochettes de jambon ibérique",
+		"brochettes de jamón ibérico": "Brochettes de jambon ibérique",
+		"secreto iberico": "Secreto de porc Ibérique",
+		"secreto ibérico": "Secreto de porc Ibérique",
+	};
 
-  // Aplicar reemplazos específicos (case insensitive)
-  const lowerText = formatted.toLowerCase()
-  for (const [key, value] of Object.entries(replacements)) {
-    if (lowerText.includes(key.toLowerCase())) {
-      formatted = formatted.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), value)
-      // Si se aplicó un reemplazo, retornar directamente
-      if (formatted.toLowerCase() !== lowerText) {
-        return formatted
-      }
-    }
-  }
+	// Aplicar reemplazos específicos (case insensitive)
+	const lowerText = formatted.toLowerCase();
+	for (const [key, value] of Object.entries(replacements)) {
+		if (lowerText.includes(key.toLowerCase())) {
+			formatted = formatted.replace(
+				new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"),
+				value,
+			);
+			// Si se aplicó un reemplazo, retornar directamente
+			if (formatted.toLowerCase() !== lowerText) {
+				return formatted;
+			}
+		}
+	}
 
-  // Si no hay reemplazo específico, capitalizar palabras separadas por guiones, manteniendo el guion
-  formatted = formatted
-    .split(/([-_])/) // Dividir manteniendo los separadores
-    .map((part) => {
-      // Si es un separador, mantenerlo
-      if (part === '-' || part === '_') {
-        return part
-      }
-      // Capitalizar primera letra de cada palabra
-      if (part.length > 0) {
-        return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-      }
-      return part
-    })
-    .join('')
+	// Si no hay reemplazo específico, capitalizar palabras separadas por guiones, manteniendo el guion
+	formatted = formatted
+		.split(/([-_])/) // Dividir manteniendo los separadores
+		.map((part) => {
+			// Si es un separador, mantenerlo
+			if (part === "-" || part === "_") {
+				return part;
+			}
+			// Capitalizar primera letra de cada palabra
+			if (part.length > 0) {
+				return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+			}
+			return part;
+		})
+		.join("");
 
-  // Capitalizar primera letra de la frase completa
-  if (formatted.length > 0) {
-    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1)
-  }
+	// Capitalizar primera letra de la frase completa
+	if (formatted.length > 0) {
+		formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+	}
 
-  return formatted
+	return formatted;
 }
 
 // Lazy-cached static images (read from disk once, reused across PDF generations)
-let _cachedImages: { overlay: string; miniLogo: string } | null = null
+let _cachedImages: { overlay: string; miniLogo: string } | null = null;
 function getCachedImages() {
-  if (!_cachedImages) {
-    const overlayPath = getImagePath('ground-overlay-01.png')
-    let miniLogoPath = getImagePath('minilogo.png')
-    if (!fs.existsSync(miniLogoPath)) {
-      miniLogoPath = getImagePath('minilogo.webp')
-    }
-    _cachedImages = {
-      overlay: imageToBase64(overlayPath),
-      miniLogo: imageToBase64(miniLogoPath)
-    }
-  }
-  return _cachedImages
+	if (!_cachedImages) {
+		const overlayPath = getImagePath("ground-overlay-01.png");
+		let miniLogoPath = getImagePath("minilogo.png");
+		if (!fs.existsSync(miniLogoPath)) {
+			miniLogoPath = getImagePath("minilogo.webp");
+		}
+		_cachedImages = {
+			overlay: imageToBase64(overlayPath),
+			miniLogo: imageToBase64(miniLogoPath),
+		};
+	}
+	return _cachedImages;
 }
 
 export function generateBudgetHTML(budgetData: BudgetData): string {
-  const { overlay: overlayBase64, miniLogo: miniLogoBase64 } = getCachedImages()
+	const { overlay: overlayBase64, miniLogo: miniLogoBase64 } =
+		getCachedImages();
 
-  // Fix date off-by-one error by handling YYYY-MM-DD manually
-  // CRITICAL DEBUG: Log eventDate value received
-  console.log('📅 PDF Generation - Received eventDate:', budgetData.clientInfo.eventDate)
-  console.log('📄 PDF Generation - Full clientInfo:', JSON.stringify(budgetData.clientInfo, null, 2))
+	// Fix date off-by-one error by handling YYYY-MM-DD manually
+	// CRITICAL DEBUG: Log eventDate value received
+	console.log(
+		"📅 PDF Generation - Received eventDate:",
+		budgetData.clientInfo.eventDate,
+	);
+	console.log(
+		"📄 PDF Generation - Full clientInfo:",
+		JSON.stringify(budgetData.clientInfo, null, 2),
+	);
 
-  let eventDate = 'Date non définie'
-  try {
-    if (budgetData.clientInfo.eventDate) {
-      // Handle both formats: "YYYY-MM-DD" and "YYYY-MM-DDTHH:mm:ss.sssZ"
-      const dateStr = budgetData.clientInfo.eventDate
+	let eventDate = "Date non définie";
+	try {
+		if (budgetData.clientInfo.eventDate) {
+			// Handle both formats: "YYYY-MM-DD" and "YYYY-MM-DDTHH:mm:ss.sssZ"
+			const dateStr = budgetData.clientInfo.eventDate;
 
-      // Extract just the date part (YYYY-MM-DD) if it's an ISO timestamp
-      const datePart = dateStr.split('T')[0] // "2025-12-23T..." → "2025-12-23"
-      const [year, month, day] = datePart.split('-').map(Number)
+			// Extract just the date part (YYYY-MM-DD) if it's an ISO timestamp
+			const datePart = dateStr.split("T")[0]; // "2025-12-23T..." → "2025-12-23"
+			const [year, month, day] = datePart.split("-").map(Number);
 
-      if (year && month && day && !isNaN(year) && !isNaN(month) && !isNaN(day)) {
-        eventDate = new Date(year, month - 1, day).toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        })
-      }
-    }
-  } catch (e) {
-    console.error('Error formatting eventDate:', e)
-  }
+			if (
+				year &&
+				month &&
+				day &&
+				!isNaN(year) &&
+				!isNaN(month) &&
+				!isNaN(day)
+			) {
+				eventDate = new Date(year, month - 1, day).toLocaleDateString("fr-FR", {
+					day: "2-digit",
+					month: "2-digit",
+					year: "numeric",
+				});
+			}
+		}
+	} catch (e) {
+		console.error("Error formatting eventDate:", e);
+	}
 
+	let validUntilDate = "";
+	try {
+		validUntilDate = new Date(
+			budgetData.validUntil || Date.now(),
+		).toLocaleDateString("fr-FR");
+	} catch (e) {
+		validUntilDate = new Date().toLocaleDateString("fr-FR");
+	}
 
-  let validUntilDate = ''
-  try {
-    validUntilDate = new Date(budgetData.validUntil || Date.now()).toLocaleDateString('fr-FR')
-  } catch (e) { validUntilDate = new Date().toLocaleDateString('fr-FR') }
+	let generatedDate = "";
+	try {
+		generatedDate = new Date(
+			budgetData.generatedAt || Date.now(),
+		).toLocaleDateString("fr-FR");
+	} catch (e) {
+		generatedDate = new Date().toLocaleDateString("fr-FR");
+	}
+	const menuTypeText =
+		budgetData.clientInfo.menuType === "dejeuner" ? "Déjeuner" : "Dîner";
 
-  let generatedDate = ''
-  try {
-    generatedDate = new Date(budgetData.generatedAt || Date.now()).toLocaleDateString('fr-FR')
-  } catch (e) { generatedDate = new Date().toLocaleDateString('fr-FR') }
-  const menuTypeText = budgetData.clientInfo.menuType === 'dejeuner' ? 'Déjeuner' : 'Dîner'
-
-  return `
+	return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -439,12 +474,16 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <span class="client-info-value">${cleanText(budgetData.clientInfo.eventType)}</span>
           </div>
           
-          ${budgetData.clientInfo.address ? `
+          ${
+						budgetData.clientInfo.address
+							? `
           <div class="client-info-item">
             <span class="client-info-label">Lieu :</span>
             <span class="client-info-value">${cleanText(budgetData.clientInfo.address)}</span>
           </div>
-          ` : ''}
+          `
+							: ""
+					}
           
           <div class="client-info-item">
             <span class="client-info-label">Date :</span>
@@ -467,56 +506,78 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
       <div class="section">
         <h2 class="section-title">Menu Sélectionné</h2>
 
-        ${budgetData.menu.entrees && budgetData.menu.entrees.length > 0 ? `
+        ${
+					budgetData.menu.entrees && budgetData.menu.entrees.length > 0
+						? `
           <div class="menu-category">
             <div class="section-subtitle">Entrees</div>
             <div class="menu-items-list">
-              ${budgetData.menu.entrees.map(entree => `
+              ${budgetData.menu.entrees
+								.map(
+									(entree) => `
                 <div class="menu-item">• ${getEntreeDisplayName(entree.name)}</div>
-              `).join('')}
+              `,
+								)
+								.join("")}
             </div>
           </div>
-        ` : ''}
+        `
+						: ""
+				}
 
-        ${budgetData.menu.viandes && budgetData.menu.viandes.length > 0 ? `
+        ${
+					budgetData.menu.viandes && budgetData.menu.viandes.length > 0
+						? `
           <div class="menu-category">
             <div class="section-subtitle">Viandes</div>
             ${(() => {
-        const groupedMeats = groupMeatsByCategory(budgetData.menu.viandes)
-        let html = ''
+							const groupedMeats = groupMeatsByCategory(
+								budgetData.menu.viandes,
+							);
+							let html = "";
 
-        // Premium category
-        if (groupedMeats.premium.length > 0) {
-          html += `
+							// Premium category
+							if (groupedMeats.premium.length > 0) {
+								html += `
                   <div style="margin-bottom: 3mm;">
                     <div style="font-weight: 600; color: #e2943a; margin-bottom: 1mm; font-size: 10pt;">${MEAT_CATEGORIES.premium}</div>
                     <div class="menu-items-list">
-                      ${groupedMeats.premium.map(meat => `
+                      ${groupedMeats.premium
+												.map(
+													(meat) => `
                         <div class="menu-item">• ${meat.displayName}</div>
-                      `).join('')}
+                      `,
+												)
+												.join("")}
                     </div>
                   </div>
-                `
-        }
+                `;
+							}
 
-        // Classique category
-        if (groupedMeats.classique.length > 0) {
-          html += `
+							// Classique category
+							if (groupedMeats.classique.length > 0) {
+								html += `
                   <div style="margin-bottom: 3mm;">
                     <div style="font-weight: 600; color: #e2943a; margin-bottom: 1mm; font-size: 10pt;">${MEAT_CATEGORIES.classique}</div>
                     <div class="menu-items-list">
-                      ${groupedMeats.classique.map(meat => `
+                      ${groupedMeats.classique
+												.map(
+													(meat) => `
                         <div class="menu-item">• ${meat.displayName}</div>
-                      `).join('')}
+                      `,
+												)
+												.join("")}
                     </div>
                   </div>
-                `
-        }
+                `;
+							}
 
-        return html
-      })()}
+							return html;
+						})()}
           </div>
-        ` : ''}
+        `
+						: ""
+				}
 
         <div class="menu-category">
             <div class="section-subtitle">Accompagnements et Sauces</div>
@@ -529,14 +590,40 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             </div>
           </div>
 
-        ${budgetData.menu.dessert ? `
+        ${
+					budgetData.menu.dessert
+						? `
           <div class="menu-category">
             <div class="section-subtitle">Dessert</div>
             <div class="menu-items-list">
-              <div class="menu-item">• ${budgetData.menu.dessert.description || formatText(budgetData.menu.dessert.name)}</div>
+              <div class="menu-item">• ${
+                ((budgetData.menu.dessert.name || "").toLowerCase().includes("pièce montée") || 
+                 (budgetData.menu.dessert.name || "").toLowerCase().includes("gateau d'anniversaire") || 
+                 (budgetData.menu.dessert.name || "").toLowerCase().includes("gâteau d'anniversaire") ||
+                 (budgetData.menu.dessert.description || "").toLowerCase().includes("vous avez prévu") ||
+                 (budgetData.menu.dessert.description || "").toLowerCase().includes("pièce montée") ||
+                 (budgetData.menu.dessert.description || "").toLowerCase().includes("gâteau d'anniversaire"))
+                    ? formatText(budgetData.menu.dessert.name)
+                    : (budgetData.menu.dessert.description || formatText(budgetData.menu.dessert.name))
+              }</div>
             </div>
           </div>
-        ` : ''}
+        `
+						: ""
+				}
+
+        ${
+					budgetData.boissonsSoft && budgetData.boissonsSoft.totalHT > 0
+						? `
+          <div class="menu-category">
+            <div class="section-subtitle">Boissons soft</div>
+            <div class="menu-items-list">
+              <div class="menu-item">• Boissons soft (${budgetData.boissonsSoft.totalPersons} personnes à ${budgetData.boissonsSoft.pricePerPerson.toFixed(2)} € / personne)</div>
+            </div>
+          </div>
+        `
+						: ""
+				}
       </div>
 
       <!-- MONTANT MENU -->
@@ -547,7 +634,9 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <span>Montant HT :</span>
             <span>${budgetData.menu.totalHT.toFixed(2)} €</span>
             </div>
-            ${budgetData.menu.discount && budgetData.menu.discount.amount > 0 ? `
+            ${
+							budgetData.menu.discount && budgetData.menu.discount.amount > 0
+								? `
             <div class="amount-row" style="color: #000000; font-weight: bold;">
             <span>Remise (${budgetData.menu.discount.percentage}% - ${budgetData.menu.discount.reason}) :</span>
             <span>- ${budgetData.menu.discount.amount.toFixed(2)} €</span>
@@ -556,17 +645,23 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <span>Montant HT Après Remise :</span>
             <span>${(budgetData.menu.totalHTApresRemise ?? budgetData.menu.totalHT).toFixed(2)} €</span>
             </div>
-            ` : ''}
+            `
+								: ""
+						}
             <div class="amount-row">
             <span>TVA (${budgetData.menu.tvaPct}%) :</span>
             <span>${budgetData.menu.tva.toFixed(2)} €</span>
             </div>
-            ${budgetData.menu.discount && budgetData.menu.discount.amount > 0 ? `
+            ${
+							budgetData.menu.discount && budgetData.menu.discount.amount > 0
+								? `
             <div class="amount-row" style="color: #000000; font-weight: bold;">
             <span>Remise (${budgetData.menu.discount.percentage}% - ${budgetData.menu.discount.reason}):</span>
             <span>-${budgetData.menu.discount.amount.toFixed(2)} €</span>
             </div>
-            ` : ''}
+            `
+								: ""
+						}
             <div class="amount-row amount-total">
             <span>Montant TTC :</span>
             <span>${budgetData.menu.totalTTC.toFixed(2)} €</span>
@@ -574,22 +669,31 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
         </div>
       </div>
 
-      ${budgetData.material && budgetData.material.items && budgetData.material.items.length > 0 ? `
+      ${
+				budgetData.material &&
+				budgetData.material.items &&
+				budgetData.material.items.length > 0
+					? `
         <!-- MATERIAL -->
         <div class="section">
           <h2 class="section-title">Matériel demandé</h2>
           <div class="menu-items-list">
             ${budgetData.material.items
-        .filter(item => {
-          // Excluir items relacionados con "Serveurs" (case insensitive)
-          const itemNameLower = item.name.toLowerCase()
-          return !itemNameLower.includes('serveur') &&
-            !itemNameLower.includes('servicio') &&
-            !itemNameLower.includes('mozos')
-        })
-        .map(item => `
+							.filter((item) => {
+								// Excluir items relacionados con "Serveurs" (case insensitive)
+								const itemNameLower = item.name.toLowerCase();
+								return (
+									!itemNameLower.includes("serveur") &&
+									!itemNameLower.includes("servicio") &&
+									!itemNameLower.includes("mozos")
+								);
+							})
+							.map(
+								(item) => `
               <div class="menu-item">• ${item.quantity} x ${formatText(item.name)}</div>
-            `).join('')}
+            `,
+							)
+							.join("")}
           </div>
         </div>
 
@@ -598,24 +702,44 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             <div class="amount-title">Montant - Matériel</div>
             <div class="amount-row">
                 <span>Total Matériel :</span>
-                <span>${(budgetData.material.items.reduce((acc, item) => {
-          const itemNameLower = item.name.toLowerCase()
-          if (itemNameLower.includes('serveur') || itemNameLower.includes('servicio') || itemNameLower.includes('mozos')) return acc
-          return acc + item.total
-        }, 0)).toFixed(2)} €</span>
+                <span>${(
+									budgetData.material.items.reduce((acc, item) => {
+										const itemNameLower = item.name.toLowerCase();
+										if (
+											itemNameLower.includes("serveur") ||
+											itemNameLower.includes("servicio") ||
+											itemNameLower.includes("mozos")
+										)
+											return acc;
+										return acc + item.total;
+									}, 0)
+								).toFixed(2)} €</span>
             </div>
-            ${budgetData.material.insuranceAmount && budgetData.material.insuranceAmount > 0 ? `
+            ${
+							budgetData.material.insuranceAmount &&
+							budgetData.material.insuranceAmount > 0
+								? `
             <div class="amount-row">
                 <span>Assurance Perte et Casse (${budgetData.material.insurancePct || 6}%):</span>
                 <span>${budgetData.material.insuranceAmount.toFixed(2)} €</span>
             </div>
-            ` : ''}
-            ${budgetData.deliveryReprise && (budgetData.deliveryReprise.deliveryCost > 0 || budgetData.deliveryReprise.pickupCost > 0) ? `
+            `
+								: ""
+						}
+            ${
+							budgetData.deliveryReprise &&
+							(
+								budgetData.deliveryReprise.deliveryCost > 0 ||
+									budgetData.deliveryReprise.pickupCost > 0
+							)
+								? `
             <div class="amount-row">
                 <span>Livraison et Reprise :</span>
                 <span>${((budgetData.deliveryReprise.deliveryCost || 0) + (budgetData.deliveryReprise.pickupCost || 0)).toFixed(2)} €</span>
             </div>
-            ` : ''}
+            `
+								: ""
+						}
             <div class="amount-row">
                 <span>Montant HT :</span>
                 <span>${budgetData.material.totalHT.toFixed(2)} €</span>
@@ -630,9 +754,13 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             </div>
           </div>
         </div>
-      ` : ''}
+      `
+					: ""
+			}
 
-      ${budgetData.deplacement && budgetData.deplacement.totalHT > 0 ? `
+      ${
+				budgetData.deplacement && budgetData.deplacement.totalHT > 0
+					? `
         <!-- DEPLACEMENT -->
         <div class="amount-section">
           <div class="orange-box">
@@ -655,14 +783,53 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             </div>
           </div>
         </div>
-      ` : ''}
+      `
+					: ""
+			}
 
-      ${budgetData.extras && budgetData.extras.items.length > 0 ? `
+      ${
+				budgetData.boissonsSoft && budgetData.boissonsSoft.totalHT > 0
+					? `
+        <!-- BOISSONS SOFT -->
+        <div class="amount-section">
+          <div class="orange-box">
+            <div class="amount-title">Montant – Boissons soft</div>
+            <div class="amount-row">
+                <span>Nombre de personnes :</span>
+                <span>${budgetData.boissonsSoft.totalPersons}</span>
+            </div>
+            <div class="amount-row">
+                <span>Prix par personne :</span>
+                <span>${budgetData.boissonsSoft.pricePerPerson.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+                <span>Montant HT :</span>
+                <span>${budgetData.boissonsSoft.totalHT.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row">
+                <span>TVA (${budgetData.boissonsSoft.tvaPct}%) :</span>
+                <span>${budgetData.boissonsSoft.tva.toFixed(2)} €</span>
+            </div>
+            <div class="amount-row amount-total">
+                <span>Montant TTC :</span>
+                <span>${budgetData.boissonsSoft.totalTTC.toFixed(2)} €</span>
+            </div>
+          </div>
+        </div>
+      `
+					: ""
+			}
+
+      ${
+				budgetData.extras && budgetData.extras.items.length > 0
+					? `
         <!-- EXTRAS -->
         <div class="amount-section">
           <div class="orange-box">
             <div class="amount-title">Montant – Extras</div>
-            ${budgetData.extras.items.length === 1 ? `
+            ${
+							budgetData.extras.items.length === 1
+								? `
               <!-- Single extra - no need for totals -->
               <div class="amount-row">
                   <span>${cleanText(budgetData.extras.items[0].description)}</span>
@@ -676,9 +843,12 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
                   <span>Montant TTC :</span>
                   <span>${budgetData.extras.items[0].priceTTC.toFixed(2)} €</span>
               </div>
-            ` : `
+            `
+								: `
               <!-- Multiple extras - show each item then totals -->
-              ${budgetData.extras.items.map(item => `
+              ${budgetData.extras.items
+								.map(
+									(item) => `
                 <div class="amount-row">
                     <span>${cleanText(item.description)}</span>
                     <span>${item.priceHT.toFixed(2)} €</span>
@@ -691,7 +861,11 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
                     <span>Total TTC :</span>
                     <span>${item.priceTTC.toFixed(2)} €</span>
                 </div>
-              `).join('<div style="margin: 10px 0; border-top: 1px solid #e5e7eb;"></div>')}
+              `,
+								)
+								.join(
+									'<div style="margin: 10px 0; border-top: 1px solid #e5e7eb;"></div>',
+								)}
               <div class="amount-row" style="font-weight: bold; margin-top: 15px;">
                   <span>TOTAL EXTRAS HT :</span>
                   <span>${budgetData.extras.totalHT.toFixed(2)} €</span>
@@ -704,17 +878,26 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
                   <span>TOTAL TTC :</span>
                   <span>${budgetData.extras.totalTTC.toFixed(2)} €</span>
               </div>
-            `}
-            ${budgetData.extras.notes ? `
+            `
+						}
+            ${
+							budgetData.extras.notes
+								? `
               <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 12px; color: white;">
                   <strong>Notes :</strong> ${cleanText(budgetData.extras.notes)}
               </div>
-            ` : ''}
+            `
+								: ""
+						}
           </div>
         </div>
-      ` : ''}
+      `
+					: ""
+			}
 
-      ${budgetData.service && budgetData.service.totalHT > 0 ? `
+      ${
+				budgetData.service && budgetData.service.totalHT > 0
+					? `
         <!-- SERVICE -->
         <div class="amount-section">
           <div class="orange-box">
@@ -736,7 +919,9 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
             </div>
           </div>
         </div>
-      ` : ''}
+      `
+					: ""
+			}
 
       <!-- TOTALES FINALES -->
       <div class="totals-section">
@@ -757,7 +942,9 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
         </div>
       </div>
 
-      ${budgetData.adminNotes ? `
+      ${
+				budgetData.adminNotes
+					? `
       <!-- ADMIN NOTES SECTION -->
       <div class="section" style="margin-top: 8mm;">
         <h3 class="section-subtitle" style="color: #e2943a; font-size: 11pt; font-weight: bold; margin-bottom: 3mm;">📝 Notes importantes</h3>
@@ -765,7 +952,9 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
           ${cleanText(budgetData.adminNotes)}
         </div>
       </div>
-      ` : ''}
+      `
+					: ""
+			}
 
       <!-- FOOTER IMAGE -->
       <div style="padding-top: 5mm; padding-bottom: 5mm; text-align: center;">
@@ -775,5 +964,5 @@ export function generateBudgetHTML(budgetData: BudgetData): string {
   </div>
 </body>
 </html>
-  `.trim()
+  `.trim();
 }
