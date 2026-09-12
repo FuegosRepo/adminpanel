@@ -7,10 +7,7 @@ import {
 	DollarSign,
 	BarChart3,
 	Calendar,
-	Bell,
-	Euro,
 	FileText,
-	Calculator,
 	Flame,
 } from "lucide-react";
 
@@ -26,15 +23,15 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+// Recordatorios se eliminó del menú (sin uso real).
+// Calculadora y Precios siguen existiendo y accesibles por URL directa,
+// pero se sacaron del menú porque no son parte del flujo diario del admin.
 const links = [
 	{ href: "/orders", label: "Pedidos", icon: List },
-	{ href: "/payments", label: "Pagos", icon: DollarSign },
-	{ href: "/reports", label: "Reportes", icon: BarChart3 },
-	{ href: "/calendar", label: "Calendario", icon: Calendar },
-	{ href: "/reminders", label: "Recordatorios", icon: Bell },
-	{ href: "/prices", label: "Precios", icon: Euro },
 	{ href: "/budgets", label: "Presupuestos", icon: FileText },
-	{ href: "/calculator", label: "Calculadora", icon: Calculator },
+	{ href: "/payments", label: "Pagos", icon: DollarSign },
+	{ href: "/calendar", label: "Calendario", icon: Calendar },
+	{ href: "/reports", label: "Reportes", icon: BarChart3 },
 ];
 
 export default function AppSidebar() {
