@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Search, X } from 'lucide-react'
+import { useAvailableYears } from '@/hooks/useAvailableYears'
 
 interface FilterBarProps {
   filters: FilterOptions
@@ -13,14 +14,12 @@ interface FilterBarProps {
 
 const SEARCH_DEBOUNCE_MS = 300
 
-// Años rápidos para el filtro: año actual y el que viene (bodas suelen
-// reservarse con un año de anticipación). Antes estaba hardcodeado a "2027"
-// y quedaba obsoleto cada año.
-const currentYear = new Date().getFullYear()
-const QUICK_YEARS = [currentYear, currentYear + 1]
-
 export default function FilterBar({ filters, onFiltersChange, resultsCount }: FilterBarProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState(filters.searchTerm || '')
+  // Chips de año calculados a partir de los pedidos reales (más antiguo a
+  // más reciente), no una lista fija. Antes estaba hardcodeado a "2027" y no
+  // aparecían años con pedidos ya cargados, como 2028.
+  const { years: availableYears } = useAvailableYears()
 
   useEffect(() => {
     setLocalSearchTerm(filters.searchTerm || '')
@@ -112,7 +111,7 @@ export default function FilterBar({ filters, onFiltersChange, resultsCount }: Fi
 
         <div className="h-6 w-px bg-border mx-1"></div>
 
-        {QUICK_YEARS.map(y => {
+        {availableYears.map(y => {
           const yearStr = String(y)
           return (
             <Button

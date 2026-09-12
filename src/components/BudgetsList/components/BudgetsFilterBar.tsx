@@ -4,12 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { statusFilters } from "../utils";
 import type { BudgetsFilters } from "@/services/budgetsService";
-
-// Años rápidos para el filtro: año actual y el que viene (bodas suelen
-// reservarse con un año de anticipación). Antes estaba hardcodeado a "2027"
-// y quedaba obsoleto cada año.
-const currentYear = new Date().getFullYear();
-const QUICK_YEARS = [currentYear, currentYear + 1];
+import { useAvailableYears } from "@/hooks/useAvailableYears";
 
 interface BudgetsFilterBarProps {
 	filters: BudgetsFilters;
@@ -32,6 +27,11 @@ export default function BudgetsFilterBar({
 		setFilters(newFilters);
 		setPage(1);
 	};
+
+	// Chips de año calculados a partir de los pedidos reales, no una lista
+	// fija. Antes estaba hardcodeado a "2027" y no aparecían años con
+	// presupuestos ya cargados, como 2028.
+	const { years: availableYears } = useAvailableYears();
 
 	const showSelectAll =
 		filters.status &&
@@ -67,7 +67,7 @@ export default function BudgetsFilterBar({
 
 				<div className="h-6 w-px bg-border mx-1"></div>
 
-				{QUICK_YEARS.map((y) => {
+				{availableYears.map((y) => {
 					const yearStr = String(y);
 					return (
 						<Button
