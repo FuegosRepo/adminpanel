@@ -5,6 +5,12 @@ import { cn } from "@/lib/utils";
 import { statusFilters } from "../utils";
 import type { BudgetsFilters } from "@/services/budgetsService";
 
+// Años rápidos para el filtro: año actual y el que viene (bodas suelen
+// reservarse con un año de anticipación). Antes estaba hardcodeado a "2027"
+// y quedaba obsoleto cada año.
+const currentYear = new Date().getFullYear();
+const QUICK_YEARS = [currentYear, currentYear + 1];
+
 interface BudgetsFilterBarProps {
 	filters: BudgetsFilters;
 	setFilters: (filters: BudgetsFilters) => void;
@@ -61,18 +67,24 @@ export default function BudgetsFilterBar({
 
 				<div className="h-6 w-px bg-border mx-1"></div>
 
-				<Button
-					variant={filters.year === "2027" ? "default" : "outline"}
-					size="sm"
-					onClick={() =>
-						handleFilterChange({
-							...filters,
-							year: filters.year === "2027" ? undefined : "2027",
-						})
-					}
-				>
-					2027
-				</Button>
+				{QUICK_YEARS.map((y) => {
+					const yearStr = String(y);
+					return (
+						<Button
+							key={yearStr}
+							variant={filters.year === yearStr ? "default" : "outline"}
+							size="sm"
+							onClick={() =>
+								handleFilterChange({
+									...filters,
+									year: filters.year === yearStr ? undefined : yearStr,
+								})
+							}
+						>
+							{yearStr}
+						</Button>
+					);
+				})}
 
 				<Button
 					variant={filters.eventType === "mariage" ? "default" : "outline"}

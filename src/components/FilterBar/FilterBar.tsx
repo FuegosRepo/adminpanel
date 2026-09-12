@@ -13,6 +13,12 @@ interface FilterBarProps {
 
 const SEARCH_DEBOUNCE_MS = 300
 
+// Años rápidos para el filtro: año actual y el que viene (bodas suelen
+// reservarse con un año de anticipación). Antes estaba hardcodeado a "2027"
+// y quedaba obsoleto cada año.
+const currentYear = new Date().getFullYear()
+const QUICK_YEARS = [currentYear, currentYear + 1]
+
 export default function FilterBar({ filters, onFiltersChange, resultsCount }: FilterBarProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState(filters.searchTerm || '')
 
@@ -106,13 +112,19 @@ export default function FilterBar({ filters, onFiltersChange, resultsCount }: Fi
 
         <div className="h-6 w-px bg-border mx-1"></div>
 
-        <Button
-          variant={filters.year === '2027' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => onFiltersChange({ ...filters, year: filters.year === '2027' ? undefined : '2027' })}
-        >
-          2027
-        </Button>
+        {QUICK_YEARS.map(y => {
+          const yearStr = String(y)
+          return (
+            <Button
+              key={yearStr}
+              variant={filters.year === yearStr ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => onFiltersChange({ ...filters, year: filters.year === yearStr ? undefined : yearStr })}
+            >
+              {yearStr}
+            </Button>
+          )
+        })}
 
         <Button
           variant={filters.eventType === 'mariage' ? 'default' : 'outline'}

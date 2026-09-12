@@ -112,10 +112,35 @@ export async function POST(request: Request) {
             (allOrders || []).map(order => [order.id, order])
         )
 
+        // 3b. Aplicar filtros de año/tipo de evento (solo cuando se relanza por
+        // filtro, no cuando se seleccionaron presupuestos puntuales a mano).
+        // Sin esto, "relanzar a todos" ignoraba el año/tipo elegido en la UI
+        // y mandaba emails fuera del filtro visible en pantalla.
+        const usingExplicitIds = !!(budgetIds && Array.isArray(budgetIds) && budgetIds.length > 0)
+        const filteredBudgets = usingExplicitIds
+            ? budgets
+            : budgets.filter(budget => {
+                const order = ordersMap.get(budget.order_id)
+                if (!order) return false
+
+                if (filters.year) {
+                    if (!order.event_date) return false
+                    const eventYear = new Date(order.event_date).getFullYear().toString()
+                    if (eventYear !== String(filters.year)) return false
+                }
+
+                if (filters.eventType) {
+                    if (!order.event_type) return false
+                    if (!order.event_type.toLowerCase().includes(String(filters.eventType).toLowerCase())) return false
+                }
+
+                return true
+            })
+
         // 4. Send in batches of 5 for better throughput
         const BATCH_SIZE = 5
-        for (let i = 0; i < budgets.length; i += BATCH_SIZE) {
-            const batch = budgets.slice(i, i + BATCH_SIZE)
+        for (let i = 0; i < filteredBudgets.length; i += BATCH_SIZE) {
+            const batch = filteredBudgets.slice(i, i + BATCH_SIZE)
             const results = await Promise.allSettled(batch.map(async (budget) => {
                 const order = ordersMap.get(budget.order_id)
 
