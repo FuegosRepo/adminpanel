@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings2, Save, AlertTriangle, FileText } from 'lucide-react'
+import { Settings2, Save, AlertTriangle, FileText, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
     Dialog,
     DialogContent,
@@ -14,12 +15,14 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog'
 import { SHOPPING_LIST_PROMPT_SEED } from './promptSeed'
+import { CALCULATION_MANUAL_SEED } from './calculationManualSeed'
 
 /**
  * Pantalla donde el cliente podría editar él mismo las reglas de cálculo
  * de la lista de compras, sin depender de pedirle el cambio al developer
- * cada vez. Precargada con el prompt real que ya usa en su GPT de
- * ChatGPT (pasado el 2026-09-14).
+ * cada vez. Dos pestañas, igual que en ChatGPT: "Instructions" (el prompt)
+ * y "Knowledge" (el manual de cálculos). Ambas precargadas con los
+ * archivos reales que el cliente ya usa (pasados el 2026-09-14).
  *
  * Vista previa de diseño: "Guardar" no persiste nada todavía, y este
  * texto no está conectado a ningún modelo de IA real.
@@ -27,6 +30,7 @@ import { SHOPPING_LIST_PROMPT_SEED } from './promptSeed'
 export function PromptEditorDialog() {
     const [open, setOpen] = useState(false)
     const [prompt, setPrompt] = useState(SHOPPING_LIST_PROMPT_SEED)
+    const [manual, setManual] = useState(CALCULATION_MANUAL_SEED)
 
     const handleSave = () => {
         toast.info('Vista previa de diseño: en la versión conectada esto se guardaría y usaría en el próximo cálculo.')
@@ -56,19 +60,45 @@ export function PromptEditorDialog() {
                 <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 text-amber-900 px-3 py-2 text-xs">
                     <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                     <p>
-                        Vista previa de diseño: este texto es el mismo que ya usás en tu GPT de
-                        ChatGPT hoy, precargado acá como punto de partida. Editar y guardar
-                        todavía no hace nada real — ni se conecta a tu ChatGPT ni a un modelo de
-                        IA en esta pantalla. Pendiente: sumar el &quot;Manual de cálculos&quot; que
-                        hoy tenés cargado como Knowledge en ChatGPT, en cuanto lo compartas.
+                        Vista previa de diseño: las dos pestañas son el mismo prompt y el mismo
+                        manual que ya usás en tu GPT de ChatGPT hoy, precargados acá tal cual.
+                        Editar y guardar todavía no hace nada real, ni se conecta a tu ChatGPT ni
+                        a un modelo de IA en esta pantalla.
                     </p>
                 </div>
 
-                <Textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    className="min-h-[360px] font-mono text-xs"
-                />
+                <Tabs defaultValue="prompt">
+                    <TabsList>
+                        <TabsTrigger value="prompt" className="gap-1.5">
+                            <FileText className="h-3.5 w-3.5" />
+                            Prompt
+                        </TabsTrigger>
+                        <TabsTrigger value="manual" className="gap-1.5">
+                            <BookOpen className="h-3.5 w-3.5" />
+                            Manual de cálculos
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="prompt">
+                        <Textarea
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            className="min-h-[360px] font-mono text-xs"
+                        />
+                    </TabsContent>
+
+                    <TabsContent value="manual">
+                        <p className="text-xs text-muted-foreground mb-2">
+                            Este es el archivo que hoy tenés cargado como &quot;Knowledge&quot; en tu
+                            GPT de ChatGPT. El prompt de arriba lo referencia en la regla de prioridad.
+                        </p>
+                        <Textarea
+                            value={manual}
+                            onChange={(e) => setManual(e.target.value)}
+                            className="min-h-[360px] font-mono text-xs"
+                        />
+                    </TabsContent>
+                </Tabs>
 
                 <DialogFooter>
                     <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
