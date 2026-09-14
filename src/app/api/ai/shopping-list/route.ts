@@ -41,16 +41,15 @@ Postre: ${e.dessert || 'sin especificar'}`)
 }
 
 /**
- * Endpoint real para el chat de Asistentes (lista de compras). Usa el
- * prompt + manual de cálculos que el cliente ya tiene en su GPT de
- * ChatGPT (ver src/components/AiChat/promptSeed.ts y
- * calculationManualSeed.ts) como prompt de sistema fijo — todavía no lee
- * ninguna edición hecha en PromptEditorDialog, porque esa pantalla no
- * persiste cambios (sigue siendo vista previa).
+ * Endpoint real para el chat de Asistentes (lista de compras). Usa como
+ * prompt de sistema lo que mande el cliente en customPrompt/customManual
+ * (lo que esté guardado en localStorage vía PromptEditorDialog), y si no
+ * mandó nada cae en los seeds fijos (src/components/AiChat/promptSeed.ts
+ * y calculationManualSeed.ts) — el mismo prompt + manual que el cliente
+ * ya tiene en su GPT de ChatGPT.
  *
  * No genera PDF ni escribe nada en la base: devuelve texto, que el chat
- * muestra. El export a PDF y la edición persistente del prompt quedan
- * para una fase siguiente.
+ * muestra y desde donde se exporta a PDF del lado del cliente.
  */
 export async function POST(request: NextRequest) {
     try {
@@ -70,15 +69,20 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
         const messages: ChatMessageInput[] = Array.isArray(body?.messages) ? body.messages : []
         const events: DevisEventInput[] = Array.isArray(body?.events) ? body.events : []
+        // El cliente manda lo que tenga guardado en localStorage (ver
+        // PromptEditorDialog/promptStorage.ts). Si no manda nada o vino
+        // vacío, se usan los seeds fijos como default.
+        const customPrompt: string = typeof body?.customPrompt === 'string' ? body.customPrompt.trim() : ''
+        const customManual: string = typeof body?.customManual === 'string' ? body.customManual.trim() : ''
 
         if (messages.length === 0 || !messages[messages.length - 1]?.content?.trim()) {
             return NextResponse.json({ error: 'Falta el mensaje del usuario' }, { status: 400 })
         }
 
-        const systemPrompt = `${SHOPPING_LIST_PROMPT_SEED}
+        const systemPrompt = `${customPrompt || SHOPPING_LIST_PROMPT_SEED}
 
 --- MANUAL DE CÁLCULOS (Knowledge) ---
-${CALCULATION_MANUAL_SEED}`
+${customManual || CALCULATION_MANUAL_SEED}`
 
         const openAiMessages = [
             { role: 'system', content: systemPrompt },

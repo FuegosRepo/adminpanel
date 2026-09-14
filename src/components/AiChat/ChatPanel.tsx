@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
+import { getStoredPrompt, getStoredManual } from './promptStorage'
 
 type ChatRole = 'user' | 'assistant'
 
@@ -51,7 +52,16 @@ function TypingIndicator() {
     )
 }
 
-function MessageBubble({ message, isLast }: { message: ChatMessage; isLast: boolean }) {
+interface MessageBubbleProps {
+    message: ChatMessage
+    isLast: boolean
+    canRetry: boolean
+    isBusy: boolean
+    onRetry: () => void
+    onExport: () => void
+}
+
+function MessageBubble({ message, isLast, canRetry, isBusy, onRetry, onExport }: MessageBubbleProps) {
     const isUser = message.role === 'user'
 
     const handleCopy = () => {
@@ -63,10 +73,10 @@ function MessageBubble({ message, isLast }: { message: ChatMessage; isLast: bool
         <div className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`}>
             <div
                 className={`shrink-0 h-7 w-7 rounded-full flex items-center justify-center ${isUser
-                        ? 'bg-primary text-primary-foreground'
-                        : message.isError
-                            ? 'bg-destructive/10 text-destructive'
-                            : 'bg-muted text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground'
+                    : message.isError
+                        ? 'bg-destructive/10 text-destructive'
+                        : 'bg-muted text-muted-foreground'
                     }`}
             >
                 {isUser ? (
@@ -80,40 +90,43 @@ function MessageBubble({ message, isLast }: { message: ChatMessage; isLast: bool
             <div className={`max-w-[80%] space-y-1 ${isUser ? 'items-end flex flex-col' : ''}`}>
                 <div
                     className={`rounded-lg px-3.5 py-2.5 text-sm whitespace-pre-wrap ${isUser
-                            ? 'bg-primary text-primary-foreground'
-                            : message.isError
-                                ? 'bg-destructive/10 text-destructive'
-                                : 'bg-muted text-foreground'
+                        ? 'bg-primary text-primary-foreground'
+                        : message.isError
+                            ? 'bg-destructive/10 text-destructive'
+                            : 'bg-muted text-foreground'
                         }`}
                 >
                     {message.text}
                 </div>
-                {!isUser && !message.isError && (
+                {!isUser && (
                     <div className="flex items-center gap-1 pl-0.5">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-1.5 text-muted-foreground"
-                            onClick={handleCopy}
-                        >
-                            <Copy className="h-3 w-3 mr-1" /> Copiar
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-1.5 text-muted-foreground"
-                            disabled
-                            title="Reintentar: todavía no implementado"
-                        >
-                            <RotateCcw className="h-3 w-3 mr-1" /> Reintentar
-                        </Button>
-                        {isLast && (
+                        {!message.isError && (
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 px-1.5 text-muted-foreground"
-                                disabled
-                                title="Exportar a PDF: todavía no implementado"
+                                onClick={handleCopy}
+                            >
+                                <Copy className="h-3 w-3 mr-1" /> Copiar
+                            </Button>
+                        )}
+                        {canRetry && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-1.5 text-muted-foreground"
+                                disabled={isBusy}
+                                onClick={onRetry}
+                            >
+                                <RotateCcw className="h-3 w-3 mr-1" /> Reintentar
+                            </Button>
+                        )}
+                        {isLast && !message.isError && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-1.5 text-muted-foreground"
+                                onClick={onExport}
                             >
                                 <FileDown className="h-3 w-3 mr-1" /> Exportar a PDF
                             </Button>
@@ -128,13 +141,11 @@ function MessageBubble({ message, isLast }: { message: ChatMessage; isLast: bool
 /**
  * Chat de Asistentes, conectado de verdad a /api/ai/shopping-list.
  *
- * Ya no es una conversación de ejemplo: cada mensaje llama a la API real
- * con el prompt + manual de cálculos (src/components/AiChat/promptSeed.ts
- * y calculationManualSeed.ts) y el devis de los eventos seleccionados.
- * Si la cuenta de OpenAI no tiene crédito, el error real de la API
- * aparece acá tal cual — es justamente lo que hay que ver para confirmar
- * que la conexión funciona, aunque la respuesta todavía no pueda
- * generarse por falta de crédito.
+ * Manda a la API el prompt/manual editados en PromptEditorDialog (si hay
+ * algo guardado en localStorage de este navegador) o, si no, los seeds
+ * fijos. Reintentar vuelve a mandar el último mensaje del usuario sin
+ * repetirlo a mano. Exportar a PDF genera el PDF del lado del cliente,
+ * con jsPDF cargado recién al usarlo (no infla el bundle inicial).
  */
 export function ChatPanel({ events }: ChatPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([INTRO_MESSAGE])
@@ -146,25 +157,23 @@ export function ChatPanel({ events }: ChatPanelProps) {
         scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages, isTyping])
 
-    const handleSend = async () => {
-        const text = input.trim()
-        if (!text || isTyping) return
-
-        const userMessage: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text }
-        const nextMessages = [...messages, userMessage]
-        setMessages(nextMessages)
-        setInput('')
+    /** Llama a la API con el historial dado y agrega la respuesta (o el error). */
+    const callApi = async (historyForApi: ChatMessage[]) => {
         setIsTyping(true)
-
         try {
-            const conversationHistory = nextMessages
+            const conversationHistory = historyForApi
                 .filter((m) => m.id !== 'intro' && !m.isError)
                 .map((m) => ({ role: m.role, content: m.text }))
 
             const response = await fetch('/api/ai/shopping-list', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: conversationHistory, events }),
+                body: JSON.stringify({
+                    messages: conversationHistory,
+                    events,
+                    customPrompt: getStoredPrompt(),
+                    customManual: getStoredManual(),
+                }),
             })
 
             const data = await response.json()
@@ -201,6 +210,46 @@ export function ChatPanel({ events }: ChatPanelProps) {
         }
     }
 
+    const handleSend = () => {
+        const text = input.trim()
+        if (!text || isTyping) return
+
+        const userMessage: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text }
+        const nextMessages = [...messages, userMessage]
+        setMessages(nextMessages)
+        setInput('')
+        callApi(nextMessages)
+    }
+
+    /** Saca este mensaje de asistente (y el error, si lo hubo) y vuelve a pedirle a la IA lo mismo. */
+    const handleRetry = (assistantMessageId: string) => {
+        if (isTyping) return
+        const index = messages.findIndex((m) => m.id === assistantMessageId)
+        if (index <= 0) return
+        const historyUpToUser = messages.slice(0, index) // corta antes de la respuesta a reintentar
+        setMessages(historyUpToUser)
+        callApi(historyUpToUser)
+    }
+
+    const handleExport = async (text: string) => {
+        try {
+            const { default: jsPDF } = await import('jspdf')
+            const doc = new jsPDF()
+            doc.setFontSize(16)
+            doc.text("Lista de Compras — Fuegos d'Azur", 14, 18)
+            doc.setFontSize(9)
+            doc.setTextColor(120)
+            doc.text(new Date().toLocaleDateString('es-AR'), 14, 24)
+            doc.setFontSize(11)
+            doc.setTextColor(20)
+            const lines = doc.splitTextToSize(text, 180)
+            doc.text(lines, 14, 34)
+            doc.save(`lista-compras-${new Date().toISOString().split('T')[0]}.pdf`)
+        } catch {
+            toast.error('No se pudo generar el PDF.')
+        }
+    }
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
@@ -219,6 +268,10 @@ export function ChatPanel({ events }: ChatPanelProps) {
                             key={message.id}
                             message={message}
                             isLast={message.id === lastAssistantId}
+                            canRetry={message.role === 'assistant' && message.id !== 'intro'}
+                            isBusy={isTyping}
+                            onRetry={() => handleRetry(message.id)}
+                            onExport={() => handleExport(message.text)}
                         />
                     ))}
                     {isTyping && (

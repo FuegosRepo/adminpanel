@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Settings2, Save, AlertTriangle, FileText, BookOpen } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Settings2, Save, Info, FileText, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,25 +16,44 @@ import {
 } from '@/components/ui/dialog'
 import { SHOPPING_LIST_PROMPT_SEED } from './promptSeed'
 import { CALCULATION_MANUAL_SEED } from './calculationManualSeed'
+import { getStoredPrompt, getStoredManual, savePrompt } from './promptStorage'
 
 /**
- * Pantalla donde el cliente podría editar él mismo las reglas de cálculo
- * de la lista de compras, sin depender de pedirle el cambio al developer
- * cada vez. Dos pestañas, igual que en ChatGPT: "Instructions" (el prompt)
- * y "Knowledge" (el manual de cálculos). Ambas precargadas con los
- * archivos reales que el cliente ya usa (pasados el 2026-09-14).
+ * Pantalla donde se edita el prompt + manual que usa de verdad el chat
+ * de Asistentes (ver /api/ai/shopping-list). Dos pestañas, igual que
+ * ChatGPT: "Instructions" (el prompt) y "Knowledge" (el manual).
  *
- * Vista previa de diseño: "Guardar" no persiste nada todavía, y este
- * texto no está conectado a ningún modelo de IA real.
+ * Persistencia: localStorage de este navegador, no la base de datos
+ * (ver promptStorage.ts). Guardar acá SÍ cambia lo que el chat usa en
+ * la próxima llamada real a OpenAI.
  */
 export function PromptEditorDialog() {
     const [open, setOpen] = useState(false)
     const [prompt, setPrompt] = useState(SHOPPING_LIST_PROMPT_SEED)
     const [manual, setManual] = useState(CALCULATION_MANUAL_SEED)
 
+    // Cargar lo guardado recién al abrir (localStorage no existe en el
+    // servidor, así que no se puede leer en el useState inicial).
+    useEffect(() => {
+        if (open) {
+            setPrompt(getStoredPrompt())
+            setManual(getStoredManual())
+        }
+    }, [open])
+
     const handleSave = () => {
-        toast.info('Vista previa de diseño: en la versión conectada esto se guardaría y usaría en el próximo cálculo.')
+        const ok = savePrompt(prompt, manual)
+        if (ok) {
+            toast.success('Guardado. El chat va a usar este prompt y este manual en el próximo mensaje.')
+        } else {
+            toast.error('No se pudo guardar en este navegador (almacenamiento local no disponible).')
+        }
         setOpen(false)
+    }
+
+    const handleRestoreDefaults = () => {
+        setPrompt(SHOPPING_LIST_PROMPT_SEED)
+        setManual(CALCULATION_MANUAL_SEED)
     }
 
     return (
@@ -57,13 +76,12 @@ export function PromptEditorDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 text-amber-900 px-3 py-2 text-xs">
-                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 text-blue-900 px-3 py-2 text-xs">
+                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                     <p>
-                        Vista previa de diseño: las dos pestañas son el mismo prompt y el mismo
-                        manual que ya usás en tu GPT de ChatGPT hoy, precargados acá tal cual.
-                        Editar y guardar todavía no hace nada real, ni se conecta a tu ChatGPT ni
-                        a un modelo de IA en esta pantalla.
+                        Guardar acá sí cambia lo que usa el chat real, pero queda guardado solo en
+                        este navegador (no en la base de datos todavía). Si abrís el panel desde
+                        otra computadora vas a ver el original de nuevo.
                     </p>
                 </div>
 
@@ -100,14 +118,19 @@ export function PromptEditorDialog() {
                     </TabsContent>
                 </Tabs>
 
-                <DialogFooter>
-                    <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
-                        Cancelar
+                <DialogFooter className="sm:justify-between">
+                    <Button variant="ghost" size="sm" onClick={handleRestoreDefaults}>
+                        Restaurar el original
                     </Button>
-                    <Button size="sm" className="gap-1.5" onClick={handleSave}>
-                        <Save className="h-3.5 w-3.5" />
-                        Guardar
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+                            Cancelar
+                        </Button>
+                        <Button size="sm" className="gap-1.5" onClick={handleSave}>
+                            <Save className="h-3.5 w-3.5" />
+                            Guardar
+                        </Button>
+                    </div>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
