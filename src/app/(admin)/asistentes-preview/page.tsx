@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ContextChips, mockGmailThreadCount, type ContextItem } from '@/components/AiChat/ContextChips'
 import { ChatPanel } from '@/components/AiChat/ChatPanel'
 import { EventSelector } from '@/components/AiChat/EventSelector'
+import { PromptEditorDialog } from '@/components/AiChat/PromptEditorDialog'
 import type { CateringOrder } from '@/types'
 
 function orderToContextItem(order: CateringOrder): ContextItem {
@@ -62,10 +63,13 @@ export default function AsistentesPreviewPage() {
 
                 <Card className="flex flex-col md:h-full min-h-0">
                     <CardHeader className="pb-3 shrink-0">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                            Asistentes
-                        </CardTitle>
+                        <div className="flex items-center justify-between gap-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Sparkles className="h-5 w-5 text-primary" />
+                                Asistentes
+                            </CardTitle>
+                            <PromptEditorDialog />
+                        </div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                             <Mail className="h-3.5 w-3.5" />
                             Contexto combinado: pedidos de la web + hilos de Gmail vinculados
