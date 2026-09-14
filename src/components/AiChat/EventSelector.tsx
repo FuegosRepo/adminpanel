@@ -45,7 +45,7 @@ export function EventSelector({ onAddToContext, alreadyInContext }: EventSelecto
         .filter((o) => !normalizedSearch || (o.contact.name || '').toLowerCase().includes(normalizedSearch))
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className="h-[400px] md:h-full flex flex-col min-h-0">
             <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                     <CalendarPlus className="h-4 w-4 text-primary" />

@@ -297,7 +297,7 @@ export function ChatPanel() {
     const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id
 
     return (
-        <div className="flex flex-col h-[560px] border rounded-lg bg-card">
+        <div className="flex flex-col h-full min-h-0 border rounded-lg bg-card">
             <ScrollArea className="flex-1 p-4">
                 <div className="space-y-5">
                     {messages.map((message) => (

@@ -54,14 +54,14 @@ export default function AsistentesPreviewPage() {
                 </div>
             </div>
 
-            <div className="grid md:grid-cols-[300px_1fr] gap-4 items-stretch">
+            <div className="grid md:grid-cols-[300px_1fr] gap-4 md:h-[640px]">
                 <EventSelector
                     onAddToContext={handleAddToContext}
                     alreadyInContext={new Set(contextItems.map((i) => i.id))}
                 />
 
-                <Card>
-                    <CardHeader className="pb-3">
+                <Card className="flex flex-col md:h-full min-h-0">
+                    <CardHeader className="pb-3 shrink-0">
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <Sparkles className="h-5 w-5 text-primary" />
                             Asistentes
@@ -70,9 +70,11 @@ export default function AsistentesPreviewPage() {
                             <Mail className="h-3.5 w-3.5" />
                             Contexto combinado: pedidos de la web + hilos de Gmail vinculados
                         </p>
-                        <ContextChips items={contextItems} onRemove={handleRemove} />
+                        <div className="max-h-32 overflow-y-auto">
+                            <ContextChips items={contextItems} onRemove={handleRemove} />
+                        </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="flex-1 min-h-0">
                         <ChatPanel />
                     </CardContent>
                 </Card>
