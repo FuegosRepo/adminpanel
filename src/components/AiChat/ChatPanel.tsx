@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
 import { getStoredPrompt, getStoredManual } from './promptStorage'
 import { logUsage } from './usageStorage'
+import { renderMarkdownLite } from './markdownLite'
 
 type ChatRole = 'user' | 'assistant'
 
@@ -92,14 +93,14 @@ function MessageBubble({ message, isLast, canRetry, isBusy, onRetry, onExport }:
             </div>
             <div className={`max-w-[80%] space-y-1 ${isUser ? 'items-end flex flex-col' : ''}`}>
                 <div
-                    className={`rounded-lg px-3.5 py-2.5 text-sm whitespace-pre-wrap ${isUser
+                    className={`rounded-lg px-3.5 py-2.5 text-sm ${isUser ? 'whitespace-pre-wrap' : ''} ${isUser
                         ? 'bg-primary text-primary-foreground'
                         : message.isError
-                            ? 'bg-destructive/10 text-destructive'
+                            ? 'bg-destructive/10 text-destructive whitespace-pre-wrap'
                             : 'bg-muted text-foreground'
                         }`}
                 >
-                    {message.text}
+                    {isUser || message.isError ? message.text : renderMarkdownLite(message.text)}
                 </div>
                 {!isUser && (
                     <div className="flex items-center gap-1 pl-0.5">
