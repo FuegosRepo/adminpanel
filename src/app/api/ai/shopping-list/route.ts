@@ -122,7 +122,22 @@ ${customManual || CALCULATION_MANUAL_SEED}`
             return NextResponse.json({ error: 'OpenAI no devolvió contenido' }, { status: 502 })
         }
 
-        return NextResponse.json({ reply })
+        // Costo estimado a partir de los tokens reales que devuelve la API.
+        // Precio de gpt-4o-mini al momento de escribir esto — si se cambia
+        // el modelo, actualizar estas dos constantes.
+        const PRICE_PER_1M_INPUT_USD = 0.15
+        const PRICE_PER_1M_OUTPUT_USD = 0.60
+        const usage = data.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined
+        const promptTokens = usage?.prompt_tokens ?? 0
+        const completionTokens = usage?.completion_tokens ?? 0
+        const estimatedCostUSD =
+            (promptTokens / 1_000_000) * PRICE_PER_1M_INPUT_USD +
+            (completionTokens / 1_000_000) * PRICE_PER_1M_OUTPUT_USD
+
+        return NextResponse.json({
+            reply,
+            usage: { promptTokens, completionTokens, estimatedCostUSD },
+        })
     } catch (error) {
         console.error('Error en /api/ai/shopping-list:', error)
         return NextResponse.json(

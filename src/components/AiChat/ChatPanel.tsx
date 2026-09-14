@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
 import { getStoredPrompt, getStoredManual } from './promptStorage'
+import { logUsage } from './usageStorage'
 
 type ChatRole = 'user' | 'assistant'
 
@@ -30,6 +31,8 @@ export interface ChatPanelEvent {
 
 interface ChatPanelProps {
     events: ChatPanelEvent[]
+    /** Se llama después de registrar el uso de una consulta exitosa, para que el contador de gasto se actualice. */
+    onUsageLogged?: () => void
 }
 
 const INTRO_MESSAGE: ChatMessage = {
@@ -147,7 +150,7 @@ function MessageBubble({ message, isLast, canRetry, isBusy, onRetry, onExport }:
  * repetirlo a mano. Exportar a PDF genera el PDF del lado del cliente,
  * con jsPDF cargado recién al usarlo (no infla el bundle inicial).
  */
-export function ChatPanel({ events }: ChatPanelProps) {
+export function ChatPanel({ events, onUsageLogged }: ChatPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([INTRO_MESSAGE])
     const [input, setInput] = useState('')
     const [isTyping, setIsTyping] = useState(false)
@@ -195,6 +198,17 @@ export function ChatPanel({ events }: ChatPanelProps) {
                 ...prev,
                 { id: `a-${Date.now()}`, role: 'assistant', text: data.reply as string },
             ])
+
+            if (data.usage) {
+                const lastUserMessage = [...historyForApi].reverse().find((m) => m.role === 'user')
+                logUsage({
+                    question: (lastUserMessage?.text || '').slice(0, 80),
+                    promptTokens: data.usage.promptTokens ?? 0,
+                    completionTokens: data.usage.completionTokens ?? 0,
+                    estimatedCostUSD: data.usage.estimatedCostUSD ?? 0,
+                })
+                onUsageLogged?.()
+            }
         } catch (error) {
             setMessages((prev) => [
                 ...prev,
