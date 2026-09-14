@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Send, Copy, RotateCcw, FileDown, Sparkles, User } from 'lucide-react'
+import { Send, Copy, RotateCcw, FileDown, Sparkles, User, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -12,160 +12,30 @@ type ChatRole = 'user' | 'assistant'
 interface ChatMessage {
     id: string
     role: ChatRole
-    content: React.ReactNode
-    plainText: string
+    text: string
+    isError?: boolean
 }
 
-// Conversación de ejemplo, tal cual el flujo descrito en el plan (2.1/2.2):
-// el admin pide una lista de compras, y va ajustándola en el mismo hilo.
-// Esto es contenido fijo para mostrar el diseño — no hay ningún modelo de
-// IA respondiendo acá.
-const SCRIPTED_MESSAGES: ChatMessage[] = [
-    {
-        id: 'm1',
-        role: 'user',
-        plainText: 'Necesito la lista de compras para la boda de Dubois y el cumpleaños de Martin de este sábado.',
-        content: 'Necesito la lista de compras para la boda de Dubois y el cumpleaños de Martin de este sábado.',
-    },
-    {
-        id: 'm2',
-        role: 'assistant',
-        plainText: 'Lista de compras para 2 eventos (65 personas en total).',
-        content: (
-            <div className="space-y-2">
-                <p>Junté los dos eventos del sábado. Las cantidades salen del motor de productos, no las calculo yo:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                    <li><strong>Carnes</strong> — 19.5 kg (Entrecôte, Picanha) — proveedor habitual</li>
-                    <li><strong>Entrantes</strong> — Tapas de chorizo x65, Empanadas x130</li>
-                    <li><strong>Vinos</strong> — 12 botellas tinto, 8 botellas blanco</li>
-                    <li><strong>Postre</strong> — Panqueques (ingredientes para 65)</li>
-                </ul>
-                <p className="text-muted-foreground text-sm">¿Agrupo por proveedor o preferís por evento?</p>
-            </div>
-        ),
-    },
-    {
-        id: 'm3',
-        role: 'user',
-        plainText: 'Sacá los vinos, los pone el cliente en los dos eventos.',
-        content: 'Sacá los vinos, los pone el cliente en los dos eventos.',
-    },
-    {
-        id: 'm4',
-        role: 'assistant',
-        plainText: 'Listo, saqué los vinos de ambos eventos.',
-        content: (
-            <div className="space-y-2">
-                <p>Listo, saqué los vinos de los dos eventos:</p>
-                <ul className="list-disc pl-5 space-y-1">
-                    <li><strong>Carnes</strong> — 19.5 kg (Entrecôte, Picanha)</li>
-                    <li><strong>Entrantes</strong> — Tapas de chorizo x65, Empanadas x130</li>
-                    <li><strong>Postre</strong> — Panqueques (ingredientes para 65)</li>
-                </ul>
-            </div>
-        ),
-    },
-    {
-        id: 'm5',
-        role: 'user',
-        plainText: 'Agregá 10% de margen en las carnes.',
-        content: 'Agregá 10% de margen en las carnes.',
-    },
-    {
-        id: 'm6',
-        role: 'assistant',
-        plainText: 'Carnes recalculadas con 10% de margen: 21.45 kg.',
-        content: (
-            <p>
-                Hecho. <strong>Carnes</strong>: 19.5 kg → <strong>21.45 kg</strong> con el 10% de margen aplicado.
-                El resto de la lista no cambia.
-            </p>
-        ),
-    },
-    {
-        id: 'm7',
-        role: 'user',
-        plainText: 'Ponelo en tabla.',
-        content: 'Ponelo en tabla.',
-    },
-    {
-        id: 'm8',
-        role: 'assistant',
-        plainText: 'Tabla final de la lista de compras.',
-        content: (
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse">
-                    <thead>
-                        <tr className="border-b text-left text-muted-foreground">
-                            <th className="py-1.5 pr-3 font-medium">Ítem</th>
-                            <th className="py-1.5 pr-3 font-medium">Cantidad</th>
-                            <th className="py-1.5 font-medium">Nota</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr className="border-b">
-                            <td className="py-1.5 pr-3">Entrecôte / Picanha</td>
-                            <td className="py-1.5 pr-3">21.45 kg</td>
-                            <td className="py-1.5 text-muted-foreground">con 10% de margen</td>
-                        </tr>
-                        <tr className="border-b">
-                            <td className="py-1.5 pr-3">Tapas de chorizo</td>
-                            <td className="py-1.5 pr-3">65 u.</td>
-                            <td className="py-1.5 text-muted-foreground">—</td>
-                        </tr>
-                        <tr className="border-b">
-                            <td className="py-1.5 pr-3">Empanadas</td>
-                            <td className="py-1.5 pr-3">130 u.</td>
-                            <td className="py-1.5 text-muted-foreground">—</td>
-                        </tr>
-                        <tr>
-                            <td className="py-1.5 pr-3">Panqueques (ingredientes)</td>
-                            <td className="py-1.5 pr-3">65 pers.</td>
-                            <td className="py-1.5 text-muted-foreground">dulce de leche aparte</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        ),
-    },
-    {
-        id: 'm9',
-        role: 'user',
-        plainText: '¿Hay algo pendiente con la boda de Dubois?',
-        content: '¿Hay algo pendiente con la boda de Dubois?',
-    },
-    {
-        id: 'm10',
-        role: 'assistant',
-        plainText: 'Encontré una diferencia entre el pedido y un mail del cliente.',
-        content: (
-            <div className="space-y-2">
-                <p>
-                    Sí, encontré una diferencia entre lo que dice el pedido y un mail de Gmail
-                    vinculado a este evento:
-                </p>
-                <div className="rounded-md border-l-2 border-amber-400 bg-amber-50 px-3 py-2 text-sm">
-                    <p className="text-amber-900">
-                        El 12/08, la clienta escribió (cita textual del mail, en francés):
-                    </p>
-                    <p className="italic text-amber-900 mt-1">
-                        « Finalement on serait 55, pas 45 »
-                    </p>
-                    <p className="text-amber-800/90 mt-1">
-                        El pedido en la web todavía dice <strong>45 invitados</strong>.
-                    </p>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                    Esto es solo lectura: yo no cambio el pedido. Si confirmás el dato,
-                    lo actualizás vos con un clic desde la fila del pedido.
-                </p>
-            </div>
-        ),
-    },
-]
+/** Lo mínimo del devis que necesita el prompt para calcular. */
+export interface ChatPanelEvent {
+    name: string
+    eventDate: string
+    eventType: string
+    guestCount: number
+    entrees: string[]
+    viandes: string[]
+    dessert: string | null
+}
 
-const PREVIEW_REPLY =
-    'Vista previa de diseño: en la versión conectada, acá te respondería usando los datos reales de tus eventos y productos. Por ahora esta pantalla solo muestra cómo va a verse.'
+interface ChatPanelProps {
+    events: ChatPanelEvent[]
+}
+
+const INTRO_MESSAGE: ChatMessage = {
+    id: 'intro',
+    role: 'assistant',
+    text: 'Elegí uno o más eventos de la lista de la izquierda y pedime la lista de compras. Calculo con el prompt y el manual que ves en "Editar prompt del asistente".',
+}
 
 function TypingIndicator() {
     return (
@@ -185,28 +55,40 @@ function MessageBubble({ message, isLast }: { message: ChatMessage; isLast: bool
     const isUser = message.role === 'user'
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(message.plainText)
+        navigator.clipboard.writeText(message.text)
         toast.success('Copiado')
     }
 
     return (
         <div className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`}>
             <div
-                className={`shrink-0 h-7 w-7 rounded-full flex items-center justify-center ${isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                className={`shrink-0 h-7 w-7 rounded-full flex items-center justify-center ${isUser
+                        ? 'bg-primary text-primary-foreground'
+                        : message.isError
+                            ? 'bg-destructive/10 text-destructive'
+                            : 'bg-muted text-muted-foreground'
                     }`}
             >
-                {isUser ? <User className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {isUser ? (
+                    <User className="h-3.5 w-3.5" />
+                ) : message.isError ? (
+                    <AlertCircle className="h-3.5 w-3.5" />
+                ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                )}
             </div>
             <div className={`max-w-[80%] space-y-1 ${isUser ? 'items-end flex flex-col' : ''}`}>
                 <div
-                    className={`rounded-lg px-3.5 py-2.5 text-sm ${isUser
+                    className={`rounded-lg px-3.5 py-2.5 text-sm whitespace-pre-wrap ${isUser
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-foreground'
+                            : message.isError
+                                ? 'bg-destructive/10 text-destructive'
+                                : 'bg-muted text-foreground'
                         }`}
                 >
-                    {message.content}
+                    {message.text}
                 </div>
-                {!isUser && (
+                {!isUser && !message.isError && (
                     <div className="flex items-center gap-1 pl-0.5">
                         <Button
                             variant="ghost"
@@ -221,7 +103,7 @@ function MessageBubble({ message, isLast }: { message: ChatMessage; isLast: bool
                             size="sm"
                             className="h-6 px-1.5 text-muted-foreground"
                             disabled
-                            title="Disponible cuando el chat esté conectado a IA real"
+                            title="Reintentar: todavía no implementado"
                         >
                             <RotateCcw className="h-3 w-3 mr-1" /> Reintentar
                         </Button>
@@ -231,7 +113,7 @@ function MessageBubble({ message, isLast }: { message: ChatMessage; isLast: bool
                                 size="sm"
                                 className="h-6 px-1.5 text-muted-foreground"
                                 disabled
-                                title="Disponible cuando el chat esté conectado a IA real"
+                                title="Exportar a PDF: todavía no implementado"
                             >
                                 <FileDown className="h-3 w-3 mr-1" /> Exportar a PDF
                             </Button>
@@ -244,14 +126,18 @@ function MessageBubble({ message, isLast }: { message: ChatMessage; isLast: bool
 }
 
 /**
- * Chat de Asistentes — vista previa de diseño (Fase 2.1/2.2 del plan).
- * No conecta a ningún modelo de IA: la conversación de ejemplo es fija y
- * cualquier mensaje nuevo recibe una respuesta de aviso, no una respuesta
- * real. Sirve para validar la interfaz antes de resolver créditos de
- * OpenAI y las decisiones de Gmail/Assistants.
+ * Chat de Asistentes, conectado de verdad a /api/ai/shopping-list.
+ *
+ * Ya no es una conversación de ejemplo: cada mensaje llama a la API real
+ * con el prompt + manual de cálculos (src/components/AiChat/promptSeed.ts
+ * y calculationManualSeed.ts) y el devis de los eventos seleccionados.
+ * Si la cuenta de OpenAI no tiene crédito, el error real de la API
+ * aparece acá tal cual — es justamente lo que hay que ver para confirmar
+ * que la conexión funciona, aunque la respuesta todavía no pueda
+ * generarse por falta de crédito.
  */
-export function ChatPanel() {
-    const [messages, setMessages] = useState<ChatMessage[]>(SCRIPTED_MESSAGES)
+export function ChatPanel({ events }: ChatPanelProps) {
+    const [messages, setMessages] = useState<ChatMessage[]>([INTRO_MESSAGE])
     const [input, setInput] = useState('')
     const [isTyping, setIsTyping] = useState(false)
     const scrollRef = useRef<HTMLDivElement>(null)
@@ -260,31 +146,59 @@ export function ChatPanel() {
         scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages, isTyping])
 
-    const handleSend = () => {
+    const handleSend = async () => {
         const text = input.trim()
-        if (!text) return
+        if (!text || isTyping) return
 
-        const userMessage: ChatMessage = {
-            id: `u-${Date.now()}`,
-            role: 'user',
-            plainText: text,
-            content: text,
-        }
-        setMessages((prev) => [...prev, userMessage])
+        const userMessage: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text }
+        const nextMessages = [...messages, userMessage]
+        setMessages(nextMessages)
         setInput('')
         setIsTyping(true)
 
-        // Simulación de "está escribiendo" — no hay ninguna llamada real acá.
-        setTimeout(() => {
-            const assistantMessage: ChatMessage = {
-                id: `a-${Date.now()}`,
-                role: 'assistant',
-                plainText: PREVIEW_REPLY,
-                content: PREVIEW_REPLY,
+        try {
+            const conversationHistory = nextMessages
+                .filter((m) => m.id !== 'intro' && !m.isError)
+                .map((m) => ({ role: m.role, content: m.text }))
+
+            const response = await fetch('/api/ai/shopping-list', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: conversationHistory, events }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: `err-${Date.now()}`,
+                        role: 'assistant',
+                        text: `${data.error || 'Error al conectar con la IA'}${data.details ? `\n\n${data.details}` : ''}`,
+                        isError: true,
+                    },
+                ])
+                return
             }
-            setMessages((prev) => [...prev, assistantMessage])
+
+            setMessages((prev) => [
+                ...prev,
+                { id: `a-${Date.now()}`, role: 'assistant', text: data.reply as string },
+            ])
+        } catch (error) {
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: `err-${Date.now()}`,
+                    role: 'assistant',
+                    text: `No se pudo conectar con el servidor.\n\n${error instanceof Error ? error.message : ''}`,
+                    isError: true,
+                },
+            ])
+        } finally {
             setIsTyping(false)
-        }, 900)
+        }
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -294,7 +208,7 @@ export function ChatPanel() {
         }
     }
 
-    const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id
+    const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant' && !m.isError)?.id
 
     return (
         <div className="flex flex-col h-full min-h-0 border rounded-lg bg-card">
@@ -329,8 +243,9 @@ export function ChatPanel() {
                     placeholder="Pedí una lista de compras, un ajuste, o preguntá algo sobre estos eventos..."
                     className="min-h-[44px] max-h-32 resize-none"
                     rows={1}
+                    disabled={isTyping}
                 />
-                <Button onClick={handleSend} disabled={!input.trim()} size="icon" className="shrink-0">
+                <Button onClick={handleSend} disabled={!input.trim() || isTyping} size="icon" className="shrink-0">
                     <Send className="h-4 w-4" />
                 </Button>
             </div>

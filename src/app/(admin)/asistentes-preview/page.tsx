@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Sparkles, AlertTriangle, Mail } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ContextChips, mockGmailThreadCount, type ContextItem } from '@/components/AiChat/ContextChips'
-import { ChatPanel } from '@/components/AiChat/ChatPanel'
+import { ChatPanel, type ChatPanelEvent } from '@/components/AiChat/ChatPanel'
 import { EventSelector } from '@/components/AiChat/EventSelector'
 import { PromptEditorDialog } from '@/components/AiChat/PromptEditorDialog'
 import type { CateringOrder } from '@/types'
@@ -19,6 +19,18 @@ function orderToContextItem(order: CateringOrder): ContextItem {
     }
 }
 
+function orderToChatPanelEvent(order: CateringOrder): ChatPanelEvent {
+    return {
+        name: order.contact.name || 'Sin nombre',
+        eventDate: order.contact.eventDate || '',
+        eventType: order.contact.eventType || '',
+        guestCount: order.contact.guestCount || 0,
+        entrees: order.entrees || [],
+        viandes: order.viandes || [],
+        dessert: order.dessert,
+    }
+}
+
 /**
  * Vista previa de diseño de la pestaña "Asistentes" (Fase 2 del plan,
  * bloqueada por créditos de OpenAI y decisiones de Gmail/Assistants).
@@ -29,28 +41,33 @@ function orderToContextItem(order: CateringOrder): ContextItem {
  * por pedido — todavía no hay conexión real a Gmail.
  */
 export default function AsistentesPreviewPage() {
-    const [contextItems, setContextItems] = useState<ContextItem[]>([])
+    // Se guardan los pedidos completos (no solo el resumen para mostrar en
+    // los chips) porque el chat necesita entrées/viandes/postre reales
+    // para armar el devis que le manda a la IA.
+    const [contextOrders, setContextOrders] = useState<CateringOrder[]>([])
 
     const handleAddToContext = (orders: CateringOrder[]) => {
-        setContextItems((prev) => [...prev, ...orders.map(orderToContextItem)])
+        setContextOrders((prev) => [...prev, ...orders])
     }
 
     const handleRemove = (id: string) => {
-        setContextItems((prev) => prev.filter((item) => item.id !== id))
+        setContextOrders((prev) => prev.filter((order) => order.id !== id))
     }
+
+    const contextItems = contextOrders.map(orderToContextItem)
 
     return (
         <div className="w-full max-w-[1100px] mx-auto p-4 md:p-6 space-y-4">
             <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm">
                 <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
                 <div>
-                    <p className="font-medium">Vista previa de diseño — sin IA ni Gmail conectados</p>
+                    <p className="font-medium">El chat ya llama a OpenAI de verdad — sin Gmail todavía</p>
                     <p className="text-amber-800/90">
-                        La lista de eventos de abajo es real (pedidos aprobados). Los hilos de
-                        Gmail que se muestran por pedido son un número de ejemplo, no una
-                        conexión real: la idea es que la IA pueda cruzar lo que dice el pedido
-                        en la web con lo que el cliente escribió por mail, una vez que Gmail
-                        esté conectado y se resuelvan los créditos de OpenAI.
+                        La lista de eventos es real, y el chat manda el prompt, el manual de
+                        cálculos y el devis del evento elegido a la API de OpenAI. Si la cuenta
+                        no tiene crédito cargado, vas a ver el error real de OpenAI en el chat,
+                        no un mensaje de vista previa. Los hilos de Gmail que se muestran por
+                        pedido siguen siendo un número de ejemplo, esa parte no está conectada.
                     </p>
                 </div>
             </div>
@@ -79,7 +96,7 @@ export default function AsistentesPreviewPage() {
                         </div>
                     </CardHeader>
                     <CardContent className="flex-1 min-h-0">
-                        <ChatPanel />
+                        <ChatPanel events={contextOrders.map(orderToChatPanelEvent)} />
                     </CardContent>
                 </Card>
             </div>
