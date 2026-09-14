@@ -128,6 +128,40 @@ const SCRIPTED_MESSAGES: ChatMessage[] = [
             </div>
         ),
     },
+    {
+        id: 'm9',
+        role: 'user',
+        plainText: '¿Hay algo pendiente con la boda de Dubois?',
+        content: '¿Hay algo pendiente con la boda de Dubois?',
+    },
+    {
+        id: 'm10',
+        role: 'assistant',
+        plainText: 'Encontré una diferencia entre el pedido y un mail del cliente.',
+        content: (
+            <div className="space-y-2">
+                <p>
+                    Sí, encontré una diferencia entre lo que dice el pedido y un mail de Gmail
+                    vinculado a este evento:
+                </p>
+                <div className="rounded-md border-l-2 border-amber-400 bg-amber-50 px-3 py-2 text-sm">
+                    <p className="text-amber-900">
+                        El 12/08, la clienta escribió (cita textual del mail, en francés):
+                    </p>
+                    <p className="italic text-amber-900 mt-1">
+                        « Finalement on serait 55, pas 45 »
+                    </p>
+                    <p className="text-amber-800/90 mt-1">
+                        El pedido en la web todavía dice <strong>45 invitados</strong>.
+                    </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                    Esto es solo lectura: yo no cambio el pedido. Si confirmás el dato,
+                    lo actualizás vos con un clic desde la fila del pedido.
+                </p>
+            </div>
+        ),
+    },
 ]
 
 const PREVIEW_REPLY =

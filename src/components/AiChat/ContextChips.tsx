@@ -1,12 +1,16 @@
 'use client'
 
-import { X } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { X, Mail, Link2 } from 'lucide-react'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 export interface ContextItem {
     id: string
-    label: string
     icon?: string
+    label: string
+    sublabel?: string
+    /** Cantidad de hilos de Gmail vinculados a este evento — dato de ejemplo, ver mockGmailThreadCount. */
+    gmailThreadCount: number
 }
 
 interface ContextChipsProps {
@@ -15,42 +19,78 @@ interface ContextChipsProps {
 }
 
 /**
- * Muestra qué eventos/hilos está mirando el chat en este momento, y permite
- * sacarlos de contexto. Diseño según Fase 2.1 del plan: "ContextChips.tsx
- * muestra qué está mirando y permite sacarlo".
+ * Simula cuántos hilos de Gmail están vinculados a un pedido. Determinístico
+ * por id (mismo pedido siempre muestra el mismo número), no aleatorio, para
+ * no generar un mismatch de hidratación entre servidor y cliente.
+ */
+export function mockGmailThreadCount(id: string): number {
+    let hash = 0
+    for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0
+    return hash % 4 // 0 a 3
+}
+
+/**
+ * Muestra qué pedidos está mirando el chat, incluyendo cuántos hilos de
+ * Gmail tiene cada uno vinculados (Fase 2.3 del plan: el contexto combina
+ * datos del pedido en la web con el correo del cliente). Todo simulado acá,
+ * no hay conexión real a Gmail todavía.
  */
 export function ContextChips({ items, onRemove }: ContextChipsProps) {
     if (items.length === 0) {
         return (
             <p className="text-sm text-muted-foreground italic">
-                Sin eventos seleccionados. Elegí uno o más pedidos para empezar.
+                Sin eventos seleccionados. Elegí uno o más pedidos de la lista para empezar.
             </p>
         )
     }
 
     return (
-        <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground mr-1">
-                Contexto:
+        <div className="space-y-2">
+            <span className="text-xs font-medium text-muted-foreground">
+                Contexto ({items.length}):
             </span>
-            {items.map((item) => (
-                <Badge
-                    key={item.id}
-                    variant="secondary"
-                    className="gap-1.5 pl-2.5 pr-1.5 py-1 text-sm font-normal"
-                >
-                    {item.icon && <span>{item.icon}</span>}
-                    {item.label}
-                    <button
-                        type="button"
-                        onClick={() => onRemove(item.id)}
-                        className="rounded-full hover:bg-muted-foreground/20 p-0.5 ml-0.5"
-                        aria-label={`Quitar ${item.label} del contexto`}
-                    >
-                        <X className="h-3 w-3" />
-                    </button>
-                </Badge>
-            ))}
+            <div className="grid sm:grid-cols-2 gap-2">
+                {items.map((item) => (
+                    <Card key={item.id} className="p-2.5 flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">
+                                {item.icon && <span className="mr-1">{item.icon}</span>}
+                                {item.label}
+                            </p>
+                            {item.sublabel && (
+                                <p className="text-xs text-muted-foreground truncate">{item.sublabel}</p>
+                            )}
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                                {item.gmailThreadCount > 0 ? (
+                                    <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                        <Mail className="h-3 w-3" />
+                                        {item.gmailThreadCount} hilo{item.gmailThreadCount !== 1 ? 's' : ''} de Gmail (ejemplo)
+                                    </span>
+                                ) : (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-5 px-1 text-[11px] text-muted-foreground"
+                                        disabled
+                                        title="Disponible cuando se conecte Gmail"
+                                    >
+                                        <Link2 className="h-3 w-3 mr-1" />
+                                        Vincular hilo de Gmail
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => onRemove(item.id)}
+                            className="rounded-full hover:bg-muted-foreground/20 p-1 shrink-0"
+                            aria-label={`Quitar ${item.label} del contexto`}
+                        >
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    </Card>
+                ))}
+            </div>
         </div>
     )
 }
