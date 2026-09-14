@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { getStoredPrompt, getStoredManual } from './promptStorage'
 import { logUsage } from './usageStorage'
 import { renderMarkdownLite } from './markdownLite'
+import { exportShoppingListPdf } from './pdfExport'
 
 type ChatRole = 'user' | 'assistant'
 
@@ -248,18 +249,7 @@ export function ChatPanel({ events, onUsageLogged }: ChatPanelProps) {
 
     const handleExport = async (text: string) => {
         try {
-            const { default: jsPDF } = await import('jspdf')
-            const doc = new jsPDF()
-            doc.setFontSize(16)
-            doc.text("Lista de Compras — Fuegos d'Azur", 14, 18)
-            doc.setFontSize(9)
-            doc.setTextColor(120)
-            doc.text(new Date().toLocaleDateString('es-AR'), 14, 24)
-            doc.setFontSize(11)
-            doc.setTextColor(20)
-            const lines = doc.splitTextToSize(text, 180)
-            doc.text(lines, 14, 34)
-            doc.save(`lista-compras-${new Date().toISOString().split('T')[0]}.pdf`)
+            await exportShoppingListPdf(text)
         } catch {
             toast.error('No se pudo generar el PDF.')
         }

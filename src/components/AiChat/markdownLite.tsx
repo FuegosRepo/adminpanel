@@ -7,6 +7,22 @@ import type { ReactNode } from 'react'
  * "---"). No es un parser de markdown completo, es liviano y predecible.
  */
 
+/**
+ * A veces el modelo devuelve un título "decorativo" con un espacio entre
+ * cada letra (ej: "L i s t a   d e   C o m p r a s"). Colapsarlo con
+ * replace(/\s+/g, ' ') no alcanza porque cada espacio ya es único —
+ * se detecta por la proporción de palabras de una sola letra.
+ */
+function collapseLetterSpacing(text: string): string {
+    const cleaned = text.replace(/['"]+$/, '').trim()
+    const words = cleaned.split(/\s+/)
+    const singleCharRatio = words.filter((w) => w.length === 1).length / words.length
+    if (words.length >= 5 && singleCharRatio > 0.6) {
+        return words.join('')
+    }
+    return cleaned
+}
+
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
     // Corta por **negrita**, conservando el resto como texto plano.
     const parts = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean)
@@ -52,7 +68,7 @@ export function renderMarkdownLite(text: string): ReactNode {
         if (headerMatch) {
             flushList()
             const level = headerMatch[1].length
-            const content = headerMatch[2].replace(/\s+/g, ' ') // el modelo a veces espacía letras en headers
+            const content = collapseLetterSpacing(headerMatch[2])
             const sizeClass = level <= 2 ? 'text-base font-semibold' : 'text-sm font-semibold'
             blocks.push(
                 <p key={`h-${idx}`} className={`${sizeClass} mt-2.5 mb-1`}>
