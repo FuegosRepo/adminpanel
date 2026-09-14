@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { CalendarPlus, Loader2 } from 'lucide-react'
+import { CalendarPlus, Loader2, Search } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useApprovedOrders } from '@/hooks/useApprovedOrders'
 import type { CateringOrder } from '@/types'
 
@@ -21,6 +22,7 @@ interface EventSelectorProps {
 export function EventSelector({ onAddToContext, alreadyInContext }: EventSelectorProps) {
     const { orders, loading } = useApprovedOrders()
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+    const [search, setSearch] = useState('')
 
     const toggle = (id: string) => {
         setSelectedIds((prev) => {
@@ -37,10 +39,13 @@ export function EventSelector({ onAddToContext, alreadyInContext }: EventSelecto
         setSelectedIds(new Set())
     }
 
-    const selectableOrders = orders.filter((o) => !alreadyInContext.has(o.id))
+    const normalizedSearch = search.trim().toLowerCase()
+    const selectableOrders = orders
+        .filter((o) => !alreadyInContext.has(o.id))
+        .filter((o) => !normalizedSearch || (o.contact.name || '').toLowerCase().includes(normalizedSearch))
 
     return (
-        <Card>
+        <Card className="h-full flex flex-col">
             <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                     <CalendarPlus className="h-4 w-4 text-primary" />
@@ -49,8 +54,17 @@ export function EventSelector({ onAddToContext, alreadyInContext }: EventSelecto
                 <p className="text-xs text-muted-foreground">
                     Pedidos aprobados. Los que ya están en el contexto no se repiten en esta lista.
                 </p>
+                <div className="relative pt-1">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Buscar cliente..."
+                        className="h-8 pl-8 text-sm"
+                    />
+                </div>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="flex-1 flex flex-col min-h-0 space-y-3">
                 {loading ? (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -58,12 +72,14 @@ export function EventSelector({ onAddToContext, alreadyInContext }: EventSelecto
                     </div>
                 ) : selectableOrders.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4">
-                        {orders.length === 0
-                            ? 'No hay pedidos aprobados todavía.'
-                            : 'Ya agregaste todos los pedidos aprobados al contexto.'}
+                        {normalizedSearch
+                            ? `Sin resultados para "${search}".`
+                            : orders.length === 0
+                                ? 'No hay pedidos aprobados todavía.'
+                                : 'Ya agregaste todos los pedidos aprobados al contexto.'}
                     </p>
                 ) : (
-                    <div className="max-h-[220px] overflow-y-auto space-y-1 pr-1">
+                    <div className="flex-1 min-h-0 overflow-y-auto space-y-1 pr-1">
                         {selectableOrders.map((order) => (
                             <label
                                 key={order.id}

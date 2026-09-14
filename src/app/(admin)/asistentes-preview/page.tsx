@@ -54,7 +54,7 @@ export default function AsistentesPreviewPage() {
                 </div>
             </div>
 
-            <div className="grid md:grid-cols-[300px_1fr] gap-4 items-start">
+            <div className="grid md:grid-cols-[300px_1fr] gap-4 items-stretch">
                 <EventSelector
                     onAddToContext={handleAddToContext}
                     alreadyInContext={new Set(contextItems.map((i) => i.id))}
