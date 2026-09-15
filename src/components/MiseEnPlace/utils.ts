@@ -108,7 +108,7 @@ export function computeWeeklyTotals(plan: MisePlan, inputs: MiseEventInput[]): W
                 existing.total += qty
                 existing.breakdown.push({ client, quantity: qty })
             } else {
-                groups.set(key, { label: t.label.trim(), unit, total: qty, breakdown: [{ client, quantity: qty }], order: order++ })
+                groups.set(key, { key, label: t.label.trim(), unit, total: qty, breakdown: [{ client, quantity: qty }], order: order++ })
             }
         })
     })
@@ -116,6 +116,7 @@ export function computeWeeklyTotals(plan: MisePlan, inputs: MiseEventInput[]): W
     return [...groups.values()]
         .sort((a, b) => a.order - b.order)
         .map((g) => ({
+            key: g.key,
             label: g.label,
             unit: g.unit,
             total: Math.round(g.total * 100) / 100,

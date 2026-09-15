@@ -42,6 +42,8 @@ export interface MisePlan {
 }
 
 export interface WeeklyTotal {
+    /** label normalizado + unidad; identifica el total para ajustes manuales */
+    key: string
     label: string
     unit: string
     total: number

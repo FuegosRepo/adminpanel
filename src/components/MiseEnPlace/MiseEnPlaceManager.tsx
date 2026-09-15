@@ -36,6 +36,7 @@ export function MiseEnPlaceManager() {
     const [generating, setGenerating] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [checked, setChecked] = useState<Set<string>>(new Set())
+    const [totalOverrides, setTotalOverrides] = useState<Record<string, number>>({})
     const [staff, setStaff] = useState<StaffMember[]>([])
     const [assignments, setAssignments] = useState<Record<string, string[]>>({})
     const [assignFor, setAssignFor] = useState<string | null>(null)
@@ -67,8 +68,18 @@ export function MiseEnPlaceManager() {
         setAnchor(next)
         setPlan(null)
         setChecked(new Set())
+        setTotalOverrides({})
         setExcluded(new Set())
         setError(null)
+    }
+
+    const handleOverride = (key: string, value: number | null) => {
+        setTotalOverrides((prev) => {
+            const next = { ...prev }
+            if (value === null) delete next[key]
+            else next[key] = value
+            return next
+        })
     }
 
     const handleGenerate = async () => {
@@ -114,7 +125,7 @@ export function MiseEnPlaceManager() {
     const handleExport = async () => {
         if (!plan) return
         try {
-            await exportMiseEnPlacePdf({ weekLabel: label, inputs: includedInputs, plan, totals, staffByOrder, instructions: appliedInstructions, checked })
+            await exportMiseEnPlacePdf({ weekLabel: label, inputs: includedInputs, plan, totals, totalOverrides, staffByOrder, instructions: appliedInstructions, checked })
         } catch {
             toast.error('No se pudo generar el PDF.')
         }
@@ -175,6 +186,10 @@ export function MiseEnPlaceManager() {
                         <label className="text-xs font-medium text-muted-foreground" htmlFor="mep-instructions">
                             Instrucciones para esta semana (opcional, prevalecen sobre el devis)
                         </label>
+                        <p className="text-[11px] text-muted-foreground">
+                            Son órdenes sobre los eventos (cantidades por persona, público, carne aparte). Para
+                            redondear un total de la semana, usá el lápiz en el resumen de la derecha.
+                        </p>
                         <Textarea
                             id="mep-instructions"
                             value={instructions}
@@ -224,7 +239,13 @@ export function MiseEnPlaceManager() {
                             ))}
                         </div>
                         <div className="lg:sticky lg:top-4">
-                            <WeeklyTotals totals={totals} generalTasks={plan?.generalTasks ?? []} notes={plan?.notes ?? ''} />
+                            <WeeklyTotals
+                                totals={totals}
+                                generalTasks={plan?.generalTasks ?? []}
+                                notes={plan?.notes ?? ''}
+                                overrides={totalOverrides}
+                                onOverride={handleOverride}
+                            />
                         </div>
                     </div>
                 </>

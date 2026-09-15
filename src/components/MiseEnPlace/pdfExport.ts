@@ -7,6 +7,7 @@ interface ExportArgs {
     inputs: MiseEventInput[]
     plan: MisePlan
     totals: WeeklyTotal[]
+    totalOverrides: Record<string, number>
     staffByOrder: Record<string, StaffMember[]>
     instructions: string
     checked: Set<string>
@@ -153,11 +154,15 @@ export async function exportMiseEnPlacePdf(args: ExportArgs): Promise<void> {
         startY: y,
         margin: { left: marginX, right: marginX },
         head: [['Producto', 'Total', 'Detalle']],
-        body: args.totals.map((t) => [
-            t.label,
-            formatQty(t.total, t.unit),
-            t.breakdown.map((b) => `${b.client} ${formatQty(b.quantity, null)}`).join(' + '),
-        ]),
+        body: args.totals.map((t) => {
+            const override = args.totalOverrides[t.key]
+            const detail = t.breakdown.map((b) => `${b.client} ${formatQty(b.quantity, null)}`).join(' + ')
+            return [
+                t.label,
+                formatQty(override ?? t.total, t.unit),
+                override !== undefined ? `${detail} — ajustado a mano (calculado: ${formatQty(t.total, t.unit)})` : detail,
+            ]
+        }),
         styles: { fontSize: 9, cellPadding: 1.8, textColor: [40, 40, 40] },
         headStyles: { fillColor: ACCENT, textColor: 255, fontStyle: 'bold' },
         columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30, halign: 'right', fontStyle: 'bold' }, 2: { cellWidth: 'auto', textColor: [110, 110, 110] } },
