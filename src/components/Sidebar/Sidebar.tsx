@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
 	List,
+	Mail,
+	Sparkles,
+	ClipboardList,
+	CreditCard,
 	DollarSign,
 	BarChart3,
 	Calendar,
@@ -32,6 +36,10 @@ const links = [
 	{ href: "/payments", label: "Pagos", icon: DollarSign },
 	{ href: "/calendar", label: "Calendario", icon: Calendar },
 	{ href: "/reports", label: "Reportes", icon: BarChart3 },
+	{ href: "/pagos-preview", label: "Cobros Stripe", icon: CreditCard },
+	{ href: "/templates-preview", label: "Plantillas", icon: Mail },
+	{ href: "/asistentes-preview", label: "Asistentes", icon: Sparkles },
+	{ href: "/organizacion-preview", label: "Organización", icon: ClipboardList },
 ];
 
 export default function AppSidebar() {
