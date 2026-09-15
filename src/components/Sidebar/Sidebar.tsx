@@ -20,26 +20,48 @@ import {
 	SidebarContent,
 	SidebarGroup,
 	SidebarGroupContent,
+	SidebarGroupLabel,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarHeader,
+	SidebarSeparator,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 // Recordatorios se eliminó del menú (sin uso real).
 // Calculadora y Precios siguen existiendo y accesibles por URL directa,
 // pero se sacaron del menú porque no son parte del flujo diario del admin.
-const links = [
-	{ href: "/orders", label: "Pedidos", icon: List },
-	{ href: "/budgets", label: "Presupuestos", icon: FileText },
-	{ href: "/payments", label: "Pagos", icon: DollarSign },
-	{ href: "/calendar", label: "Calendario", icon: Calendar },
-	{ href: "/reports", label: "Reportes", icon: BarChart3 },
-	{ href: "/pagos-preview", label: "Cobros Stripe", icon: CreditCard },
-	{ href: "/templates-preview", label: "Plantillas", icon: Mail },
-	{ href: "/asistentes-preview", label: "Asistentes", icon: Sparkles },
-	{ href: "/organizacion-preview", label: "Organización", icon: ClipboardList },
+const groups = [
+	{
+		label: "Gestión",
+		links: [
+			{ href: "/orders", label: "Pedidos", icon: List },
+			{ href: "/budgets", label: "Presupuestos", icon: FileText },
+			{ href: "/calendar", label: "Calendario", icon: Calendar },
+		],
+	},
+	{
+		label: "Cobros",
+		links: [
+			{ href: "/payments", label: "Pagos", icon: DollarSign },
+			{ href: "/pagos-preview", label: "Cobros Stripe", icon: CreditCard },
+		],
+	},
+	{
+		label: "Asistentes IA",
+		links: [
+			{ href: "/asistentes-preview", label: "Lista de compras", icon: Sparkles },
+			{ href: "/organizacion-preview", label: "Organización semanal", icon: ClipboardList },
+		],
+	},
+	{
+		label: "Herramientas",
+		links: [
+			{ href: "/templates-preview", label: "Plantillas", icon: Mail },
+			{ href: "/reports", label: "Reportes", icon: BarChart3 },
+		],
+	},
 ];
 
 export default function AppSidebar() {
@@ -59,29 +81,33 @@ export default function AppSidebar() {
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
-				<SidebarGroup>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{links.map((link) => {
-								const isActive = pathname.startsWith(link.href);
-								return (
-									<SidebarMenuItem key={link.href}>
-										<SidebarMenuButton
-											asChild
-											isActive={isActive}
-											tooltip={link.label}
-										>
-											<Link href={link.href}>
-												<link.icon />
-												<span>{link.label}</span>
-											</Link>
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								);
-							})}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
+				{groups.map((group, index) => (
+					<SidebarGroup key={group.label}>
+						{index > 0 && <SidebarSeparator className="mb-2 mx-0" />}
+						<SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{group.links.map((link) => {
+									const isActive = pathname.startsWith(link.href);
+									return (
+										<SidebarMenuItem key={link.href}>
+											<SidebarMenuButton
+												asChild
+												isActive={isActive}
+												tooltip={link.label}
+											>
+												<Link href={link.href}>
+													<link.icon />
+													<span>{link.label}</span>
+												</Link>
+											</SidebarMenuButton>
+										</SidebarMenuItem>
+									);
+								})}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				))}
 			</SidebarContent>
 		</Sidebar>
 	);
