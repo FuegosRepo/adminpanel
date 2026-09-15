@@ -147,7 +147,7 @@ export function SendStripeLinkDialog({ row, purpose, onClose, onSend }: SendStri
                     <p className="text-sm font-medium">{subject}</p>
                     <p className="text-sm text-muted-foreground">
                         Bonjour {order.contact.name || 'Madame, Monsieur'}, voici votre lien sécurisé pour régler{' '}
-                        {isDeposit ? `l'acompte de ${pct} %` : 'le solde'} de votre événement, d&apos;un montant de{' '}
+                        {isDeposit ? `l'acompte de ${pct} %` : 'le solde'} de votre événement par carte, Apple Pay ou Google Pay, d&apos;un montant de{' '}
                         <span className="font-medium text-foreground">{formatEUR(amount)}</span>. Le devis est joint en PDF.
                     </p>
                 </div>
