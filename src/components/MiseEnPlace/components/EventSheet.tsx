@@ -129,10 +129,10 @@ export function EventSheet({ input, plan, excluded, staff, checked, onToggleTask
                             )}
 
                             {input.specialRequest && (
-                                <p className="text-xs text-muted-foreground">
-                                    <Badge variant="outline" className="mr-1.5 text-[10px]">Solicitud especial</Badge>
-                                    {input.specialRequest}
-                                </p>
+                                <div className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                    <Badge variant="outline" className="text-[10px] shrink-0">Solicitud especial</Badge>
+                                    <span>{input.specialRequest}</span>
+                                </div>
                             )}
                         </div>
                     )}
