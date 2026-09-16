@@ -88,7 +88,9 @@ export async function POST(request: NextRequest) {
             metadata: { orderId: order.id, purpose },
             success_url: `${appUrl}/payments/success?order=${order.id}`,
             cancel_url: `${appUrl}/payments/cancel?order=${order.id}`,
-            expires_at: Math.floor(Date.now() / 1000) + STRIPE_LINK_EXPIRY_HOURS * 3600,
+            // Stripe exige que expires_at sea MENOR a 24h desde la creación,
+            // no igual — con exactamente 24h la API lo rechaza.
+            expires_at: Math.floor(Date.now() / 1000) + STRIPE_LINK_EXPIRY_HOURS * 3600 - 60,
         })
 
         if (!session.url) {

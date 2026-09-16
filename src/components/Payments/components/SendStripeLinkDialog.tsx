@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Link2, Mail, Info } from 'lucide-react'
+import { Link2, Mail, Info, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,6 +21,7 @@ import type { PaymentRowModel, StripeLinkPurpose } from '../types'
 interface SendStripeLinkDialogProps {
     row: PaymentRowModel | null
     purpose: StripeLinkPurpose
+    sending?: boolean
     onClose: () => void
     onSend: (row: PaymentRowModel, purpose: StripeLinkPurpose, amount: number) => void
 }
@@ -31,7 +32,7 @@ interface SendStripeLinkDialogProps {
  * pedido. El porcentaje y el monto están enlazados: cambiar uno recalcula
  * el otro.
  */
-export function SendStripeLinkDialog({ row, purpose, onClose, onSend }: SendStripeLinkDialogProps) {
+export function SendStripeLinkDialog({ row, purpose, sending = false, onClose, onSend }: SendStripeLinkDialogProps) {
     const isDeposit = purpose === 'deposit'
     const [pct, setPct] = useState(Math.round(DEPOSIT_PCT * 100))
     const [amount, setAmount] = useState(0)
@@ -148,24 +149,26 @@ export function SendStripeLinkDialog({ row, purpose, onClose, onSend }: SendStri
                     <p className="text-sm text-muted-foreground">
                         Bonjour {order.contact.name || 'Madame, Monsieur'}, voici votre lien sécurisé pour régler{' '}
                         {isDeposit ? `l'acompte de ${pct} %` : 'le solde'} de votre événement par carte, Apple Pay ou Google Pay, d&apos;un montant de{' '}
-                        <span className="font-medium text-foreground">{formatEUR(amount)}</span>. Le devis est joint en PDF.
+                        <span className="font-medium text-foreground">{formatEUR(amount)}</span>.
                     </p>
                 </div>
 
-                <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 text-amber-900 px-3 py-2 text-xs">
+                <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 text-blue-900 px-3 py-2 text-xs">
                     <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                     <p>
-                        Vista previa de diseño: Stripe todavía no está conectado. Al confirmar, el link
-                        aparece en el historial de este pedido como &quot;esperando pago&quot;, pero no se
-                        genera ningún link real ni se manda ningún email.
+                        Esto crea una sesión real de Stripe (modo test, `sk_test_…`) y manda un email
+                        de verdad. Todavía no adjunta el PDF del devis. El link no queda como
+                        &quot;esperando pago&quot; guardado en la base hasta que se pague: si el
+                        cliente paga de verdad, el webhook lo registra automáticamente en el
+                        historial de este pedido.
                     </p>
                 </div>
 
                 <DialogFooter>
-                    <Button variant="ghost" size="sm" onClick={onClose}>Cancelar</Button>
-                    <Button size="sm" className="gap-1.5" disabled={invalid} onClick={() => onSend(row, purpose, amount)}>
-                        <Link2 className="h-3.5 w-3.5" />
-                        Generar link y enviar
+                    <Button variant="ghost" size="sm" onClick={onClose} disabled={sending}>Cancelar</Button>
+                    <Button size="sm" className="gap-1.5" disabled={invalid || sending} onClick={() => onSend(row, purpose, amount)}>
+                        {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2 className="h-3.5 w-3.5" />}
+                        {sending ? 'Generando...' : 'Generar link y enviar'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

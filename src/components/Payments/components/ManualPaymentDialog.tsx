@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Banknote, Info } from 'lucide-react'
+import { Banknote, Info, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,6 +28,7 @@ import type { PaymentRecord } from '@/types'
 
 interface ManualPaymentDialogProps {
     row: PaymentRowModel | null
+    saving?: boolean
     onClose: () => void
     onSave: (row: PaymentRowModel, record: PaymentRecord) => void
 }
@@ -45,7 +46,7 @@ const METHOD_OPTIONS: { value: ManualMethod; label: string }[] = [
  * cheque). Decisión del cliente: conviven en el mismo historial que los
  * links de Stripe, y se conserva la distinción blanco/negro.
  */
-export function ManualPaymentDialog({ row, onClose, onSave }: ManualPaymentDialogProps) {
+export function ManualPaymentDialog({ row, saving = false, onClose, onSave }: ManualPaymentDialogProps) {
     const [amount, setAmount] = useState(0)
     const [date, setDate] = useState('')
     const [method, setMethod] = useState<ManualMethod>('transfer')
@@ -154,17 +155,17 @@ export function ManualPaymentDialog({ row, onClose, onSave }: ManualPaymentDialo
                     </div>
                 </div>
 
-                <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 text-amber-900 px-3 py-2 text-xs">
+                <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 text-blue-900 px-3 py-2 text-xs">
                     <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <p>
-                        Vista previa de diseño: el cobro se suma al historial en esta pantalla, pero
-                        no se guarda en la base de datos todavía.
-                    </p>
+                    <p>Esto se guarda de verdad en el pedido, y aparece igual en Reportes Financieros.</p>
                 </div>
 
                 <DialogFooter>
-                    <Button variant="ghost" size="sm" onClick={onClose}>Cancelar</Button>
-                    <Button size="sm" disabled={invalid} onClick={handleSave}>Registrar cobro</Button>
+                    <Button variant="ghost" size="sm" onClick={onClose} disabled={saving}>Cancelar</Button>
+                    <Button size="sm" disabled={invalid || saving} onClick={handleSave} className="gap-1.5">
+                        {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                        {saving ? 'Guardando...' : 'Registrar cobro'}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
