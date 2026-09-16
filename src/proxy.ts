@@ -35,10 +35,21 @@ export async function proxy(request: NextRequest) {
 
 	// Proteger rutas (excepto login, api/auth, etc)
 	const isLoginPage = request.nextUrl.pathname.startsWith("/login");
-	const isPublicApi = request.nextUrl.pathname.startsWith("/api/auth");
+	// Rutas de API que llaman servicios externos sin sesión de usuario
+	// (Stripe llama al webhook servidor a servidor, sin cookie de login).
+	// Se protegen con su propia verificación de firma adentro de la ruta,
+	// no con el login. Sin esto, Stripe nunca llegaría a /webhook — es lo
+	// que probablemente le pasaba también al webhook de Systempay.
+	const isPublicApi =
+		request.nextUrl.pathname.startsWith("/api/auth") ||
+		request.nextUrl.pathname === "/api/payments/stripe/webhook";
+	// El cliente que paga no tiene sesión de admin: la pantalla a la que
+	// Stripe lo devuelve tiene que ser pública, si no el proxy lo manda a /login.
+	const isPublicPaymentResult = request.nextUrl.pathname.startsWith("/payments/success") ||
+		request.nextUrl.pathname.startsWith("/payments/cancel");
 	const isStaticAsset = request.nextUrl.pathname.match(/\.(.*)$/);
 
-	if (!user && !isLoginPage && !isPublicApi && !isStaticAsset) {
+	if (!user && !isLoginPage && !isPublicApi && !isPublicPaymentResult && !isStaticAsset) {
 		const redirectUrl = request.nextUrl.clone();
 		redirectUrl.pathname = "/login";
 		return NextResponse.redirect(redirectUrl);
