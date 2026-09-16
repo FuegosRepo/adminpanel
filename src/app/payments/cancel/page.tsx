@@ -14,9 +14,9 @@ export default function PaymentCancelPage() {
     return (
         <main className="min-h-screen flex items-center justify-center bg-[#f5f5f5] px-4 py-12">
             <div className="w-full max-w-md rounded-xl bg-white shadow-lg overflow-hidden">
-                <div className="bg-[#d97706] py-6 flex justify-center">
+                <div className="bg-[#d97706] py-7 flex justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={HEADER_LOGO_URL} alt="Fuegos d'Azur" className="h-9 w-auto" />
+                    <img src={HEADER_LOGO_URL} alt="Fuegos d'Azur" className="w-[220px] h-auto" />
                 </div>
 
                 <div className="px-8 py-10 text-center">
