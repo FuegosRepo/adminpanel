@@ -19,11 +19,10 @@ export default function PagosPreviewPage() {
                     <p className="text-amber-800/90">
                         Los pedidos son reales (aprobados). Los cobros manuales se guardan de
                         verdad en el pedido. Los links de Stripe se generan de verdad (modo test,
-                        no mueve plata real) y mandan un email real — pero el envío hoy solo
-                        funciona a la dirección del dueño de la cuenta de Resend, porque no hay un
-                        dominio propio verificado todavía. El link también aparece &quot;esperando
-                        pago&quot; en pantalla aunque no se haya podido mandar el mail: copialo y
-                        pasalo a mano mientras tanto.
+                        no mueve plata real) y mandan un email real desde el dominio verificado.
+                        Cuando el cliente paga, el webhook registra el cobro y manda un recibo por
+                        email al cliente y un aviso al admin. Todavía falta: pasar a claves live
+                        para cobrar de verdad, y adjuntar el PDF del presupuesto al email del link.
                     </p>
                 </div>
             </div>
