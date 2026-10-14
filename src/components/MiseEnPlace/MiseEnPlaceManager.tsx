@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { addWeeks, subWeeks } from 'date-fns'
 import { Sparkles, FileDown, Loader2, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useApprovedOrders } from '@/hooks/useApprovedOrders'
+import { fetchLatestBudgetMenus } from '@/services/budgetsService'
 import { logUsage } from '@/components/AiChat/usageStorage'
 import { UsageSummary } from '@/components/AiChat/UsageSummary'
 import { WeekSelector } from './components/WeekSelector'
@@ -51,7 +53,18 @@ export function MiseEnPlaceManager() {
     const { start, end } = useMemo(() => getWeekRange(anchor), [anchor])
     const label = useMemo(() => weekLabel(start, end), [start, end])
     const weekOrders = useMemo(() => ordersInWeek(orders, start, end), [orders, start, end])
-    const inputs = useMemo(() => weekOrders.map(toEventInput), [weekOrders])
+
+    const weekOrderIds = useMemo(() => weekOrders.map((o) => o.id), [weekOrders])
+    const { data: budgetMenus = {} } = useQuery({
+        queryKey: ['budgetMenus', weekOrderIds],
+        queryFn: () => fetchLatestBudgetMenus(weekOrderIds),
+        enabled: weekOrderIds.length > 0,
+    })
+
+    const inputs = useMemo(
+        () => weekOrders.map((o) => toEventInput(o, budgetMenus[o.id])),
+        [weekOrders, budgetMenus]
+    )
     const includedInputs = useMemo(() => inputs.filter((i) => !excluded.has(i.orderId)), [inputs, excluded])
     const totals = useMemo(() => (plan ? computeWeeklyTotals(plan, includedInputs) : []), [plan, includedInputs])
 

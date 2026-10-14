@@ -1,6 +1,7 @@
 import { startOfWeek, endOfWeek, format, isWithinInterval } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { CateringOrder } from '@/types'
+import type { BudgetMenuSection } from '@/lib/types/budget'
 import type { MiseEventInput, MisePlan, WeeklyTotal } from './types'
 
 export function getWeekRange(anchor: Date): { start: Date; end: Date } {
@@ -57,7 +58,14 @@ export function dayLabel(date: Date): string {
     return raw.charAt(0).toUpperCase() + raw.slice(1)
 }
 
-export function toEventInput(order: CateringOrder): MiseEventInput {
+/**
+ * El menú real (lo que el admin terminó aprobando en el devis) vive en
+ * budgets.budget_data.menu, no en catering_orders.entrees/viandes/dessert
+ * — esos campos son lo que el cliente tildó en el formulario de la web y
+ * suelen quedar vacíos o desactualizados. Si hay presupuesto, se usa ese;
+ * si no, se cae a los campos del pedido como antes.
+ */
+export function toEventInput(order: CateringOrder, menu?: BudgetMenuSection): MiseEventInput {
     const date = parseEventDate(order)
     return {
         orderId: order.id,
@@ -69,9 +77,9 @@ export function toEventInput(order: CateringOrder): MiseEventInput {
         place: order.contact.address || '',
         guests: order.contact.guestCount || 0,
         eventType: order.contact.eventType || '',
-        entrees: order.entrees || [],
-        viandes: order.viandes || [],
-        dessert: order.dessert,
+        entrees: menu?.entrees?.map((i) => i.name) ?? order.entrees ?? [],
+        viandes: menu?.viandes?.map((i) => i.name) ?? order.viandes ?? [],
+        dessert: menu?.dessert?.name ?? order.dessert,
         equipment: order.extras?.equipment || [],
         specialRequest: order.extras?.specialRequest || undefined,
     }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Sparkles, AlertTriangle, Mail } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ContextChips, mockGmailThreadCount, type ContextItem } from '@/components/AiChat/ContextChips'
@@ -8,6 +9,8 @@ import { ChatPanel, type ChatPanelEvent } from '@/components/AiChat/ChatPanel'
 import { EventSelector } from '@/components/AiChat/EventSelector'
 import { PromptEditorDialog } from '@/components/AiChat/PromptEditorDialog'
 import { UsageSummary } from '@/components/AiChat/UsageSummary'
+import { fetchLatestBudgetMenus } from '@/services/budgetsService'
+import type { BudgetMenuSection } from '@/lib/types/budget'
 import type { CateringOrder } from '@/types'
 
 function orderToContextItem(order: CateringOrder): ContextItem {
@@ -20,15 +23,22 @@ function orderToContextItem(order: CateringOrder): ContextItem {
     }
 }
 
-function orderToChatPanelEvent(order: CateringOrder): ChatPanelEvent {
+/**
+ * El menú real (lo que el admin terminó aprobando en el devis) vive en
+ * budgets.budget_data.menu, no en catering_orders.entrees/viandes/dessert
+ * — esos campos son lo que el cliente tildó en el formulario de la web y
+ * suelen quedar vacíos o desactualizados. Si hay presupuesto, se usa ese;
+ * si no, se cae a los campos del pedido como antes.
+ */
+function orderToChatPanelEvent(order: CateringOrder, menu: BudgetMenuSection | undefined): ChatPanelEvent {
     return {
         name: order.contact.name || 'Sin nombre',
         eventDate: order.contact.eventDate || '',
         eventType: order.contact.eventType || '',
         guestCount: order.contact.guestCount || 0,
-        entrees: order.entrees || [],
-        viandes: order.viandes || [],
-        dessert: order.dessert,
+        entrees: menu?.entrees?.map((i) => i.name) ?? order.entrees ?? [],
+        viandes: menu?.viandes?.map((i) => i.name) ?? order.viandes ?? [],
+        dessert: menu?.dessert?.name ?? order.dessert,
     }
 }
 
@@ -47,6 +57,13 @@ export default function AsistentesPreviewPage() {
     // para armar el devis que le manda a la IA.
     const [contextOrders, setContextOrders] = useState<CateringOrder[]>([])
     const [usageVersion, setUsageVersion] = useState(0)
+
+    const contextOrderIds = contextOrders.map((o) => o.id)
+    const { data: budgetMenus = {} } = useQuery({
+        queryKey: ['budgetMenus', contextOrderIds],
+        queryFn: () => fetchLatestBudgetMenus(contextOrderIds),
+        enabled: contextOrderIds.length > 0,
+    })
 
     const handleAddToContext = (orders: CateringOrder[]) => {
         setContextOrders((prev) => [...prev, ...orders])
@@ -102,7 +119,7 @@ export default function AsistentesPreviewPage() {
                     </CardHeader>
                     <CardContent className="flex-1 min-h-0">
                         <ChatPanel
-                            events={contextOrders.map(orderToChatPanelEvent)}
+                            events={contextOrders.map((o) => orderToChatPanelEvent(o, budgetMenus[o.id]))}
                             onUsageLogged={() => setUsageVersion((v) => v + 1)}
                         />
                     </CardContent>

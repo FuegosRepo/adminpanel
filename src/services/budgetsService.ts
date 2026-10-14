@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { sanitizeSearchTerm, getPaginationRange } from "@/utils/queryHelpers";
+import type { BudgetMenuSection } from "@/lib/types/budget";
 
 export type BudgetsFilters = {
 	status?: string;
@@ -35,6 +36,38 @@ export const fetchBudgetsForReports = async (): Promise<ReportBudget[]> => {
 
 	if (error) throw error;
 	return (data || []) as ReportBudget[];
+};
+
+/**
+ * Menú real del presupuesto más reciente de uno o más pedidos (entrées,
+ * viandes, postre con nombre y cantidad), indexado por order_id.
+ * `catering_orders.entrees/viandes/dessert` refleja lo que el cliente
+ * pidió en el formulario de la web, que puede quedar vacío o desactualizado
+ * una vez que el admin arma y aprueba el devis — por eso los Asistentes IA
+ * necesitan leer de acá, no del pedido.
+ */
+export const fetchLatestBudgetMenus = async (
+	orderIds: string[],
+): Promise<Record<string, BudgetMenuSection>> => {
+	if (orderIds.length === 0) return {};
+
+	const { data, error } = await supabase
+		.from("budgets")
+		.select("order_id, version, budget_data")
+		.in("order_id", orderIds)
+		.order("version", { ascending: false });
+
+	if (error) throw error;
+
+	const result: Record<string, BudgetMenuSection> = {};
+	for (const row of data || []) {
+		// Ya viene ordenado por version desc, así que la primera fila por
+		// order_id que encontramos es la más reciente; no pisarla.
+		if (!result[row.order_id] && row.budget_data?.menu) {
+			result[row.order_id] = row.budget_data.menu;
+		}
+	}
+	return result;
 };
 
 export const fetchBudgets = async ({
