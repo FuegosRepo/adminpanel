@@ -8,3 +8,7 @@
 [build.environment]
   NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
+  # NEXT_PUBLIC_APP_URL es pública a propósito (la usa el navegador) y Next.js
+  # la deja quemada en el bundle del build — el escaneo de secretos de Netlify
+  # la marca como filtrada por error. No es un secreto real.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_APP_URL"
