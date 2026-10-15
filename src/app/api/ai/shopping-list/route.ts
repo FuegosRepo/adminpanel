@@ -100,7 +100,10 @@ ${customManual || CALCULATION_MANUAL_SEED}`
                 model: OPENAI_MODEL,
                 messages: openAiMessages,
                 temperature: 0.2,
-                max_tokens: 2000,
+                // 2000 se quedaba corto para una lista semanal con varios eventos
+                // (el modelo cortaba a mitad de los acompañamientos o postres sin
+                // avisar). 4000 alcanza para el caso real que mandó el cliente.
+                max_tokens: 4000,
             }),
         })
 
@@ -117,6 +120,7 @@ ${customManual || CALCULATION_MANUAL_SEED}`
 
         const data = await response.json()
         const reply = data.choices?.[0]?.message?.content
+        const finishReason = data.choices?.[0]?.finish_reason
 
         if (!reply) {
             return NextResponse.json({ error: 'OpenAI no devolvió contenido' }, { status: 502 })
@@ -134,8 +138,17 @@ ${customManual || CALCULATION_MANUAL_SEED}`
             (promptTokens / 1_000_000) * PRICE_PER_1M_INPUT_USD +
             (completionTokens / 1_000_000) * PRICE_PER_1M_OUTPUT_USD
 
+        // Si OpenAI cortó la respuesta por quedarse sin tokens, no entregarla
+        // como si estuviera completa — es exactamente el bug que reportó el
+        // cliente (acompañamientos o postres faltantes al final de la lista).
+        const finalReply =
+            finishReason === 'length'
+                ? `${reply}\n\n⚠️ **Respuesta cortada por límite de longitud.** Puede faltar contenido al final (acompañamientos, postres o el detalle de algún evento). Pedí "continuá" o volvé a pedir la lista con menos eventos a la vez.`
+                : reply
+
         return NextResponse.json({
-            reply,
+            reply: finalReply,
+            truncated: finishReason === 'length',
             usage: { promptTokens, completionTokens, estimatedCostUSD },
         })
     } catch (error) {
