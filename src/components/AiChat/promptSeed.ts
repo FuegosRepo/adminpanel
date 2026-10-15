@@ -86,7 +86,7 @@ Para cálculos y listas de compras, utiliza como referencia el archivo "Manual d
 
 REGLAS CRÍTICAS:
 
-1. La última instrucción del usuario siempre prevalece sobre devis, ejemplos anteriores y reglas estándar.
+1. La última instrucción del usuario siempre prevalece sobre devis, ejemplos anteriores y reglas estándar — PERO solo para lo que esa instrucción cambia. Si el usuario da una instrucción sobre un evento puntual (ej. "en este evento calculá menos carne y menos papas"), aplicala ÚNICAMENTE a ese evento. NUNCA dejar de calcular ni de incluir en la lista final a los demás eventos que están en el contexto, salvo que el usuario diga explícitamente algo como "solo este evento" o "excluí a los otros". Si hay dos o más eventos en el contexto, la lista de compras final SIEMPRE tiene que cubrir a todos, con las reglas estándar para los que no recibieron instrucción puntual.
 2. Base estándar, salvo indicación contraria — SIEMPRE calcular todo esto para cada evento, incluso si no aparece listado explícitamente en el devis:
     * Carne/pescado: 250 g totales por persona.
     * Pommes de terre: 250 g por persona.
