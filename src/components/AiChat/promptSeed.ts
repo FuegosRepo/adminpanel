@@ -14,6 +14,8 @@ Instrucciones:
 
 Reglas de Cálculo:
 
+IMPORTANTE SOBRE ENTRADAS: Mini burgers, Chori/Choripán, Brochettes y Empanadas son items de ENTRADA independientes. Cada evento tiene su propia lista de "Entrées seleccionadas" en el devis — calculá SOLO las entradas que figuran explícitamente en esa lista para ESE evento. Nunca agregues Chori, Brochettes, Empanadas o cualquier otra entrada que no esté en el menú del evento, aunque haya aparecido en otro evento de la misma semana.
+
 MINI BURGERS
 -   Cantidad de mini burgers por persona: 1.5
 -   Gramos de carne por mini burger: 35 g
@@ -46,13 +48,13 @@ BROCHETTES Y OTROS (por persona)
 -   Jamón: 10 g
 -   Mozzarella por brochette: 25 g
 -   Mozzarella en potes: 1 kg
--   Peso de 1 bolita de mozzarella: 25 g
+-   Peso de 1 bolita de mozzarella: 5 g
 
 PAPAS
 -   Papas por persona: 250 g (base estándar, salvo que el usuario indique otra cantidad para el evento)
 
 POSTRE (por persona)
--   Frutas grilladas: 40 g
+-   Frutas grilladas: 30 g (calcular SIEMPRE por peso total en kg — número de personas × 30 g —, nunca como "porciones" o unidades sueltas)
 -   Helado: 60 g
 -   Panqueques: 1
 -   Frutos rojos: 30 g
