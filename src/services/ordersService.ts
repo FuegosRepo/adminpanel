@@ -218,27 +218,32 @@ export const fetchOrdersByEventDate = async (
     }))
 }
 
+export type SameDayCount = { approved: number; sent: number }
+
 /**
- * Para cada fecha de la lista, cuántos pedidos confirmados/enviados hay en
- * total (sin excluir ninguno) — una sola consulta para toda la página en
- * vez de una por fila, así se puede mostrar un indicador chico en cada
- * tarjeta de la lista sin generar N+1.
+ * Para cada fecha de la lista, cuántos pedidos aprobados y cuántos enviados
+ * (sin confirmar) hay — separados, porque el dueño necesita distinguirlos
+ * de un vistazo (un aprobado es un compromiso firme, un enviado todavía
+ * puede no confirmarse). Una sola consulta para toda la página en vez de
+ * una por fila, así no genera N+1.
  */
-export const fetchSameDayCounts = async (eventDates: string[]): Promise<Record<string, number>> => {
+export const fetchSameDayCounts = async (eventDates: string[]): Promise<Record<string, SameDayCount>> => {
     const uniqueDates = [...new Set(eventDates.filter(Boolean))]
     if (uniqueDates.length === 0) return {}
 
     const { data, error } = await supabase
         .from('catering_orders')
-        .select('event_date')
+        .select('event_date, status')
         .in('event_date', uniqueDates)
         .in('status', ['sent', 'ENVIADO', 'approved'])
 
     if (error) throw error
 
-    const counts: Record<string, number> = {}
+    const counts: Record<string, SameDayCount> = {}
     for (const row of data || []) {
-        counts[row.event_date] = (counts[row.event_date] || 0) + 1
+        if (!counts[row.event_date]) counts[row.event_date] = { approved: 0, sent: 0 }
+        if (row.status === 'approved') counts[row.event_date].approved += 1
+        else counts[row.event_date].sent += 1
     }
     return counts
 }

@@ -50,11 +50,13 @@ export default function OrdersPage() {
     const dataToDisplay = orders
 
     const sameDayCounts = useSameDayCounts(dataToDisplay.map(o => o.contact.eventDate))
-    const COMMITTED_STATUSES = new Set(['sent', 'ENVIADO', 'approved'])
     const sameDayCountFor = (order: CateringOrder) => {
-        const total = sameDayCounts[order.contact.eventDate] || 0
-        const selfCounted = COMMITTED_STATUSES.has(order.status) ? 1 : 0
-        return Math.max(0, total - selfCounted)
+        const counts = sameDayCounts[order.contact.eventDate] || { approved: 0, sent: 0 }
+        const approved = order.status === 'approved' ? Math.max(0, counts.approved - 1) : counts.approved
+        const sent = order.status === 'sent' || order.status === 'ENVIADO'
+            ? Math.max(0, counts.sent - 1)
+            : counts.sent
+        return { approved, sent }
     }
 
     const [emailModal, setEmailModal] = useState<{

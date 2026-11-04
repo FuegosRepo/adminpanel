@@ -22,8 +22,8 @@ import { cn } from '@/lib/utils'
 
 interface OrderCardProps {
   order: CateringOrder
-  /** Pedidos confirmados/enviados que ya hay para esta misma fecha (sin contar este). */
-  sameDayCount?: number
+  /** Pedidos aprobados/enviados que ya hay para esta misma fecha (sin contar este), separados por estado. */
+  sameDayCount?: { approved: number; sent: number }
   isSelected: boolean
   onStatusChange: (orderId: string, newStatus: CateringOrder['status']) => void
   onSendEmail: (order: CateringOrder, template?: EmailTemplate) => void
@@ -52,7 +52,7 @@ const getStatusVariant = (status: string): "default" | "secondary" | "destructiv
 
 const OrderCard = ({
   order,
-  sameDayCount = 0,
+  sameDayCount = { approved: 0, sent: 0 },
   isSelected,
   onStatusChange,
   onSendEmail,
@@ -177,13 +177,21 @@ const OrderCard = ({
             <Badge variant="outline" className="text-xs font-normal whitespace-nowrap">
               📅 {formatDate(order.contact.eventDate)}
             </Badge>
-            {sameDayCount > 0 && (
+            {sameDayCount.approved > 0 && (
+              <Badge
+                className="text-xs font-normal whitespace-nowrap bg-emerald-600 hover:bg-emerald-600 text-white border-transparent"
+                title={`${sameDayCount.approved} pedido${sameDayCount.approved !== 1 ? 's' : ''} ya APROBADO${sameDayCount.approved !== 1 ? 'S' : ''} (compromiso firme) para esta fecha`}
+              >
+                ✅ +{sameDayCount.approved} aprobado{sameDayCount.approved !== 1 ? 's' : ''}
+              </Badge>
+            )}
+            {sameDayCount.sent > 0 && (
               <Badge
                 variant="warning"
                 className="text-xs font-normal whitespace-nowrap"
-                title={`Ya hay ${sameDayCount} pedido${sameDayCount !== 1 ? 's' : ''} más confirmado${sameDayCount !== 1 ? 's' : ''} para esta fecha`}
+                title={`${sameDayCount.sent} pedido${sameDayCount.sent !== 1 ? 's' : ''} ENVIADO${sameDayCount.sent !== 1 ? 'S' : ''} sin confirmar todavía para esta fecha`}
               >
-                ⚠️ +{sameDayCount} ese día
+                📤 +{sameDayCount.sent} enviado{sameDayCount.sent !== 1 ? 's' : ''}
               </Badge>
             )}
             <Badge variant="outline" className="text-xs font-normal whitespace-nowrap">
