@@ -46,10 +46,10 @@ ENSALADA
 
 BROCHETTES Y OTROS (por persona)
 -   Empanadas: 1
--   Secreto ibérico: 50 g
--   Tomates cherry para brochette: 1
--   Jamón: 10 g
--   Mozzarella por brochette: 25 g
+-   Secreto ibérico: 50 g — SOLO si el menú tiene específicamente "Brochette de secreto ibérico" (o nombre equivalente que diga "secreto"). Es un tipo de brochette distinto de "Brochette de jambon ibérique"; NO es un ingrediente que se agregue a cualquier brochette, y NO se calcula si el evento no tiene ese ítem puntual en el menú.
+-   Tomates cherry para brochette: 1 (por cada brochette del menú, cualquiera sea su tipo)
+-   Jamón: 10 g — SOLO si el menú tiene "Brochette de jambon ibérique" (o nombre equivalente que diga "jambon"/"jamón").
+-   Mozzarella por brochette: 25 g (por cada brochette del menú, cualquiera sea su tipo)
 -   Mozzarella en potes: 1 kg
 -   Peso de 1 bolita de mozzarella: 5 g
 
@@ -67,7 +67,7 @@ POSTRE
 (por persona, según cuál sea el postre del evento)
 -   Frutas grilladas: 30 g (calcular SIEMPRE por peso total en kg — número de personas × 30 g —, nunca como "porciones" o unidades sueltas)
 -   Helado: 60 g
--   Panqueques: 1
+-   Panqueques: 1 por persona (es SIEMPRE una cantidad en unidades, nunca un peso — no le calcules ni muestres ningún "peso total" en gramos o kg a los panqueques)
 -   Frutos rojos: 30 g
 
 PAN
