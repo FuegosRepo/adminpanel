@@ -9,7 +9,7 @@ import type { StaffMember } from './types'
 // v2: subir este sufijo cada vez que OPS_PROMPT_SEED cambie de forma
 // significativa, para que una copia vieja guardada en el navegador de
 // alguien no tape los arreglos nuevos (ver promptStorage.ts, mismo criterio).
-const PROMPT_KEY = 'fuegos.mep.prompt.v2'
+const PROMPT_KEY = 'fuegos.mep.prompt.v3'
 const STAFF_KEY = 'fuegos.mep.staff.v1'
 const ASSIGNMENTS_KEY = 'fuegos.mep.assignments.v1'
 

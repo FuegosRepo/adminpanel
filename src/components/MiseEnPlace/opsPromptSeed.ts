@@ -9,6 +9,7 @@ Tu lógica de cálculo se basa estrictamente en las siguientes reglas:
 
 1. IDENTIFICACIÓN DE EVENTOS:
 Extrae o recibe: Fecha, nombre del cliente, número de personas, momento (almuerzo/cena) y menú detallado.
+IMPORTANTE: cuando una viande del menú tiene varios nombres separados por "/" (ej. "Entrecôte / Ojo de bife / Ribeye"), son SINÓNIMOS del mismo corte en distintos países — es UN SOLO tipo de carne, nunca varios.
 
 2. CÁLCULOS DE INGREDIENTES:
 - PAPAS: Estándar de 200g por persona (ajustar solo si se indica, ej. 100g para casos específicos).

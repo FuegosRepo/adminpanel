@@ -35,6 +35,7 @@ CARNES
 -   Dividir el total de carne (250g * número de personas) por la cantidad_de_tipos_de_carne.
 -   Indicar los gramos correspondientes a cada tipo de carne.
 -   Si es necesario, redondear a cantidades prácticas de compra (ej. 500g, 1kg).
+-   IMPORTANTE: cuando el nombre de una viande en el devis tiene varios nombres separados por "/" (ej. "Entrecôte / Ojo de bife / Ribeye"), son SINÓNIMOS del mismo corte en distintos países — cuenta como UN SOLO tipo de carne, nunca lo dividas en varios. Ejemplo: si el menú tiene "Entrecôte / Ojo de bife / Ribeye (FRA)" y "Magret de Canard", son 2 tipos de carne (no 3 ni 4), y el total se divide entre esos 2.
 
 ENSALADA
 -   Bolsas de ensalada: 1 bolsa cada 30 personas.
