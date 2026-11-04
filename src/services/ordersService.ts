@@ -176,6 +176,48 @@ export const fetchApprovedOrders = async (): Promise<CateringOrder[]> => {
     return (data || []).map(mapRowToOrder)
 }
 
+export type SameDayOrder = {
+    id: string
+    name: string
+    guestCount: number
+    estimatedPrice: number | null
+    status: string
+}
+
+/**
+ * Pedidos ya confirmados/enviados para una fecha, excluyendo el pedido
+ * actual — para que el admin vea de entrada cuánto tiene comprometido ese
+ * día antes de decidir si manda un presupuesto más (plan "visibilidad de
+ * la misma fecha"). Solo lectura, no toca nada.
+ */
+export const fetchOrdersByEventDate = async (
+    eventDate: string,
+    excludeOrderId?: string
+): Promise<SameDayOrder[]> => {
+    if (!eventDate) return []
+
+    let query = supabase
+        .from('catering_orders')
+        .select('id, name, guest_count, estimated_price, status')
+        .eq('event_date', eventDate)
+        .in('status', ['sent', 'ENVIADO', 'approved'])
+
+    if (excludeOrderId) {
+        query = query.neq('id', excludeOrderId)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+
+    return (data || []).map((row) => ({
+        id: row.id,
+        name: row.name || 'Sin nombre',
+        guestCount: row.guest_count || 0,
+        estimatedPrice: row.estimated_price ?? null,
+        status: row.status,
+    }))
+}
+
 /**
  * Fetch all orders (all statuses) for reporting, no pagination.
  * Optionally filter by created_at date range.

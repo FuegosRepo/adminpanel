@@ -2,6 +2,7 @@ import React from 'react'
 import { CateringOrder } from '@/types'
 import { Calendar, Users, MapPin, Clock, Mail, Phone, User, CreditCard } from 'lucide-react'
 import { ProductListResolver } from '../admin/ProductListResolver'
+import { SameDayOrdersAlert } from './SameDayOrdersAlert'
 import { formatLocalDate } from '@/utils/dateUtils'
 
 import {
@@ -54,6 +55,10 @@ export default function OrderDetails({ isOpen, order, onClose }: OrderDetailsPro
                 </div>
 
                 <ScrollArea className="flex-1 p-6 bg-slate-50/50">
+                    <div className="mb-6">
+                        <SameDayOrdersAlert eventDate={order.contact.eventDate} excludeOrderId={order.id} />
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
 
                         {/* Column 1: Info (Client & Event) */}
