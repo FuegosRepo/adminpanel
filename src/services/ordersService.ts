@@ -219,6 +219,31 @@ export const fetchOrdersByEventDate = async (
 }
 
 /**
+ * Para cada fecha de la lista, cuántos pedidos confirmados/enviados hay en
+ * total (sin excluir ninguno) — una sola consulta para toda la página en
+ * vez de una por fila, así se puede mostrar un indicador chico en cada
+ * tarjeta de la lista sin generar N+1.
+ */
+export const fetchSameDayCounts = async (eventDates: string[]): Promise<Record<string, number>> => {
+    const uniqueDates = [...new Set(eventDates.filter(Boolean))]
+    if (uniqueDates.length === 0) return {}
+
+    const { data, error } = await supabase
+        .from('catering_orders')
+        .select('event_date')
+        .in('event_date', uniqueDates)
+        .in('status', ['sent', 'ENVIADO', 'approved'])
+
+    if (error) throw error
+
+    const counts: Record<string, number> = {}
+    for (const row of data || []) {
+        counts[row.event_date] = (counts[row.event_date] || 0) + 1
+    }
+    return counts
+}
+
+/**
  * Fetch all orders (all statuses) for reporting, no pagination.
  * Optionally filter by created_at date range.
  * Used by Reports page for historical analysis.

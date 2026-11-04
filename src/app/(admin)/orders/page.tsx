@@ -11,6 +11,7 @@ import ExternalBudgetsList from '@/components/ExternalBudgets/ExternalBudgetsLis
 import { CateringOrder, EmailTemplate, FilterOptions } from '@/types'
 import { emailTemplates } from '@/data/mockData'
 import { useOrders } from '@/hooks/useOrders'
+import { useSameDayCounts } from '@/hooks/useSameDayCounts'
 import { supabase } from '@/lib/supabaseClient'
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -47,6 +48,14 @@ export default function OrdersPage() {
     }, [filters, setPage])
 
     const dataToDisplay = orders
+
+    const sameDayCounts = useSameDayCounts(dataToDisplay.map(o => o.contact.eventDate))
+    const COMMITTED_STATUSES = new Set(['sent', 'ENVIADO', 'approved'])
+    const sameDayCountFor = (order: CateringOrder) => {
+        const total = sameDayCounts[order.contact.eventDate] || 0
+        const selfCounted = COMMITTED_STATUSES.has(order.status) ? 1 : 0
+        return Math.max(0, total - selfCounted)
+    }
 
     const [emailModal, setEmailModal] = useState<{
         isOpen: boolean
@@ -184,6 +193,7 @@ export default function OrdersPage() {
                                         <OrderCard
                                             key={order.id}
                                             order={order}
+                                            sameDayCount={sameDayCountFor(order)}
                                             isSelected={false}
                                             onStatusChange={handleStatusChange}
                                             onSendEmail={handleOpenEmailModal}

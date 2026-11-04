@@ -22,6 +22,8 @@ import { cn } from '@/lib/utils'
 
 interface OrderCardProps {
   order: CateringOrder
+  /** Pedidos confirmados/enviados que ya hay para esta misma fecha (sin contar este). */
+  sameDayCount?: number
   isSelected: boolean
   onStatusChange: (orderId: string, newStatus: CateringOrder['status']) => void
   onSendEmail: (order: CateringOrder, template?: EmailTemplate) => void
@@ -50,6 +52,7 @@ const getStatusVariant = (status: string): "default" | "secondary" | "destructiv
 
 const OrderCard = ({
   order,
+  sameDayCount = 0,
   isSelected,
   onStatusChange,
   onSendEmail,
@@ -174,6 +177,15 @@ const OrderCard = ({
             <Badge variant="outline" className="text-xs font-normal whitespace-nowrap">
               📅 {formatDate(order.contact.eventDate)}
             </Badge>
+            {sameDayCount > 0 && (
+              <Badge
+                variant="warning"
+                className="text-xs font-normal whitespace-nowrap"
+                title={`Ya hay ${sameDayCount} pedido${sameDayCount !== 1 ? 's' : ''} más confirmado${sameDayCount !== 1 ? 's' : ''} para esta fecha`}
+              >
+                ⚠️ +{sameDayCount} ese día
+              </Badge>
+            )}
             <Badge variant="outline" className="text-xs font-normal whitespace-nowrap">
               👥 {order.contact.guestCount} pax
             </Badge>
