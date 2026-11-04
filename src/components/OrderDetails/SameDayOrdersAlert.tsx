@@ -88,7 +88,7 @@ export function SameDayOrdersAlert({ eventDate, excludeOrderId }: SameDayOrdersA
                         )}
                     </div>
 
-                    <ul className="space-y-1.5">
+                    <ul className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                         {sortedOrders.map((o) => (
                             <li key={o.id} className="flex items-center gap-2 flex-wrap">
                                 <StatusPill status={o.status} />

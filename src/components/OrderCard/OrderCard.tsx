@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { emailTemplates } from '@/data/mockData'
 import { formatLocalDate } from '@/utils/dateUtils'
 import { ProductListResolver } from '@/components/admin/ProductListResolver'
+import { SameDayOrdersAlert } from '@/components/OrderDetails/SameDayOrdersAlert'
 import ConfirmationModal from '@/components/common/ConfirmationModal'
 import PaymentMethodSelector from '@/components/common/PaymentMethodSelector'
 import InternalNoteModal from '@/components/InternalNoteModal/InternalNoteModal'
@@ -283,6 +284,8 @@ const OrderCard = ({
         <TableRow className="bg-muted/30 hover:bg-muted/30">
           <TableCell colSpan={6} className="p-0 border-b">
             <div className="p-4 sm:p-6 lg:pl-16 space-y-6">
+
+              <SameDayOrdersAlert eventDate={order.contact.eventDate} excludeOrderId={order.id} />
 
               {/* Menu Details & Action Bar side-by-side */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
