@@ -182,6 +182,7 @@ export type SameDayOrder = {
     guestCount: number
     estimatedPrice: number | null
     status: string
+    eventType: string
 }
 
 /**
@@ -198,7 +199,7 @@ export const fetchOrdersByEventDate = async (
 
     let query = supabase
         .from('catering_orders')
-        .select('id, name, guest_count, estimated_price, status')
+        .select('id, name, guest_count, estimated_price, status, event_type')
         .eq('event_date', eventDate)
         .in('status', ['sent', 'ENVIADO', 'approved'])
 
@@ -215,6 +216,7 @@ export const fetchOrdersByEventDate = async (
         guestCount: row.guest_count || 0,
         estimatedPrice: row.estimated_price ?? null,
         status: row.status,
+        eventType: row.event_type || '',
     }))
 }
 

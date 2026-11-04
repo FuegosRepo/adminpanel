@@ -94,6 +94,7 @@ export function SameDayOrdersAlert({ eventDate, excludeOrderId }: SameDayOrdersA
                                 <StatusPill status={o.status} />
                                 <span className="text-amber-900">
                                     {o.name} · {o.guestCount} invitados
+                                    {o.eventType ? ` · ${o.eventType}` : ''}
                                     {o.estimatedPrice ? ` · ${formatEUR(o.estimatedPrice)}` : ''}
                                 </span>
                             </li>
