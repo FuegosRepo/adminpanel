@@ -15,6 +15,13 @@ interface SameDayOrdersAlertProps {
     excludeOrderId?: string
 }
 
+/** 'sent' y 'ENVIADO' son el mismo estado con distinta mayúscula en la base. */
+function statusLabel(status: string): string {
+    if (status === 'approved') return 'Aprobado'
+    if (status === 'sent' || status === 'ENVIADO') return 'Enviado'
+    return status
+}
+
 /**
  * Aviso de capacidad del día: antes de mandar un presupuesto nuevo, mostrar
  * qué otros pedidos ya están confirmados/enviados para la misma fecha
@@ -28,6 +35,8 @@ export function SameDayOrdersAlert({ eventDate, excludeOrderId }: SameDayOrdersA
     if (!loading && orders.length === 0) return null
 
     const totalGuests = orders.reduce((sum, o) => sum + o.guestCount, 0)
+    const approvedCount = orders.filter((o) => o.status === 'approved').length
+    const sentCount = orders.length - approvedCount
 
     return (
         <div className="rounded-lg border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm space-y-2">
@@ -39,7 +48,8 @@ export function SameDayOrdersAlert({ eventDate, excludeOrderId }: SameDayOrdersA
                     </span>
                 ) : (
                     <span>
-                        Ya tenés {orders.length} pedido{orders.length !== 1 ? 's' : ''} más para esta fecha ({totalGuests} invitados en total)
+                        Ya tenés {orders.length} pedido{orders.length !== 1 ? 's' : ''} más para esta fecha
+                        {' '}({approvedCount} aprobado{approvedCount !== 1 ? 's' : ''}, {sentCount} enviado{sentCount !== 1 ? 's' : ''} sin confirmar · {totalGuests} invitados en total)
                     </span>
                 )}
             </div>
@@ -49,6 +59,10 @@ export function SameDayOrdersAlert({ eventDate, excludeOrderId }: SameDayOrdersA
                         <li key={o.id} className="text-amber-800/90">
                             {o.name} · {o.guestCount} invitados
                             {o.estimatedPrice ? ` · ${formatEUR(o.estimatedPrice)}` : ''}
+                            {' · '}
+                            <span className={o.status === 'approved' ? 'font-semibold' : 'italic'}>
+                                {statusLabel(o.status)}
+                            </span>
                         </li>
                     ))}
                 </ul>
