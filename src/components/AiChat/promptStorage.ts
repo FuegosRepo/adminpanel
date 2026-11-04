@@ -9,8 +9,14 @@ import { CALCULATION_MANUAL_SEED } from './calculationManualSeed'
  * dispositivos todavía. Si más adelante hace falta que sea el mismo para
  * todos (varios admins editando), ahí sí conviene una tabla chica.
  */
-const PROMPT_KEY = 'fuegos.asistentes.shoppingListPrompt.v1'
-const MANUAL_KEY = 'fuegos.asistentes.calculationManual.v1'
+// Subir el sufijo de versión cada vez que se cambie SHOPPING_LIST_PROMPT_SEED
+// o CALCULATION_MANUAL_SEED de forma significativa: una copia vieja guardada
+// en el navegador de alguien queda huérfana y el código vuelve a usar el
+// seed actualizado solo, sin depender de que alguien abra el diálogo y
+// clickee "Restablecer valores" a mano (pasó: un admin tenía guardada una
+// versión de semanas atrás y ningún arreglo posterior le llegaba).
+const PROMPT_KEY = 'fuegos.asistentes.shoppingListPrompt.v2'
+const MANUAL_KEY = 'fuegos.asistentes.calculationManual.v2'
 
 function readKey(key: string, fallback: string): string {
     try {

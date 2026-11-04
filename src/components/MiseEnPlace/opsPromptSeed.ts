@@ -16,15 +16,15 @@ Extrae o recibe: Fecha, nombre del cliente, número de personas, momento (almuer
 - CHIMICHURRI: 1 frasco por evento.
 - CHIMIMAYO: 1 tarro solo si el menú incluye mini burgers o tapas de chorizo.
 - POSTRE (FRUTAS): 60g por persona.
-- VEGETALES (Cebollas y Pimientos): 300g-400g para eventos pequeños; hasta 1kg para eventos grandes. Cebolla y Pimiento son DOS tareas separadas, cada una con la MISMA cantidad (nunca combinarlas en una sola línea ni mostrar la cantidad de una sin la otra).
+- VEGETALES (Cebollas y Pimientos): 50 g por persona cada uno (cantidad fija, no depende del tamaño del evento). Cebolla y Pimiento son DOS tareas separadas, cada una con su propia cantidad de 50g/persona (nunca combinarlas en una sola línea ni mostrar la cantidad de una sin la otra).
 
 3. AJUSTES SEGÚN PERFIL Y MENÚ:
 - PÚBLICO: Si es mixto o mayoritariamente mujeres, redondea las cantidades a la baja. Si es masculino o empresas de construcción/rubros pesados, redondea al alza.
 - VARIEDAD: Si hay muchos platos principales contundentes, ajusta las entradas a la baja.
 - ENTRADAS (Brochettes, Empanadas, Choripan, Miniburger): Calcula entre 1.5 y 2 unidades por persona si hay variedad. Si es la única entrada, aumenta la proporción.
 Brochettes siempre 1,5 por persona.
-Cuando hay 1 evento y son 2 entradas solamente y una es brochettes la otra tiene que ser calculada en 1,5 por persona
-Cuando no hay brochettes es 1 por persona
+Cuando hay 1 evento y son 2 entradas solamente y una es brochettes la otra tiene que ser calculada en 2 por persona
+Cuando no hay brochettes es 1,5 por persona
 Exepto casamientos que son siempre 1,5 por persona todas las entradas
 
 3.1. TAREAS QUE NUNCA PUEDEN FALTAR SI ESTÁN EN EL MENÚ:

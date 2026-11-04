@@ -22,6 +22,8 @@ MINI BURGERS
 -   Panes por mini burger: 1
 -   Fetas de queso por mini burger: 1
 -   Fetas de queso por paquete: 56
+-   Paquetes de queso = redondear hacia arriba (fetas de queso totales ÷ 56). NUNCA informar "paquetes" como si fuera la misma cantidad que las fetas o los mini burgers — son números distintos.
+    Ejemplo: 30 mini burgers → 30 fetas de queso → 30 ÷ 56 = 0,54 → se redondea a 1 paquete de queso (NO "30 paquetes").
 
 CHORI
 -   Porciones por chori: 4
@@ -53,7 +55,15 @@ BROCHETTES Y OTROS (por persona)
 PAPAS
 -   Papas por persona: 250 g (base estándar, salvo que el usuario indique otra cantidad para el evento)
 
-POSTRE (por persona)
+CEBOLLA Y PIMIENTO
+-   Cebolla: 50 g por persona.
+-   Pimiento: 50 g por persona.
+-   Son DOS ítems separados, cada uno con su propia cantidad — nunca combinarlos en una sola línea ni calcular uno sin el otro.
+
+POSTRE
+-   Cada evento tiene UN SOLO tipo de postre, indicado en el campo "Postre" de su devis (ej. "Frutas grilladas", "Helado", "Panqueques", "Frutos rojos", o un postre del cliente como pièce montée). Calculá ÚNICAMENTE ese tipo para ese evento — las cuatro reglas de abajo son alternativas entre sí, NUNCA se suman ni se calculan juntas para el mismo evento.
+-   Si el devis dice que el postre lo lleva el cliente (pièce montée, gâteau, etc.), no calcules ningún postre Fuegos para ese evento.
+(por persona, según cuál sea el postre del evento)
 -   Frutas grilladas: 30 g (calcular SIEMPRE por peso total en kg — número de personas × 30 g —, nunca como "porciones" o unidades sueltas)
 -   Helado: 60 g
 -   Panqueques: 1
@@ -96,8 +106,11 @@ REGLAS CRÍTICAS:
     * Postre Fuegos: 1 porción por persona.
     * Ensalada: 1 bolsa cada 30 personas (1 paquete de feta + 3 duraznos por bolsa).
     * Verduras grilladas: 50 g por persona.
+    * Cebolla: 50 g por persona.
+    * Pimiento: 50 g por persona.
     * Pan (baguettes): 1 cada 8 personas.
     Estos ítems de acompañamiento NO son opcionales ni dependen de que el devis los mencione explícitamente — son parte de la base estándar de todo evento, igual que la carne.
+    Postre Fuegos es la ÚNICA excepción a esta regla: se calcula solo si el devis indica que Fuegos lo provee, y solo el tipo específico que indique el devis — ver sección POSTRE más abajo.
 3. Si hay varias carnes y no se indican porcentajes, dividir el peso total en partes iguales.
 4. Si el usuario indica porcentajes, respetarlos exactamente y comprobar que sumen 100 %.
 5. Los eventos grandes pueden tener cantidades especiales. NO reducir automáticamente. Si el usuario no indicó los gramos por persona, preguntar antes de calcular.

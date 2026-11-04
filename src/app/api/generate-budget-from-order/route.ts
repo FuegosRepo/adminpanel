@@ -81,19 +81,10 @@ export async function POST(request: NextRequest) {
 
         const menuTotalHT = basePrice * guestCount
 
-        // ✅ NUEVA LÓGICA: Descuento se aplica al HT ANTES de calcular el TVA
-        let discount = null
-        let menuHTApresRemise = menuTotalHT
-
-        if (menuType === 'dejeuner') {
-            const discountAmount = menuTotalHT * 0.1
-            discount = {
-                percentage: 10,
-                amount: discountAmount,
-                reason: 'Événement à midi - 10%'
-            }
-            menuHTApresRemise = menuTotalHT - discountAmount
-        }
+        // El descuento automático del 10% para déjeuner se sacó (pedido del
+        // cliente, 2026-11-04) — ya no se aplica solo por ser almuerzo.
+        const discount = null
+        const menuHTApresRemise = menuTotalHT
 
         // TVA se calcula sobre el HT DESPUÉS del descuento
         const menuTVA = menuHTApresRemise * 0.1
@@ -104,14 +95,21 @@ export async function POST(request: NextRequest) {
         const equipment = order.extras?.equipment || []
         if (equipment.length > 0) {
             const costPerPersonPerItem = 5
-            const materialItems = equipment.map((name: string) => ({
-                name: name,
-                quantity: guestCount,
-                pricePerUnit: costPerPersonPerItem,
-                total: costPerPersonPerItem * guestCount
-            }))
+            // Mesas y manteles se arman por mesa (1 cada 10 personas), no por
+            // persona como el resto del material — antes salían con la misma
+            // cantidad que cubiertos y platos, lo cual estaba mal.
+            const isPerTableItem = (name: string) => /mesa|mantel|table|nappe/i.test(name)
+            const materialItems = equipment.map((name: string) => {
+                const quantity = isPerTableItem(name) ? Math.ceil(guestCount / 10) : guestCount
+                return {
+                    name: name,
+                    quantity,
+                    pricePerUnit: costPerPersonPerItem,
+                    total: costPerPersonPerItem * quantity
+                }
+            })
 
-            const materialHT = costPerPersonPerItem * guestCount * equipment.length
+            const materialHT = materialItems.reduce((sum: number, item: { total: number }) => sum + item.total, 0)
             const materialTVA = materialHT * 0.2
             const materialTTC = materialHT + materialTVA
 

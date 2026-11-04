@@ -1,7 +1,5 @@
 import { BudgetData } from '../types'
 import {
-    DEJEUNER_DISCOUNT_PERCENTAGE,
-    DEJEUNER_DISCOUNT_REASON,
     SERVICE_PRICE_PER_HOUR,
     TVA_SERVICE,
     MATERIAL_INSURANCE_PERCENTAGE
@@ -15,23 +13,12 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
         const menuHT = updated.menu.pricePerPerson * updated.menu.totalPersons
         updated.menu.totalHT = menuHT
 
-        // ✅ NUEVA LÓGICA: Descuento se aplica al HT ANTES del TVA
-        let menuHTApresRemise = menuHT
-
-        if (updated.clientInfo.menuType === 'dejeuner') {
-            const discountAmount = menuHT * (DEJEUNER_DISCOUNT_PERCENTAGE / 100)
-            updated.menu.discount = {
-                percentage: DEJEUNER_DISCOUNT_PERCENTAGE,
-                amount: discountAmount,
-                reason: DEJEUNER_DISCOUNT_REASON
-            }
-            // Guardar HT après remise para cálculos posteriores
-            menuHTApresRemise = menuHT - discountAmount
-            updated.menu.totalHTApresRemise = menuHTApresRemise
-        } else {
-            updated.menu.discount = undefined
-            updated.menu.totalHTApresRemise = menuHT
-        }
+        // El descuento automático del 10% para déjeuner se sacó (pedido del
+        // cliente, 2026-11-04) — si hace falta un descuento puntual, se carga
+        // a mano en el presupuesto, ya no sale solo por ser almuerzo.
+        const menuHTApresRemise = menuHT
+        updated.menu.discount = undefined
+        updated.menu.totalHTApresRemise = menuHT
 
         // TVA se calcula sobre el HT DESPUÉS del descuento
         updated.menu.tva = menuHTApresRemise * (updated.menu.tvaPct / 100)
@@ -166,13 +153,14 @@ export const recalculateTotals = (data: BudgetData): BudgetData => {
     // ✅ Total TTC es simplemente HT + TVA (el descuento ya está en el HT)
     let totalTTC = totalHT + totalTVA
 
-    // Limpiar descuentos legacy de totals
-    if (updated.totals.discount && updated.menu.discount) {
-        if (updated.totals.discount.percentage === updated.menu.discount.percentage ||
-            updated.totals.discount.reason?.toLowerCase().includes('déjeuner') ||
-            updated.totals.discount.reason?.toLowerCase().includes('midi')) {
-            updated.totals.discount = undefined
-        }
+    // Limpiar descuento automático de déjeuner que haya quedado guardado en
+    // un presupuesto de antes de sacar esta regla — ya no depende de
+    // updated.menu.discount porque esa rama ahora nunca se setea.
+    if (
+        updated.totals.discount?.reason?.toLowerCase().includes('déjeuner') ||
+        updated.totals.discount?.reason?.toLowerCase().includes('midi')
+    ) {
+        updated.totals.discount = undefined
     }
 
     // Solo aplicar descuento adicional de totals si existe (descuentos manuales del admin)
