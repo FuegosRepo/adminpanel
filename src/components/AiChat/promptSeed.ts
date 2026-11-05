@@ -67,11 +67,13 @@ CEBOLLA Y PIMIENTO
 -   Cebolla: 50 g por persona.
 -   Pimiento: 50 g por persona.
 -   Son DOS ítems separados, cada uno con su propia cantidad — nunca combinarlos en una sola línea ni calcular uno sin el otro.
+-   Total semanal: sumar los kg de cada evento (no los invitados). Ejemplo (30, 75, 20 personas): cebolla = 30×50g + 75×50g + 20×50g = 1500g + 3750g + 1000g = 6250g = 6,25 kg. NUNCA sumar los invitados primero y multiplicar después tratando el resultado como gramos (30+75+20=125 NO es "1250g" ni ningún gramaje — es una cantidad de personas).
 
 POSTRE
 -   OBLIGATORIO calcularlo en TODOS los eventos cuyo postre lo provee Fuegos — no es opcional, no te lo saltees. Nunca entregues una lista de compras sin la sección de postre de cada evento que corresponda, incluyendo el total semanal (sumado por tipo).
 -   Cada evento tiene UN SOLO tipo de postre, indicado en el campo "Postre" de su devis (ej. "Frutas grilladas", "Helado", "Panqueques", "Frutos rojos", o un postre del cliente como pièce montée). Calculá ÚNICAMENTE ese tipo para ese evento — las cuatro reglas de abajo son alternativas entre sí, NUNCA se suman ni se calculan juntas para el mismo evento.
 -   Si el devis dice que el postre lo lleva el cliente (pièce montée, gâteau, etc.), no calcules ningún postre Fuegos para ese evento — pero los demás eventos de la semana SÍ tienen que tener el suyo calculado igual.
+-   Un postre que lleva el cliente (pièce montée, gâteau, etc.) NUNCA aparece en ningún lado de la salida: ni en el detalle del evento, ni en "Totales de Postres", ni en la "Lista de Compras" final — ni siquiera como línea mencionando que no se calcula. Es como si ese evento no tuviera postre Fuegos en absoluto.
 (por persona, según cuál sea el postre del evento)
 -   Frutas grilladas: 30 g (calcular SIEMPRE por peso total en kg — número de personas × 30 g —, nunca como "porciones" o unidades sueltas)
 -   Helado: 60 g
@@ -80,11 +82,15 @@ POSTRE
 
 PAN
 -   Baguettes: 1 cada 8 personas.
--   Redondear siempre hacia arriba el número de baguettes.
+-   Redondear siempre hacia arriba el número de baguettes, POR EVENTO (cada evento recibe su propia entrega, no se reparten fracciones entre eventos). El total semanal es la SUMA de esos redondeos por evento, no un redondeo único sobre el total de invitados.
+-   Ejemplo (30, 75, 20 personas): Evento 1: 30÷8=3,75→4. Evento 2: 75÷8=9,375→10. Evento 3: 20÷8=2,5→3. Total semanal = 4+10+3 = 17 baguettes. INCORRECTO: sumar las personas primero (30+75+20=125) y dividir una sola vez (125÷8=15,625→16) — pan NO es un ítem de bolsa/paquete compartido, es por evento.
 
 TOTALES SEMANALES (cuando hay más de un evento):
--   Nunca redondear por evento y después sumar los redondeos — eso da totales mal (ej. "1 paquete" + "1 paquete" + "2 paquetes" = 4 paquetes es INCORRECTO si en realidad sumando las fetas reales da para 2 paquetes). Para cualquier ítem que se compra en paquete/pote/bolsa (queso en fetas, mozzarella en potes, ensalada en bolsas, etc.): primero sumar la cantidad base real (fetas, gramos, unidades) de TODOS los eventos de la semana, y recién sobre esa suma total dividir por el tamaño del paquete y redondear hacia arriba UNA sola vez.
-    Ejemplo numérico (paquetes de queso, 3 eventos de 45, 113 y 30 mini burgers): fetas = 45 + 113 + 30 = 188 fetas totales. 188 ÷ 56 = 3,36 → redondear arriba = 4 paquetes. INCORRECTO sumar 1 + 3 + 1 = 5 (eso es sumar los redondeos de cada evento, no las fetas).
+-   Hay DOS categorías de ítems con reglas de redondeo DISTINTAS para el total semanal — no las confundas:
+    GRUPO A — stock compartido (se compra de una sola bolsa/stock para toda la semana, se puede repartir fracciones entre eventos): queso en fetas → paquetes, mozzarella → potes, melón (cada melón rinde 100 brochettes, sin importar de qué evento sean). Para estos: sumar la cantidad base real (fetas, gramos, unidades) de TODOS los eventos primero, y recién sobre esa suma total dividir por el tamaño del paquete/rinde y redondear hacia arriba UNA sola vez.
+        Ejemplo queso (3 eventos de 45, 113 y 30 mini burgers): fetas = 45+113+30 = 188. 188÷56 = 3,36 → 4 paquetes. INCORRECTO: 1+1+2=4 sumando paquetes ya redondeados por evento (puede coincidir o no, pero el método correcto es siempre sumar fetas primero).
+        Ejemplo melón (2 eventos con 75 y 20 brochettes de jambon ibérique): brochettes = 75+20 = 95. 95÷100 = 0,95 → 1 melón. INCORRECTO: redondear cada evento por separado (75÷100→1, 20÷100→1) y sumar esos redondeos (1+1=2) — un melón puede repartirse entre varios eventos, no hace falta uno nuevo por evento.
+    GRUPO B — entrega por evento (cada evento se arma y se entrega por separado, no se reparten fracciones entre eventos): pan/baguettes, ensalada/bolsas (y lo que compre en estas unidades). Para estos: redondear hacia arriba DENTRO de cada evento primero, y el total semanal es la SUMA de esos redondeos por evento (ver ejemplo en la sección PAN).
 -   El resumen semanal de cada categoría (Entradas, Viandes, Acompañamientos, Postres) tiene que mostrar el DETALLE de ingredientes de cada ítem, no solo la cantidad de unidades — igual que el detalle por evento, pero sumado. Ejemplo: "Mini Burgers: 188 unidades (6,58 kg de carne, 188 panes, 4 paquetes de queso)", no solo "Mini Burgers: 188 unidades".
 -   ERROR COMÚN A EVITAR: el total semanal de cada ítem tiene que ser la SUMA de ese ítem en TODOS los eventos, nunca el número de un solo evento copiado como si fuera el total. Antes de escribir cada línea del resumen semanal, revisá explícitamente: ¿sumé el valor de este ítem en cada uno de los eventos del contexto, uno por uno? Si un evento no tiene ese ítem, sumale 0, pero no te olvides de ningún evento.
 -   Totales de Acompañamientos SIEMPRE tiene que incluir TODOS los acompañamientos que aplicaron esa semana: papas, ensalada (+ feta + duraznos), verduras grilladas, cebolla, pimiento, pan — nunca mostrar solo las papas y omitir el resto.
