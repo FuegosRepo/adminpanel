@@ -19,8 +19,8 @@ function parseInlineSegments(line: string): Segment[] {
         .filter(Boolean)
         .map((part) =>
             part.startsWith('**') && part.endsWith('**')
-                ? { text: part.slice(2, -2), bold: true }
-                : { text: part, bold: false }
+                ? { text: sanitizeForPdf(part.slice(2, -2)), bold: true }
+                : { text: sanitizeForPdf(part), bold: false }
         )
 }
 
@@ -39,8 +39,33 @@ function collapseLetterSpacing(text: string): string {
     return cleaned
 }
 
+/**
+ * La fuente helvetica de jsPDF no tiene glifo para "→" (sale como basura
+ * tipo "!'"). Se reemplaza por un equivalente ASCII antes de dibujar
+ * cualquier texto.
+ */
+function sanitizeForPdf(text: string): string {
+    return text.replace(/→/g, '->')
+}
+
+function isTableRow(line: string): boolean {
+    return line.startsWith('|') && line.endsWith('|')
+}
+
+function isTableSeparatorRow(line: string): boolean {
+    return /^\|[\s:-]+\|$/.test(line)
+}
+
+function parseTableRow(line: string): string[] {
+    return line
+        .slice(1, -1)
+        .split('|')
+        .map((cell) => sanitizeForPdf(cell.replace(/\*\*/g, '').trim()))
+}
+
 export async function exportShoppingListPdf(text: string, fileSuffix?: string): Promise<void> {
     const { default: jsPDF } = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
     const doc = new jsPDF()
 
     const marginX = 16
@@ -123,12 +148,40 @@ export async function exportShoppingListPdf(text: string, fileSuffix?: string): 
         flushLine()
     }
 
-    text.split('\n').forEach((rawLine) => {
-        const line = rawLine.trim()
+    const lines = text.split('\n')
+    let i = 0
+    while (i < lines.length) {
+        const line = lines[i].trim()
+
+        // Tabla Markdown: fila de encabezado, fila separadora (|---|---|), filas de datos.
+        if (isTableRow(line) && isTableSeparatorRow((lines[i + 1] || '').trim())) {
+            const head = [parseTableRow(line)]
+            const body: string[][] = []
+            let j = i + 2
+            while (j < lines.length && isTableRow(lines[j].trim())) {
+                body.push(parseTableRow(lines[j].trim()))
+                j += 1
+            }
+            ensureSpace(14)
+            autoTable(doc, {
+                startY: y,
+                head,
+                body,
+                margin: { left: marginX, right: marginX },
+                styles: { fontSize: 9, cellPadding: 2 },
+                headStyles: { fillColor: ACCENT, textColor: 255, fontStyle: 'bold' },
+                theme: 'grid',
+            })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            y = (doc as any).lastAutoTable.finalY + 6
+            i = j
+            continue
+        }
 
         if (line === '') {
             y += 3
-            return
+            i += 1
+            continue
         }
 
         if (line === '---') {
@@ -137,13 +190,14 @@ export async function exportShoppingListPdf(text: string, fileSuffix?: string): 
             doc.setLineWidth(0.2)
             doc.line(marginX, y, pageWidth - marginX, y)
             y += 6
-            return
+            i += 1
+            continue
         }
 
         const headerMatch = line.match(/^(#{1,4})\s+(.*)$/)
         if (headerMatch) {
             const level = headerMatch[1].length
-            const content = collapseLetterSpacing(headerMatch[2])
+            const content = sanitizeForPdf(collapseLetterSpacing(headerMatch[2]))
             ensureSpace(10)
             y += 3
             doc.setFont('helvetica', 'bold')
@@ -151,7 +205,8 @@ export async function exportShoppingListPdf(text: string, fileSuffix?: string): 
             doc.setTextColor(...ACCENT)
             doc.text(content, marginX, y)
             y += level <= 2 ? 6.5 : 5.5
-            return
+            i += 1
+            continue
         }
 
         const bulletMatch = line.match(/^[-•]\s+(.*)$/)
@@ -162,7 +217,8 @@ export async function exportShoppingListPdf(text: string, fileSuffix?: string): 
             doc.setTextColor(...ACCENT)
             doc.text('•', marginX + 2, y)
             drawParagraph(parseInlineSegments(bulletMatch[1]), 8, 10.5, 5.4)
-            return
+            i += 1
+            continue
         }
 
         const numberedMatch = line.match(/^(\d+[.)]\s+)(.*)$/)
@@ -173,11 +229,13 @@ export async function exportShoppingListPdf(text: string, fileSuffix?: string): 
             doc.setTextColor(...ACCENT)
             doc.text(numberedMatch[1].trim(), marginX, y)
             drawParagraph(parseInlineSegments(numberedMatch[2]), 8, 10.5, 5.4)
-            return
+            i += 1
+            continue
         }
 
         drawParagraph(parseInlineSegments(collapseLetterSpacing(line)), 0, 10.5, 5.4)
-    })
+        i += 1
+    }
 
     const suffix = fileSuffix ? `${fileSuffix.replace(/\s+/g, '-').toLowerCase()}-` : ''
     doc.save(`lista-compras-${suffix}${new Date().toISOString().split('T')[0]}.pdf`)
