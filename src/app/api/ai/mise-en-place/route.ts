@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { OPS_PROMPT_SEED } from '@/components/MiseEnPlace/opsPromptSeed'
 import type { MiseEventInput, MisePlan, MiseTask } from '@/components/MiseEnPlace/types'
+import { estimateCostUSD } from '@/lib/ai/pricing'
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
-
-// Precio de gpt-4o-mini al momento de escribir esto (ver también shopping-list/route.ts).
-const PRICE_PER_1M_INPUT_USD = 0.15
-const PRICE_PER_1M_OUTPUT_USD = 0.60
 
 /**
  * A diferencia del asistente de compras (texto libre), acá se le pide a
@@ -184,9 +181,7 @@ export async function POST(request: NextRequest) {
         const usage = data.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined
         const promptTokens = usage?.prompt_tokens ?? 0
         const completionTokens = usage?.completion_tokens ?? 0
-        const estimatedCostUSD =
-            (promptTokens / 1_000_000) * PRICE_PER_1M_INPUT_USD +
-            (completionTokens / 1_000_000) * PRICE_PER_1M_OUTPUT_USD
+        const estimatedCostUSD = estimateCostUSD(OPENAI_MODEL, promptTokens, completionTokens)
 
         return NextResponse.json({ plan, usage: { promptTokens, completionTokens, estimatedCostUSD } })
     } catch (error) {

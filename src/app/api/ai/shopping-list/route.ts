@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { SHOPPING_LIST_PROMPT_SEED } from '@/components/AiChat/promptSeed'
 import { CALCULATION_MANUAL_SEED } from '@/components/AiChat/calculationManualSeed'
+import { estimateCostUSD } from '@/lib/ai/pricing'
 
 // Misma clave que usa Fuegos para el generador de presupuestos (decisión:
 // una sola clave de OpenAI para todo el proyecto, no una separada por app).
@@ -127,16 +128,10 @@ ${customManual || CALCULATION_MANUAL_SEED}`
         }
 
         // Costo estimado a partir de los tokens reales que devuelve la API.
-        // Precio de gpt-4o-mini al momento de escribir esto — si se cambia
-        // el modelo, actualizar estas dos constantes.
-        const PRICE_PER_1M_INPUT_USD = 0.15
-        const PRICE_PER_1M_OUTPUT_USD = 0.60
         const usage = data.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined
         const promptTokens = usage?.prompt_tokens ?? 0
         const completionTokens = usage?.completion_tokens ?? 0
-        const estimatedCostUSD =
-            (promptTokens / 1_000_000) * PRICE_PER_1M_INPUT_USD +
-            (completionTokens / 1_000_000) * PRICE_PER_1M_OUTPUT_USD
+        const estimatedCostUSD = estimateCostUSD(OPENAI_MODEL, promptTokens, completionTokens)
 
         // Si OpenAI cortó la respuesta por quedarse sin tokens, no entregarla
         // como si estuviera completa — es exactamente el bug que reportó el
