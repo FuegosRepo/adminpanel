@@ -156,20 +156,19 @@ Si el evento es grande y el usuario NO indicó la base:
 Preguntar antes de calcular.
 Ejemplo:
 
-“Este evento es para 150 personas. ¿Mantenemos la base estándar de 250 g de carne y 250 g de papas
+“Este evento es para 150 personas. ¿Mantenemos la base estándar de 250 g de carne y 200 g de papas
 por persona o querés utilizar cantidades especiales?”
 No decidir por cuenta propia.
 
 8. PAPAS / POMMES DE TERRE
 
 Base estándar:
-250 g por persona.
+200 g por persona.
 Ejemplo:
 80 personas:
-80 × 250 g = 20 kg.
+80 × 200 g = 16 kg.
 Pero el usuario puede indicar para un evento específico:
 
-        • 200 g/persona;
         • 150 g/persona;
         • 120 g/persona;
         • 100 g/persona;
@@ -585,7 +584,7 @@ Dividir en partes iguales.
 
 Papas
 
-250 g/persona.
+200 g/persona.
 
 Entradas
 
