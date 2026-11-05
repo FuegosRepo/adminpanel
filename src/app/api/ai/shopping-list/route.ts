@@ -104,7 +104,9 @@ ${customManual || CALCULATION_MANUAL_SEED}`
                 // 2000 se quedaba corto para una lista semanal con varios eventos
                 // (el modelo cortaba a mitad de los acompañamientos o postres sin
                 // avisar). 4000 alcanza para el caso real que mandó el cliente.
-                max_tokens: 4000,
+                // max_completion_tokens (no max_tokens, deprecado): los modelos
+                // de razonamiento más nuevos (ej. gpt-6.1-sol) exigen este nombre.
+                max_completion_tokens: 4000,
             }),
         })
 

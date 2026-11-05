@@ -150,7 +150,9 @@ export async function POST(request: NextRequest) {
                     { role: 'user', content: userContent },
                 ],
                 temperature: 0.1,
-                max_tokens: 4000,
+                // max_completion_tokens (no max_tokens, deprecado): los modelos
+                // de razonamiento más nuevos (ej. gpt-6.1-sol) exigen este nombre.
+                max_completion_tokens: 4000,
                 response_format: { type: 'json_object' },
             }),
         })
