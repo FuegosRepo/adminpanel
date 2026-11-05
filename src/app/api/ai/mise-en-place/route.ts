@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { OPS_PROMPT_SEED } from '@/components/MiseEnPlace/opsPromptSeed'
 import type { MiseEventInput, MisePlan, MiseTask } from '@/components/MiseEnPlace/types'
-import { estimateCostUSD } from '@/lib/ai/pricing'
+import { estimateCostUSD, supportsCustomTemperature } from '@/lib/ai/pricing'
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userContent },
                 ],
-                temperature: 0.1,
+                ...(supportsCustomTemperature(OPENAI_MODEL) ? { temperature: 0.1 } : {}),
                 // max_completion_tokens (no max_tokens, deprecado): los modelos
                 // de razonamiento más nuevos (ej. gpt-6.1-sol) exigen este nombre.
                 max_completion_tokens: 4000,

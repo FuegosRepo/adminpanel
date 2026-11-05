@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { SHOPPING_LIST_PROMPT_SEED } from '@/components/AiChat/promptSeed'
 import { CALCULATION_MANUAL_SEED } from '@/components/AiChat/calculationManualSeed'
-import { estimateCostUSD } from '@/lib/ai/pricing'
+import { estimateCostUSD, supportsCustomTemperature } from '@/lib/ai/pricing'
 
 // Misma clave que usa Fuegos para el generador de presupuestos (decisión:
 // una sola clave de OpenAI para todo el proyecto, no una separada por app).
@@ -100,7 +100,9 @@ ${customManual || CALCULATION_MANUAL_SEED}`
             body: JSON.stringify({
                 model: OPENAI_MODEL,
                 messages: openAiMessages,
-                temperature: 0.2,
+                // Modelos de razonamiento nuevos (gpt-6.1-sol...) solo aceptan el
+                // temperature por defecto — mandarla rompe la llamada.
+                ...(supportsCustomTemperature(OPENAI_MODEL) ? { temperature: 0.2 } : {}),
                 // 2000 se quedaba corto para una lista semanal con varios eventos
                 // (el modelo cortaba a mitad de los acompañamientos o postres sin
                 // avisar). 4000 alcanza para el caso real que mandó el cliente.

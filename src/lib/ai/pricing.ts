@@ -20,3 +20,16 @@ export function estimateCostUSD(model: string, promptTokens: number, completionT
     const pricing = PRICING_PER_1M_USD[model] || FALLBACK_PRICING
     return (promptTokens / 1_000_000) * pricing.input + (completionTokens / 1_000_000) * pricing.output
 }
+
+/**
+ * Los modelos de razonamiento más nuevos (ej. gpt-6.1-sol, gpt-6-astra)
+ * rechazan la llamada si se manda `temperature` distinto del valor por
+ * defecto (1) — error real: "Unsupported value: 'temperature' does not
+ * support 0.2 with this model." Los modelos "clásicos" tipo gpt-4o-mini sí
+ * lo soportan y lo necesitamos para respuestas consistentes.
+ */
+const REASONING_MODEL_PREFIXES = ['gpt-6', 'o1', 'o3', 'o4']
+
+export function supportsCustomTemperature(model: string): boolean {
+    return !REASONING_MODEL_PREFIXES.some((prefix) => model.startsWith(prefix))
+}
