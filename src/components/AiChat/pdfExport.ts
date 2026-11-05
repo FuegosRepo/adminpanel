@@ -40,12 +40,20 @@ function collapseLetterSpacing(text: string): string {
 }
 
 /**
- * La fuente helvetica de jsPDF no tiene glifo para "→" (sale como basura
- * tipo "!'"). Se reemplaza por un equivalente ASCII antes de dibujar
- * cualquier texto.
+ * La fuente helvetica de jsPDF solo soporta Latin-1 (WinAnsi) — cualquier
+ * emoji o símbolo fuera de ese rango (✅, →, ⚠️...) rompe el renderizado de
+ * TODA la línea (glifo faltante con ancho mal calculado, el texto sale
+ * espaciado letra por letra). Primero se reemplazan los símbolos conocidos
+ * por su equivalente en texto, y como red de seguridad se saca cualquier
+ * carácter restante fuera de Latin-1.
  */
 function sanitizeForPdf(text: string): string {
-    return text.replace(/→/g, '->')
+    return text
+        .replace(/→/g, '->')
+        .replace(/✅/g, '')
+        .replace(/⚠️?/g, '[!]')
+        // eslint-disable-next-line no-control-regex
+        .replace(/[^\u0000-ÿ]/g, '')
 }
 
 function isTableRow(line: string): boolean {
@@ -53,7 +61,9 @@ function isTableRow(line: string): boolean {
 }
 
 function isTableSeparatorRow(line: string): boolean {
-    return /^\|[\s:-]+\|$/.test(line)
+    if (!isTableRow(line)) return false
+    const cells = line.slice(1, -1).split('|')
+    return cells.length > 0 && cells.every((cell) => /^:?-+:?$/.test(cell.trim()))
 }
 
 function parseTableRow(line: string): string[] {
