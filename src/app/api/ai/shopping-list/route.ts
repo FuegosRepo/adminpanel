@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { SHOPPING_LIST_PROMPT_SEED } from '@/components/AiChat/promptSeed'
 import { CALCULATION_MANUAL_SEED } from '@/components/AiChat/calculationManualSeed'
-import { estimateCostUSD, supportsCustomTemperature } from '@/lib/ai/pricing'
+import { estimateCostUSD, supportsCustomTemperature, pickModel } from '@/lib/ai/pricing'
 
 // Misma clave que usa Fuegos para el generador de presupuestos (decisión:
 // una sola clave de OpenAI para todo el proyecto, no una separada por app).
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
 
 // Modelos de razonamiento más nuevos (gpt-6.1-sol...) tardan bastante más
 // que gpt-4o-mini en responder — sin esto, Netlify corta la función antes
@@ -84,6 +83,11 @@ export async function POST(request: NextRequest) {
         if (messages.length === 0 || !messages[messages.length - 1]?.content?.trim()) {
             return NextResponse.json({ error: 'Falta el mensaje del usuario' }, { status: 400 })
         }
+
+        // 1 evento: modelo barato (gpt-4o-mini). 2+ eventos: modelo más caro
+        // pero confiable (gpt-6.1-sol) — con gpt-4o-mini fallaba de forma
+        // consistente al sumar/dividir entre varios eventos.
+        const OPENAI_MODEL = pickModel(events.length)
 
         const systemPrompt = `${customPrompt || SHOPPING_LIST_PROMPT_SEED}
 

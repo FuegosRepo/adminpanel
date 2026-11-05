@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { OPS_PROMPT_SEED } from '@/components/MiseEnPlace/opsPromptSeed'
 import type { MiseEventInput, MisePlan, MiseTask } from '@/components/MiseEnPlace/types'
-import { estimateCostUSD, supportsCustomTemperature } from '@/lib/ai/pricing'
+import { estimateCostUSD, supportsCustomTemperature, pickModel } from '@/lib/ai/pricing'
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
 
 // Modelos de razonamiento más nuevos (gpt-6.1-sol...) tardan bastante más
 // que gpt-4o-mini en responder — sin esto, Netlify corta la función antes
@@ -138,6 +137,10 @@ export async function POST(request: NextRequest) {
         if (events.length === 0) {
             return NextResponse.json({ error: 'No hay eventos para esta semana' }, { status: 400 })
         }
+
+        // 1 evento: modelo barato (gpt-4o-mini). 2+ eventos: modelo más caro
+        // pero confiable (gpt-6.1-sol) — mismo criterio que shopping-list/route.ts.
+        const OPENAI_MODEL = pickModel(events.length)
 
         const systemPrompt = `${customPrompt || OPS_PROMPT_SEED}\n\n${OUTPUT_CONTRACT}`
         const userContent = `${weekLabel ? `SEMANA: ${weekLabel}\n\n` : ''}EVENTOS DE LA SEMANA:\n\n${events.map(describeEvent).join('\n\n---\n\n')}${instructions ? `\n\nINSTRUCCIONES ESPECÍFICAS PARA ESTA SEMANA (prevalecen sobre el devis):\n${instructions}` : ''}\n\nGenerá la mise en place de cada evento en el formato JSON indicado.`

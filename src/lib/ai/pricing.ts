@@ -33,3 +33,18 @@ const REASONING_MODEL_PREFIXES = ['gpt-6', 'o1', 'o3', 'o4']
 export function supportsCustomTemperature(model: string): boolean {
     return !REASONING_MODEL_PREFIXES.some((prefix) => model.startsWith(prefix))
 }
+
+/**
+ * Con 1 solo evento, gpt-4o-mini (barato) resuelve bien. A partir de 2
+ * eventos juntos (hay que sumar entre eventos, dividir carnes por evento,
+ * etc.) gpt-4o-mini fallaba de forma consistente — ahí usamos el modelo
+ * más caro pero confiable. Decisión del cliente, 2026-11-05.
+ *
+ * OPENAI_MODEL: modelo para 1 evento (default gpt-4o-mini).
+ * OPENAI_MODEL_MULTI: modelo para 2+ eventos (default gpt-6.1-sol).
+ */
+export function pickModel(eventCount: number): string {
+    const singleEventModel = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+    const multiEventModel = process.env.OPENAI_MODEL_MULTI || 'gpt-6.1-sol'
+    return eventCount >= 2 ? multiEventModel : singleEventModel
+}
