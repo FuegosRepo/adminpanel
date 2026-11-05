@@ -15,8 +15,8 @@ import { CALCULATION_MANUAL_SEED } from './calculationManualSeed'
 // seed actualizado solo, sin depender de que alguien abra el diálogo y
 // clickee "Restablecer valores" a mano (pasó: un admin tenía guardada una
 // versión de semanas atrás y ningún arreglo posterior le llegaba).
-const PROMPT_KEY = 'fuegos.asistentes.shoppingListPrompt.v7'
-const MANUAL_KEY = 'fuegos.asistentes.calculationManual.v7'
+const PROMPT_KEY = 'fuegos.asistentes.shoppingListPrompt.v8'
+const MANUAL_KEY = 'fuegos.asistentes.calculationManual.v8'
 
 function readKey(key: string, fallback: string): string {
     try {
