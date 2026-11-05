@@ -110,6 +110,18 @@ export function MiseEnPlaceManager() {
                     customPrompt: getOpsPrompt(),
                 }),
             })
+            // Si el gateway corta por timeout devuelve HTML, no JSON — detectarlo
+            // antes de parsear para no mostrar un SyntaxError confuso.
+            const contentType = response.headers.get('content-type') || ''
+            if (!contentType.includes('application/json')) {
+                setError(
+                    response.status === 504 || response.status === 502
+                        ? 'El modelo tardó demasiado en responder y el servidor cortó la conexión (timeout). Probá de nuevo, o con menos eventos a la vez.'
+                        : `El servidor devolvió una respuesta inesperada (HTTP ${response.status}). Probá de nuevo en un momento.`
+                )
+                return
+            }
+
             const data = await response.json()
             if (!response.ok) {
                 setError(`${data.error || 'Error al generar'}${data.details ? `: ${data.details}` : ''}`)

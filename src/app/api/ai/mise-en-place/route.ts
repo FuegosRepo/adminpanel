@@ -7,6 +7,11 @@ import { estimateCostUSD, supportsCustomTemperature } from '@/lib/ai/pricing'
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
 
+// Modelos de razonamiento más nuevos (gpt-6.1-sol...) tardan bastante más
+// que gpt-4o-mini en responder — sin esto, Netlify corta la función antes
+// de que termine y devuelve un 504 en HTML (ver MiseEnPlaceManager.tsx).
+export const maxDuration = 60
+
 /**
  * A diferencia del asistente de compras (texto libre), acá se le pide a
  * la IA un JSON con un esquema fijo: tareas con cantidad y unidad por

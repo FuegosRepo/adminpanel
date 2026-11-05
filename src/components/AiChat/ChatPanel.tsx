@@ -181,6 +181,25 @@ export function ChatPanel({ events, onUsageLogged }: ChatPanelProps) {
                 }),
             })
 
+            // Si el servidor (o el gateway, por timeout) devuelve HTML en vez de
+            // JSON, response.json() tira un SyntaxError genérico y confuso —
+            // acá se detecta antes y se muestra un mensaje que explica qué pasó.
+            const contentType = response.headers.get('content-type') || ''
+            if (!contentType.includes('application/json')) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: `err-${Date.now()}`,
+                        role: 'assistant',
+                        text: response.status === 504 || response.status === 502
+                            ? 'El modelo tardó demasiado en responder y el servidor cortó la conexión (timeout). Probá de nuevo, o con menos eventos a la vez.'
+                            : `El servidor devolvió una respuesta inesperada (HTTP ${response.status}). Probá de nuevo en un momento.`,
+                        isError: true,
+                    },
+                ])
+                return
+            }
+
             const data = await response.json()
 
             if (!response.ok) {
