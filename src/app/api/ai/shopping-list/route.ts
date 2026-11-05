@@ -157,6 +157,7 @@ ${customManual || CALCULATION_MANUAL_SEED}`
         return NextResponse.json({
             reply: finalReply,
             truncated: finishReason === 'length',
+            model: OPENAI_MODEL,
             usage: { promptTokens, completionTokens, estimatedCostUSD },
         })
     } catch (error) {

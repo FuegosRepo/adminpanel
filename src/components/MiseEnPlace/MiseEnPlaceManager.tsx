@@ -19,6 +19,7 @@ import { ManageStaffDialog, AssignStaffDialog } from './components/StaffDialogs'
 import { getWeekRange, weekLabel, ordersInWeek, toEventInput, computeWeeklyTotals } from './utils'
 import { getOpsPrompt, getStaff, saveStaff, getAssignments, saveAssignments } from './storage'
 import { exportMiseEnPlacePdf } from './pdfExport'
+import { modelLabel } from '@/lib/ai/pricing'
 import type { MisePlan, StaffMember } from './types'
 
 /**
@@ -34,6 +35,7 @@ export function MiseEnPlaceManager() {
     const [excluded, setExcluded] = useState<Set<string>>(new Set())
     const [instructions, setInstructions] = useState('')
     const [plan, setPlan] = useState<MisePlan | null>(null)
+    const [planModel, setPlanModel] = useState<string | null>(null)
     const [appliedInstructions, setAppliedInstructions] = useState('')
     const [generating, setGenerating] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -128,6 +130,7 @@ export function MiseEnPlaceManager() {
                 return
             }
             setPlan(data.plan as MisePlan)
+            setPlanModel(typeof data.model === 'string' ? data.model : null)
             setAppliedInstructions(instructions.trim())
             setChecked(new Set())
             if (data.usage) {
@@ -238,6 +241,9 @@ export function MiseEnPlaceManager() {
                                 </span>
                             )}
                         </div>
+                        {plan && modelLabel(planModel) && (
+                            <p className="text-[11px] text-muted-foreground">{modelLabel(planModel)}</p>
+                        )}
                     </div>
 
                     <div className="grid lg:grid-cols-[1fr_340px] gap-4 items-start">

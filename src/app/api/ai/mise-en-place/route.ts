@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
         const completionTokens = usage?.completion_tokens ?? 0
         const estimatedCostUSD = estimateCostUSD(OPENAI_MODEL, promptTokens, completionTokens)
 
-        return NextResponse.json({ plan, usage: { promptTokens, completionTokens, estimatedCostUSD } })
+        return NextResponse.json({ plan, model: OPENAI_MODEL, usage: { promptTokens, completionTokens, estimatedCostUSD } })
     } catch (error) {
         console.error('Error en /api/ai/mise-en-place:', error)
         return NextResponse.json(

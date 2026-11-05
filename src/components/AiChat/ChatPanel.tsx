@@ -10,6 +10,7 @@ import { getStoredPrompt, getStoredManual } from './promptStorage'
 import { logUsage } from './usageStorage'
 import { renderMarkdownLite } from './markdownLite'
 import { exportShoppingListPdf } from './pdfExport'
+import { modelLabel } from '@/lib/ai/pricing'
 
 type ChatRole = 'user' | 'assistant'
 
@@ -18,6 +19,8 @@ interface ChatMessage {
     role: ChatRole
     text: string
     isError?: boolean
+    /** Qué modelo de OpenAI generó esta respuesta — para mostrarle al admin cuál se usó. */
+    model?: string
 }
 
 /** Lo mínimo del devis que necesita el prompt para calcular. */
@@ -93,6 +96,9 @@ function MessageBubble({ message, isLast, canRetry, isBusy, onRetry, onExport }:
                 )}
             </div>
             <div className={`max-w-[80%] space-y-1 ${isUser ? 'items-end flex flex-col' : ''}`}>
+                {!isUser && !message.isError && modelLabel(message.model) && (
+                    <span className="text-[11px] text-muted-foreground pl-0.5">{modelLabel(message.model)}</span>
+                )}
                 <div
                     className={`rounded-lg px-3.5 py-2.5 text-sm ${isUser ? 'whitespace-pre-wrap' : ''} ${isUser
                         ? 'bg-primary text-primary-foreground'
@@ -217,7 +223,7 @@ export function ChatPanel({ events, onUsageLogged }: ChatPanelProps) {
 
             setMessages((prev) => [
                 ...prev,
-                { id: `a-${Date.now()}`, role: 'assistant', text: data.reply as string },
+                { id: `a-${Date.now()}`, role: 'assistant', text: data.reply as string, model: data.model as string | undefined },
             ])
 
             if (data.usage) {

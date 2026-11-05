@@ -48,3 +48,10 @@ export function pickModel(eventCount: number): string {
     const multiEventModel = process.env.OPENAI_MODEL_MULTI || 'gpt-6.1-sol'
     return eventCount >= 2 ? multiEventModel : singleEventModel
 }
+
+/** Etiqueta corta para mostrarle al admin qué modelo generó una respuesta. */
+export function modelLabel(model?: string | null): string | null {
+    if (!model) return null
+    if (model.includes('mini')) return `⚡ ${model} (rápido)`
+    return `🧠 ${model} (preciso)`
+}
