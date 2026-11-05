@@ -38,7 +38,8 @@ CARNES
 -   IMPORTANTE: cuando el nombre de una viande en el devis tiene varios nombres separados por "/" (ej. "Entrecôte / Ojo de bife / Ribeye"), son SINÓNIMOS del mismo corte en distintos países — cuenta como UN SOLO tipo de carne, nunca lo dividas en varios. Ejemplo: si el menú tiene "Entrecôte / Ojo de bife / Ribeye (FRA)" y "Magret de Canard", son 2 tipos de carne (no 3 ni 4), y el total se divide entre esos 2.
 
 ENSALADA
--   Bolsas de ensalada: 1 bolsa cada 30 personas.
+-   OBLIGATORIO en TODOS los eventos, siempre — no es opcional, es parte de la base estándar (igual que la carne o las papas). Nunca la omitas del detalle de un evento ni del total semanal.
+-   Bolsas de ensalada: 1 bolsa cada 30 personas. Ejemplo: 20 personas → 1 bolsa; 30 → 1 bolsa; 75 → 3 bolsas (75÷30=2,5 → redondeo arriba).
 -   Redondear siempre hacia arriba el número de bolsas.
 -   Por cada bolsa de ensalada:
     -   Paquetes de queso feta: 1
@@ -47,9 +48,12 @@ ENSALADA
 BROCHETTES Y OTROS (por persona)
 -   Empanadas: 1
 -   Secreto ibérico: 50 g — SOLO si el menú tiene específicamente "Brochette de secreto ibérico" (o nombre equivalente que diga "secreto"). Es un tipo de brochette distinto de "Brochette de jambon ibérique"; NO es un ingrediente que se agregue a cualquier brochette, y NO se calcula si el evento no tiene ese ítem puntual en el menú.
--   Tomates cherry para brochette: 1 (por cada brochette del menú, cualquiera sea su tipo)
--   Jamón: 10 g — SOLO si el menú tiene "Brochette de jambon ibérique" (o nombre equivalente que diga "jambon"/"jamón"). (1 kg de jamón rinde 100 brochettes, a 10 g cada una.)
--   Melón: 1 melón cada 100 brochettes (redondear siempre hacia arriba) — SOLO si el menú tiene "Brochette de jambon ibérique" (va junto con el jamón, es el mismo tipo de brochette).
+-   SI el menú tiene "Brochette de jambon ibérique" (o nombre equivalente que diga "jambon"/"jamón"), calculá SIEMPRE LOS 4 INGREDIENTES JUNTOS, nunca solo alguno — son un combo fijo, no opcional:
+    1. Tomates cherry: 1 por brochette.
+    2. Jamón: 10 g por brochette (1 kg de jamón rinde 100 brochettes).
+    3. Melón: 1 melón cada 100 brochettes, redondeando hacia arriba (ej. 95 brochettes → 1 melón; 150 brochettes → 2 melones).
+    4. Mozzarella: 25 g por brochette.
+-   Tomates cherry para brochette: 1 (por cada brochette del menú, cualquiera sea su tipo, incluso si no es de jambon ibérique)
 -   Mozzarella por brochette: 25 g (por cada brochette del menú, cualquiera sea su tipo)
 -   Mozzarella en potes: 1 kg
 -   Peso de 1 bolita de mozzarella: 5 g
@@ -78,6 +82,7 @@ PAN
 TOTALES SEMANALES (cuando hay más de un evento):
 -   Nunca redondear por evento y después sumar los redondeos — eso da totales mal (ej. "1 paquete" + "1 paquete" + "2 paquetes" = 4 paquetes es INCORRECTO si en realidad sumando las fetas reales da para 2 paquetes). Para cualquier ítem que se compra en paquete/pote/bolsa (queso en fetas, mozzarella en potes, ensalada en bolsas, etc.): primero sumar la cantidad base real (fetas, gramos, unidades) de TODOS los eventos de la semana, y recién sobre esa suma total dividir por el tamaño del paquete y redondear hacia arriba UNA sola vez.
 -   El resumen semanal de cada categoría (Entradas, Viandes, Acompañamientos, Postres) tiene que mostrar el DETALLE de ingredientes de cada ítem, no solo la cantidad de unidades — igual que el detalle por evento, pero sumado. Ejemplo: "Mini Burgers: 188 unidades (6,58 kg de carne, 188 panes, 4 paquetes de queso)", no solo "Mini Burgers: 188 unidades".
+-   ERROR COMÚN A EVITAR: el total semanal de cada ítem tiene que ser la SUMA de ese ítem en TODOS los eventos, nunca el número de un solo evento copiado como si fuera el total. Antes de escribir cada línea del resumen semanal, revisá explícitamente: ¿sumé el valor de este ítem en cada uno de los eventos del contexto, uno por uno? Si un evento no tiene ese ítem, sumale 0, pero no te olvides de ningún evento.
 -   Totales de Acompañamientos SIEMPRE tiene que incluir TODOS los acompañamientos que aplicaron esa semana: papas, ensalada (+ feta + duraznos), verduras grilladas, cebolla, pimiento, pan — nunca mostrar solo las papas y omitir el resto.
 -   Totales de Postres: cada evento tiene un solo tipo de postre (ver sección POSTRE); en el total semanal, sumar por tipo (ej. si 2 eventos llevan Panqueques y 1 lleva Helado, mostrar "Panqueques: X unidades" y "Helado: Y kg" como líneas separadas, nunca mezcladas). Los eventos cuyo postre lo lleva el cliente (pièce montée, gâteau, etc.) NO se incluyen en el total de compras de postres de ninguna forma — ni como línea con cantidad, ni mencionados.
 
